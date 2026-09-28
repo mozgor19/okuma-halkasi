@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getMember } from "@/db/store";
 import {
   authenticateMember,
-  authIsConfigured,
+  authConfigurationIssue,
   createSessionToken,
   SESSION_COOKIE,
   SESSION_MAX_AGE,
@@ -11,11 +11,9 @@ import {
 export const runtime = "edge";
 
 export async function POST(request: Request) {
-  if (!authIsConfigured()) {
-    return NextResponse.json(
-      { error: "Giriş henüz yapılandırılmadı." },
-      { status: 503 },
-    );
+  const configurationIssue = authConfigurationIssue();
+  if (configurationIssue) {
+    return NextResponse.json({ error: configurationIssue }, { status: 503 });
   }
 
   const body = await request.json().catch(() => null) as { username?: unknown; password?: unknown } | null;

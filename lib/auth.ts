@@ -4,35 +4,66 @@ export const SESSION_COOKIE = "okuma_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
 type MemberCredential = { memberId: number; password: string };
+type AuthConfiguration = { credentials: Record<string, MemberCredential>; secret: string };
+type ConfigurationResult =
+  | { config: AuthConfiguration; issue: null }
+  | { config: null; issue: string };
 
 const encoder = new TextEncoder();
 
-function configuration() {
+function configurationResult(): ConfigurationResult {
+  const rawCredentials = env.MEMBER_CREDENTIALS;
+  if (!rawCredentials) {
+    return { config: null, issue: "MEMBER_CREDENTIALS Secret'ı Worker çalışma ortamında bulunamadı." };
+  }
+
   const secret = env.SESSION_SECRET;
-  if (!secret || secret.length < 32) return null;
+  if (!secret) {
+    return { config: null, issue: "SESSION_SECRET Secret'ı Worker çalışma ortamında bulunamadı." };
+  }
+  if (secret.length < 32) {
+    return { config: null, issue: "SESSION_SECRET en az 32 karakter olmalı." };
+  }
 
   try {
-    const raw = JSON.parse(env.MEMBER_CREDENTIALS ?? "") as unknown;
-    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+    const raw = JSON.parse(rawCredentials) as unknown;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+      return { config: null, issue: "MEMBER_CREDENTIALS geçerli bir JSON nesnesi değil." };
+    }
 
-    const credentials = Object.fromEntries(
-      Object.entries(raw).filter((entry): entry is [string, MemberCredential] => {
-        const [username, credential] = entry;
-        return /^[a-z0-9._-]{2,40}$/.test(username)
-          && !!credential
-          && typeof credential === "object"
-          && Number.isInteger((credential as MemberCredential).memberId)
-          && (credential as MemberCredential).memberId > 0
-          && typeof (credential as MemberCredential).password === "string"
-          && (credential as MemberCredential).password.length > 0
-          && (credential as MemberCredential).password.length <= 200;
-      }),
+    const entries = Object.entries(raw);
+    if (!entries.length) {
+      return { config: null, issue: "MEMBER_CREDENTIALS içinde en az bir üye olmalı." };
+    }
+
+    const valid = entries.every(([username, credential]) =>
+      /^[a-z0-9._-]{2,40}$/.test(username)
+      && !!credential
+      && typeof credential === "object"
+      && Number.isInteger((credential as MemberCredential).memberId)
+      && (credential as MemberCredential).memberId > 0
+      && typeof (credential as MemberCredential).password === "string"
+      && (credential as MemberCredential).password.length > 0
+      && (credential as MemberCredential).password.length <= 200
     );
-    if (!Object.keys(credentials).length) return null;
-    return { credentials, secret };
+    if (!valid) {
+      return { config: null, issue: "MEMBER_CREDENTIALS içindeki kullanıcı adı, memberId veya password alanlarından biri geçersiz." };
+    }
+
+    return {
+      config: {
+        credentials: Object.fromEntries(entries) as Record<string, MemberCredential>,
+        secret,
+      },
+      issue: null,
+    };
   } catch {
-    return null;
+    return { config: null, issue: "MEMBER_CREDENTIALS JSON biçimi geçersiz." };
   }
+}
+
+function configuration(): AuthConfiguration | null {
+  return configurationResult().config;
 }
 
 async function hmac(secret: string, value: string): Promise<ArrayBuffer> {
@@ -70,8 +101,12 @@ async function valuesMatch(secret: string, expected: string, candidate: string):
   return crypto.subtle.verify("HMAC", key, await hmac(secret, expected), encoder.encode(candidate));
 }
 
+export function authConfigurationIssue(): string | null {
+  return configurationResult().issue;
+}
+
 export function authIsConfigured(): boolean {
-  return configuration() !== null;
+  return authConfigurationIssue() === null;
 }
 
 export async function authenticateMember(username: string, password: string): Promise<number | null> {
