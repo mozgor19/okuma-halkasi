@@ -1,5 +1,7 @@
-import { bucket, database, getMember } from "@/db/store";
+import { database, getMember } from "@/db/store";
 export const runtime = "edge";
+
+const MAX_STORED_IMAGE_BYTES = 1_800_000;
 
 function imageType(bytes: Uint8Array): string | null {
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
@@ -14,18 +16,21 @@ export async function POST(request: Request) {
     const actor = await getMember(Number(form.get("memberId")));
     if (!actor) return Response.json({ error: "Üye bulunamadı." }, { status: 403 });
     if (!(file instanceof File) || !["cover", "photo"].includes(String(purpose))) return Response.json({ error: "Bir fotoğraf seç." }, { status: 400 });
-    if (file.size < 1 || file.size > 8 * 1024 * 1024) return Response.json({ error: "Görsel en fazla 8 MB olabilir." }, { status: 413 });
+    if (file.size < 1 || file.size > MAX_STORED_IMAGE_BYTES) return Response.json({ error: "İşlenen görsel en fazla 1,8 MB olabilir." }, { status: 413 });
     const bytes = new Uint8Array(await file.arrayBuffer());
     const kind = imageType(bytes);
     if (!kind) return Response.json({ error: "JPG, PNG veya WebP görsel yükle." }, { status: 400 });
     const meetingId = Number(form.get("meetingId"));
     if (purpose === "photo" && (!Number.isInteger(meetingId) || !(await database().prepare("SELECT id FROM meetings WHERE id = ?").bind(meetingId).first()))) return Response.json({ error: "Buluşma bulunamadı." }, { status: 404 });
     const key = crypto.randomUUID();
-    await bucket().put(key, bytes, { httpMetadata: { contentType: kind } });
+    const db = database();
+    const mediaInsert = db.prepare("INSERT INTO media (media_key, content_type, data) VALUES (?, ?, ?)").bind(key, kind, bytes);
     if (purpose === "photo") {
-      try { await database().prepare("INSERT INTO photos (meeting_id, media_key, uploaded_by) VALUES (?, ?, ?)").bind(meetingId, key, actor.id).run(); }
-      catch (error) { await bucket().delete(key); throw error; }
-    }
+      await db.batch([
+        mediaInsert,
+        db.prepare("INSERT INTO photos (meeting_id, media_key, uploaded_by) VALUES (?, ?, ?)").bind(meetingId, key, actor.id),
+      ]);
+    } else await mediaInsert.run();
     return Response.json({ url: `/api/media/${key}` });
   } catch (error) { console.error("Image upload failed", error); return Response.json({ error: "Görsel yüklenemedi. Tekrar dene." }, { status: 503 }); }
 }

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text, primaryKey } from "drizzle-orm/sqlite-core";
+import { blob, integer, sqliteTable, text, primaryKey } from "drizzle-orm/sqlite-core";
 
 export const members = sqliteTable("members", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -39,6 +39,12 @@ export const reviews = sqliteTable("reviews", {
   comment: text("comment"),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [primaryKey({ columns: [table.meetingId, table.memberId] })]);
+export const media = sqliteTable("media", {
+  mediaKey: text("media_key").primaryKey(),
+  contentType: text("content_type").notNull(),
+  data: blob("data", { mode: "buffer" }).notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
 export const photos = sqliteTable("photos", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   meetingId: integer("meeting_id").notNull().references(() => meetings.id),

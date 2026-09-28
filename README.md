@@ -10,14 +10,14 @@ Altı kişilik haftalık okuma grubu için hazırlanmış, Türkçe bir tam yı�
 - Tarih, saat, konum, harita bağlantısı ve buluşma notu
 - Üyenin kendini katılımcı olarak eklemesi, okudum/kısmen okudum/okumadım seçimi, zorunlu 1–10 puan ve isteğe bağlı yorum
 - Yöneticinin elle katılımcı eklemesi, planı buluşmaya dönüştürmesi ve buluşma yerini düzenlemesi
-- Üyelerin fotoğraf yükleyip ilgili kitap sayfasında görmesi; yüklenen fotoğraf tarayıcıda boyutlandırılır
+- Üyelerin fotoğraf yükleyip ilgili kitap sayfasında görmesi; yüklenen fotoğraf tarayıcıda boyutlandırılır ve D1 içinde saklanır
 - Telefon ve masaüstü için uyarlanabilir arayüz; kapak görselleri ve kitap kartları
 
 ## Önemli: gerçek hesaplara henüz hazır değil
 
-Üstteki üye seçici **demo kimlik değiştiricisidir**. İstekler istemcinin gönderdiği üye numarasını kullanır; kişi ve yönetici yetkileri güvenli biçimde doğrulanmaz. Bu sürümü gerçek grubun verileriyle internete açmayın. Yayına geçmeden önce gerçek oturum açma, sunucuda üyelik ve yönetici yetkisi doğrulama, kalıcı veritabanı/görsel depolama ve yedekleme gereklidir. Örnek üyeler, kitaplar, yorumlar ve buluşma kayıtları kurgusaldır.
+Üstteki üye seçici **demo kimlik değiştiricisidir**. İstekler istemcinin gönderdiği üye numarasını kullanır; kişi ve yönetici yetkileri güvenli biçimde doğrulanmaz. Bu sürümü gerçek grubun verileriyle internete açmayın. Yayına geçmeden önce gerçek oturum açma, sunucuda üyelik ve yönetici yetkisi doğrulama ve yedekleme gereklidir. Örnek üyeler, kitaplar, yorumlar ve buluşma kayıtları kurgusaldır.
 
-GitHub kaynak kodunu saklamak ve sürümlemek için uygundur. Bu uygulama veritabanı ve fotoğraf yükleme kullandığından yalnızca statik GitHub Pages ile çalışmaz; yayında sunucu işlevleri, kalıcı veritabanı ve nesne depolama gerekir.
+GitHub kaynak kodunu saklamak ve sürümlemek için uygundur. Bu uygulama veritabanı ve fotoğraf yükleme kullandığından yalnızca statik GitHub Pages ile çalışmaz; yayında sunucu işlevleri ve kalıcı D1 veritabanı gerekir.
 
 ## Yerel çalıştırma
 

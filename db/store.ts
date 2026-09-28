@@ -5,10 +5,6 @@ export function database() {
   if (!env.DB) throw new Error("Veritabanı bağlı değil.");
   return env.DB;
 }
-export function bucket() {
-  if (!env.BUCKET) throw new Error("Fotoğraf alanı bağlı değil.");
-  return env.BUCKET;
-}
 export async function getMember(id: unknown): Promise<Member | null> {
   if (!Number.isInteger(id) || Number(id) < 1) return null;
   return await database().prepare("SELECT id, name, role, color FROM members WHERE id = ?").bind(id).first<Member>();
