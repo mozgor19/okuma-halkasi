@@ -1,7 +1,7 @@
 declare namespace Cloudflare {
   interface Env {
     DB?: D1Database;
-    GROUP_PASSWORD?: string;
+    MEMBER_CREDENTIALS?: string;
     SESSION_SECRET?: string;
   }
 }

@@ -1,4 +1,4 @@
-import { database, getMember } from "@/db/store";
+import { database, getAuthenticatedMember } from "@/db/store";
 export const runtime = "edge";
 
 const MAX_STORED_IMAGE_BYTES = 1_800_000;
@@ -11,10 +11,10 @@ function imageType(bytes: Uint8Array): string | null {
 }
 export async function POST(request: Request) {
   try {
+    const actor = await getAuthenticatedMember(request);
+    if (!actor) return Response.json({ error: "Oturum gerekli." }, { status: 401 });
     const form = await request.formData();
     const file = form.get("file"); const purpose = form.get("purpose");
-    const actor = await getMember(Number(form.get("memberId")));
-    if (!actor) return Response.json({ error: "Üye bulunamadı." }, { status: 403 });
     if (!(file instanceof File) || !["cover", "photo"].includes(String(purpose))) return Response.json({ error: "Bir fotoğraf seç." }, { status: 400 });
     if (file.size < 1 || file.size > MAX_STORED_IMAGE_BYTES) return Response.json({ error: "İşlenen görsel en fazla 1,8 MB olabilir." }, { status: 413 });
     const bytes = new Uint8Array(await file.arrayBuffer());

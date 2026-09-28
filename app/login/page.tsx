@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { BookOpen, LockKeyhole } from "lucide-react";
+import { BookOpen, LockKeyhole, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default function LoginPage() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -18,7 +19,7 @@ export default function LoginPage() {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       });
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error ?? "Giriş yapılamadı.");
@@ -42,22 +43,40 @@ export default function LoginPage() {
           <h1 id="login-title">Okuma Halkası</h1>
         </div>
         <form onSubmit={submit} className="login-form">
-          <label htmlFor="group-password">Grup şifresi</label>
-          <div className="login-input">
-            <LockKeyhole size={18} />
-            <Input
-              id="group-password"
-              type="password"
-              autoComplete="current-password"
-              autoFocus
-              required
-              maxLength={200}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
+          <div className="login-field">
+            <label htmlFor="username">Kullanıcı adı</label>
+            <div className="login-input">
+              <UserRound size={18} />
+              <Input
+                id="username"
+                type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoFocus
+                required
+                maxLength={40}
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+              />
+            </div>
+          </div>
+          <div className="login-field">
+            <label htmlFor="password">Şifre</label>
+            <div className="login-input">
+              <LockKeyhole size={18} />
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                maxLength={200}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            </div>
           </div>
           {error && <p role="alert">{error}</p>}
-          <Button type="submit" disabled={busy || !password}>
+          <Button type="submit" disabled={busy || !username || !password}>
             {busy ? "Giriş yapılıyor" : "Giriş yap"}
           </Button>
         </form>

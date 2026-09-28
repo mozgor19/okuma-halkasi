@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { sessionMemberId, sessionTokenFromRequest } from "@/lib/auth";
 import type { AppData, Member } from "@/lib/types";
 
 export function database() {
@@ -8,6 +9,10 @@ export function database() {
 export async function getMember(id: unknown): Promise<Member | null> {
   if (!Number.isInteger(id) || Number(id) < 1) return null;
   return await database().prepare("SELECT id, name, role, color FROM members WHERE id = ?").bind(id).first<Member>();
+}
+export async function getAuthenticatedMember(request: Request): Promise<Member | null> {
+  const memberId = await sessionMemberId(sessionTokenFromRequest(request));
+  return memberId ? getMember(memberId) : null;
 }
 export async function getState(): Promise<AppData> {
   const queries = [

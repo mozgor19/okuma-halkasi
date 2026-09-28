@@ -5,5 +5,5 @@ export type Attendance = { meetingId: number; memberId: number; readingStatus: "
 export type Review = { meetingId: number; memberId: number; rating: number; comment: string | null; updatedAt: string };
 export type Photo = { id: number; meetingId: number; mediaKey: string; uploadedBy: number; createdAt: string };
 export type Plan = { id: number; bookId: number; plannedDate: string | null; note: string | null; createdBy: number };
-export type AppData = { members: Member[]; books: Book[]; meetings: Meeting[]; attendance: Attendance[]; reviews: Review[]; photos: Photo[]; roadmap: Plan[] };
+export type AppData = { currentMemberId?: number; members: Member[]; books: Book[]; meetings: Meeting[]; attendance: Attendance[]; reviews: Review[]; photos: Photo[]; roadmap: Plan[] };
 export const readingLabels: Record<Attendance["readingStatus"], string> = { read: "Okudum", partial: "Kısmen okudum", unread: "Okumadım", unselected: "Henüz belirtmedi" };

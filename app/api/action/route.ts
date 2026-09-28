@@ -1,8 +1,8 @@
-import { database, getMember } from "@/db/store";
+import { database, getAuthenticatedMember, getMember } from "@/db/store";
 export const runtime = "edge";
 
 type BookInput = { title?: unknown; author?: unknown; publisher?: unknown; pages?: unknown; isbn?: unknown; coverUrl?: unknown; sourceUrl?: unknown };
-type Payload = { action?: string; memberId?: number; meetingId?: number; targetId?: number; planId?: number; book?: BookInput; date?: string | null; location?: string; mapUrl?: string; note?: string; readingStatus?: string; rating?: number; comment?: string };
+type Payload = { action?: string; meetingId?: number; targetId?: number; planId?: number; book?: BookInput; date?: string | null; location?: string; mapUrl?: string; note?: string; readingStatus?: string; rating?: number; comment?: string };
 const clean = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : "";
 const fail = (message: string, status = 400) => Response.json({ error: message }, { status });
 function safeCover(value: unknown) {
@@ -24,10 +24,10 @@ async function addBook(input: BookInput) {
 }
 
 export async function POST(request: Request) {
+  const actor = await getAuthenticatedMember(request);
+  if (!actor) return fail("Oturum gerekli.", 401);
   let input: Payload;
   try { input = await request.json() as Payload; } catch { return fail("Geçersiz istek."); }
-  const actor = await getMember(input.memberId);
-  if (!actor) return fail("Önizleme hesabı bulunamadı.", 403);
   try {
     if (input.action === "createMeeting" || input.action === "createPlan") {
       if (input.action === "createPlan" && actor.role !== "admin") return fail("Gelecek kitapları yönetici ekleyebilir.", 403);

@@ -1,36 +1,51 @@
-# Okuma Halkası — tasarım ve işlev önizlemesi
+# Okuma Halkası
 
-Altı kişilik haftalık okuma grubu için hazırlanmış, Türkçe bir tam yığın site prototipi. Bu sürüm yerel önizleme içindir; henüz herkese açık olarak barındırılmamıştır.
+Altı kişilik haftalık okuma grubu için Türkçe, tam yığın bir web uygulaması.
 
-## Bu sürümde çalışan akışlar
+## Özellikler
 
-- Haftanın kitabı, buluşma arşivi ve yöneticinin düzenlediği gelecek kitaplar yol haritası
-- Kitap adı, yazar, yayınevi, sayfa sayısı, ISBN ve kapak görseliyle buluşma veya plan ekleme
-- Open Library üzerinden isteğe bağlı kitap arama ve künye önerisi; erişim kesilirse elle giriş
+- Haftanın kitabı, buluşma arşivi ve gelecek kitaplar yol haritası
+- Kitap bilgileriyle buluşma veya plan ekleme
+- Open Library üzerinden isteğe bağlı kitap arama
 - Tarih, saat, konum, harita bağlantısı ve buluşma notu
-- Üyenin kendini katılımcı olarak eklemesi, okudum/kısmen okudum/okumadım seçimi, zorunlu 1–10 puan ve isteğe bağlı yorum
-- Yöneticinin elle katılımcı eklemesi, planı buluşmaya dönüştürmesi ve buluşma yerini düzenlemesi
-- Üyelerin fotoğraf yükleyip ilgili kitap sayfasında görmesi; yüklenen fotoğraf tarayıcıda boyutlandırılır ve D1 içinde saklanır
-- Telefon ve masaüstü için uyarlanabilir arayüz; kapak görselleri ve kitap kartları
+- Katılım, okuma durumu, 1-10 puan ve yorum
+- Buluşma fotoğrafları ve kitap kapakları
+- D1 veritabanında kalıcı kayıt ve görsel saklama
+- Ayrı üye hesapları ve sunucu tarafında yönetici yetkisi kontrolü
 
-## Önemli: gerçek hesaplara henüz hazır değil
+## Yetkilendirme
 
-Üstteki üye seçici **demo kimlik değiştiricisidir**. İstekler istemcinin gönderdiği üye numarasını kullanır; kişi ve yönetici yetkileri güvenli biçimde doğrulanmaz. Bu sürümü gerçek grubun verileriyle internete açmayın. Yayına geçmeden önce gerçek oturum açma, sunucuda üyelik ve yönetici yetkisi doğrulama ve yedekleme gereklidir. Örnek üyeler, kitaplar, yorumlar ve buluşma kayıtları kurgusaldır.
+Her üye kendi kullanıcı adı ve şifresiyle giriş yapar. Oturum çerezi üye kimliğini imzalı olarak taşır; işlem ve yükleme API'leri istemciden üye numarası kabul etmez. Yönetici yetkisi, oturumdaki üyeye ait `members.role` alanından sunucuda kontrol edilir.
 
-GitHub kaynak kodunu saklamak ve sürümlemek için uygundur. Bu uygulama veritabanı ve fotoğraf yükleme kullandığından yalnızca statik GitHub Pages ile çalışmaz; yayında sunucu işlevleri ve kalıcı D1 veritabanı gerekir.
+Cloudflare Worker oluşturulduktan sonra `Settings > Variables and Secrets` bölümüne iki adet **Secret** ekleyin:
 
-## Yerel çalıştırma
-
-Node.js 22.13+ ve pnpm gerekir. Bu proje Sites/Vinext başlangıç çatısını kullanır. Bağımlılıkları yükleyip `pnpm dev` ile önizleyin. Veritabanı bağının yerel ortama tanımlanması, `drizzle/0000_strange_eternals.sql` şema göçünün uygulanması ve istenirse `demo/seed-local.sql` örnek verinin yüklenmesi gerekir. Sites ortamında derleme için `pnpm build` kullanılabilir. Örnek veriyi üretim veritabanına uygulamayın.
-
-Ekran görüntüleri, kaynak paketin yanında ayrı dosyalar olarak teslim edilmiştir.
-
-
-## Grup şifresi
-
-Yayındaki uygulama ortak grup şifresiyle korunur. Şifreleri kaynak koda veya GitHub'a eklemeyin. Worker oluşturulduktan sonra Cloudflare panelinde `Settings > Variables and Secrets` bölümüne iki adet Secret ekleyin:
-
-- `GROUP_PASSWORD`: grubun paylaşacağı parola
+- `MEMBER_CREDENTIALS`: kullanıcı adı, üye numarası ve parola eşlemelerini içeren tek satırlık JSON
 - `SESSION_SECRET`: en az 32 karakterlik rastgele imza anahtarı
 
-Giriş başarılı olduğunda 30 gün geçerli, imzalı ve `HttpOnly` bir oturum cookie'si oluşturulur. Üst çubuktaki çıkış düğmesi oturumu sonlandırır.
+Örnek `MEMBER_CREDENTIALS` biçimi:
+
+```json
+{"mustafa":{"memberId":1,"password":"benzersiz-guclu-sifre"},"ayse":{"memberId":2,"password":"baska-guclu-sifre"}}
+```
+
+Kullanıcı adları küçük harf, rakam, nokta, alt çizgi veya kısa çizgi içerebilir. `memberId` değerleri D1 içindeki `members.id` değerleriyle aynı olmalıdır. Parolaları kaynak koda, GitHub'a veya normal metin değişkenine eklemeyin.
+
+Bir üyeyi yönetici yapmak için veritabanındaki rolü değiştirin; `MEMBER_CREDENTIALS` içinde yönetici bilgisi bulunmaz:
+
+```sql
+UPDATE members SET role = 'admin' WHERE id = 1;
+```
+
+Parola listesini değiştirmek yeni girişleri etkiler. Mevcut bütün oturumları hemen kapatmak için `SESSION_SECRET` değerini de değiştirin.
+
+## Yerel geliştirme
+
+Node.js 22.13+ ve pnpm gerekir. Bağımlılıkları yükleyip `pnpm dev` ile çalıştırın. D1 bağlantısını tanımlayın, `drizzle/0000_strange_eternals.sql` ve `drizzle/0001_store_media_in_d1.sql` göçlerini uygulayın. İstenirse yalnızca yerelde `demo/seed-local.sql` örnek verisi kullanılabilir.
+
+Derleme:
+
+```bash
+pnpm build
+```
+
+Bu uygulama sunucu işlevleri ve kalıcı D1 veritabanı kullandığından statik GitHub Pages üzerinde çalışmaz.

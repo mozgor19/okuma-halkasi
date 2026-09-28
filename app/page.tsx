@@ -53,8 +53,7 @@ function BookCover({ book, small = false }: { book: Book; small?: boolean }) {
 }
 
 export default function Home() {
-  const [data, setData] = useState<AppData>(demoData);
-  const [memberId, setMemberId] = useState(1);
+  const [data, setData] = useState<AppData>({ ...demoData, currentMemberId: undefined });
   const [view, setView] = useState<View>("home");
   const [meetingId, setMeetingId] = useState<number | null>(null);
   const [createMode, setCreateMode] = useState<"meeting" | "plan" | null>(null);
@@ -73,19 +72,20 @@ export default function Home() {
     if (!response.ok) throw new Error("Buluşma kayıtları yüklenemedi.");
     const updated = await response.json() as AppData;
     if (!updated.members?.length) {
-      setData(demoData); setDemoFallback(true);
-      return demoData;
+      const fallback = { ...demoData, currentMemberId: updated.currentMemberId };
+      setData(fallback); setDemoFallback(true);
+      return fallback;
     }
     setData(updated); setDemoFallback(false);
     return updated;
   }
   useEffect(() => {
-    const saved = Number(window.sessionStorage.getItem("okuma-demo-persona"));
-    if (saved >= 1 && saved <= 6) setMemberId(saved);
     void reload().catch(() => { setDemoFallback(true); });
   }, []);
 
-  const member = data.members.find((person) => person.id === memberId) ?? data.members[0];
+  const memberId = data.currentMemberId ?? 0;
+  const member = data.members.find((person) => person.id === memberId)
+    ?? { id: 0, name: "Üye", role: "member" as const, color: "#5e8b88" };
   const sortedMeetings = useMemo(() => [...data.meetings].sort((a, b) => b.date.localeCompare(a.date)), [data.meetings]);
   const featured = sortedMeetings[0];
   const selectedMeeting = data.meetings.find((meeting) => meeting.id === meetingId) ?? featured;
@@ -111,7 +111,7 @@ export default function Home() {
   async function perform(action: string, payload: Record<string, unknown>) {
     setBusy(true); setError("");
     try {
-      const response = await fetch("/api/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, memberId, ...payload }) });
+      const response = await fetch("/api/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, ...payload }) });
       const result = await response.json() as { error?: string; meetingId?: number; ok?: boolean };
       if (!response.ok) throw new Error(result.error || "İşlem kaydedilemedi.");
       await reload();
@@ -123,7 +123,6 @@ export default function Home() {
   }
   function openMeeting(id: number) { setMeetingId(id); setView("meeting"); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function navigate(next: View) { setView(next); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); }
-  function selectMember(id: number) { setMemberId(id); window.sessionStorage.setItem("okuma-demo-persona", String(id)); setError(""); }
   async function signOut() {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.replace("/login");
@@ -134,7 +133,7 @@ export default function Home() {
     setBusy(true); setError("");
     try {
       const prepared = await readyImage(file);
-      const body = new FormData(); body.set("file", prepared); body.set("memberId", String(memberId)); body.set("purpose", purpose);
+      const body = new FormData(); body.set("file", prepared); body.set("purpose", purpose);
       if (currentMeeting) body.set("meetingId", String(currentMeeting));
       const response = await fetch("/api/upload", { method: "POST", body });
       const result = await response.json().catch(() => ({ error: "Görsel gönderilemedi; daha küçük bir fotoğraf dene." })) as { error?: string; url?: string };
@@ -158,7 +157,7 @@ export default function Home() {
     </aside>
 
     <div className="main-area">
-      <header className="topbar"><div className="mobile-brand"><BookOpen size={21} /> okuma<span>halkası</span></div><div className="breadcrumb">OKUMA HALKASI <ChevronRight size={14} /> <strong>{view === "home" ? "Haftanın kitabı" : view === "roadmap" ? "Gelecek kitaplar" : view === "archive" ? "Buluşma arşivi" : "Kitap defteri"}</strong></div><div className="topbar-actions"><span className="preview-pill">TASARIM ÖNİZLEMESİ</span><label className="person-picker"><Avatar member={member} size="small" /><select value={memberId} onChange={(event) => selectMember(Number(event.target.value))} aria-label="Önizleme hesabı seç">{data.members.map((person) => <option key={person.id} value={person.id}>{person.name}{person.role === "admin" ? " · yönetici" : ""}</option>)}</select></label><button type="button" className="logout-button" onClick={() => void signOut()} aria-label="Çıkış yap" title="Çıkış yap"><LogOut size={17} /></button></div></header>
+      <header className="topbar"><div className="mobile-brand"><BookOpen size={21} /> okuma<span>halkası</span></div><div className="breadcrumb">OKUMA HALKASI <ChevronRight size={14} /> <strong>{view === "home" ? "Haftanın kitabı" : view === "roadmap" ? "Gelecek kitaplar" : view === "archive" ? "Buluşma arşivi" : "Kitap defteri"}</strong></div><div className="topbar-actions"><div className="person-picker"><Avatar member={member} size="small" /><strong>{member.name}{member.role === "admin" ? " · yönetici" : ""}</strong></div><button type="button" className="logout-button" onClick={() => void signOut()} aria-label="Çıkış yap" title="Çıkış yap"><LogOut size={17} /></button></div></header>
       <div className="mobile-nav" aria-label="Mobil menü"><button onClick={() => navigate("home")} className={view === "home" ? "active" : ""}><BookOpen size={18} /> Kitap</button><button onClick={() => navigate("archive")} className={view === "archive" || view === "meeting" ? "active" : ""}><Archive size={18} /> Arşiv</button><button onClick={() => navigate("roadmap")} className={view === "roadmap" ? "active" : ""}><Compass size={18} /> Plan</button></div>
       {demoFallback && <div className="preview-notice" role="status">Örnek kayıtlar gösteriliyor. Yerel veritabanı hazır olduğunda kayıt işlemleri açılır.</div>}
       {error && <div className="error-banner" role="alert">{error}<button aria-label="Uyarıyı kapat" onClick={() => setError("")}><X size={16} /></button></div>}

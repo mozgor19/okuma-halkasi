@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { authIsConfigured, SESSION_COOKIE, sessionIsValid } from "@/lib/auth";
+import { authIsConfigured, SESSION_COOKIE, sessionMemberId } from "@/lib/auth";
 
 const publicPaths = new Set(["/login", "/api/auth/login", "/api/auth/logout"]);
 const publicAsset = /\.(?:css|js|map|svg|png|jpg|jpeg|webp|ico|woff2?)$/i;
@@ -7,7 +7,7 @@ const publicAsset = /\.(?:css|js|map|svg|png|jpg|jpeg|webp|ico|woff2?)$/i;
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const session = request.cookies.get(SESSION_COOKIE)?.value;
-  const authenticated = await sessionIsValid(session);
+  const authenticated = (await sessionMemberId(session)) !== null;
 
   if (publicPaths.has(pathname) || publicAsset.test(pathname)) {
     if (pathname === "/login" && authenticated) {
