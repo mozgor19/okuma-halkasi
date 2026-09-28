@@ -5,7 +5,7 @@ import { readExecutionProfile } from "./scripts/execution-profile.mjs";
 import { sites } from "./build/sites-vite-plugin";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
-  "00000000-0000-4000-8000-000000000000";
+  "bbb0e55c-a354-4983-89e5-59b62eb3276a";
 
 const { d1 } = hostingConfig;
 
@@ -20,7 +20,7 @@ const localBindingConfig = {
     ? [
         {
           binding: d1,
-          database_name: "site-creator-d1",
+          database_name: "okuma-halkasi-db",
           database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
         },
       ]
