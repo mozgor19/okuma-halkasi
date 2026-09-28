@@ -24,3 +24,13 @@ GitHub kaynak kodunu saklamak ve sürümlemek için uygundur. Bu uygulama verita
 Node.js 22.13+ ve pnpm gerekir. Bu proje Sites/Vinext başlangıç çatısını kullanır. Bağımlılıkları yükleyip `pnpm dev` ile önizleyin. Veritabanı bağının yerel ortama tanımlanması, `drizzle/0000_strange_eternals.sql` şema göçünün uygulanması ve istenirse `demo/seed-local.sql` örnek verinin yüklenmesi gerekir. Sites ortamında derleme için `pnpm build` kullanılabilir. Örnek veriyi üretim veritabanına uygulamayın.
 
 Ekran görüntüleri, kaynak paketin yanında ayrı dosyalar olarak teslim edilmiştir.
+
+
+## Grup şifresi
+
+Yayındaki uygulama ortak grup şifresiyle korunur. Şifreleri kaynak koda veya GitHub'a eklemeyin. Worker oluşturulduktan sonra Cloudflare panelinde `Settings > Variables and Secrets` bölümüne iki adet Secret ekleyin:
+
+- `GROUP_PASSWORD`: grubun paylaşacağı parola
+- `SESSION_SECRET`: en az 32 karakterlik rastgele imza anahtarı
+
+Giriş başarılı olduğunda 30 gün geçerli, imzalı ve `HttpOnly` bir oturum cookie'si oluşturulur. Üst çubuktaki çıkış düğmesi oturumu sonlandırır.

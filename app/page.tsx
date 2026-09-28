@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Archive, ArrowRight, BookOpen, CalendarDays, Camera, Check, ChevronRight, Compass, ExternalLink, ImagePlus, MapPin, Plus, Search, Star, Users, X } from "lucide-react";
+import { Archive, ArrowRight, BookOpen, CalendarDays, Camera, Check, ChevronRight, Compass, ExternalLink, ImagePlus, LogOut, MapPin, Plus, Search, Star, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -124,6 +124,10 @@ export default function Home() {
   function openMeeting(id: number) { setMeetingId(id); setView("meeting"); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function navigate(next: View) { setView(next); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function selectMember(id: number) { setMemberId(id); window.sessionStorage.setItem("okuma-demo-persona", String(id)); setError(""); }
+  async function signOut() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.replace("/login");
+  }
 
   async function upload(file: File, purpose: "photo" | "cover", currentMeeting?: number) {
     if (file.size > 8 * 1024 * 1024) { setError("Fotoğraf en fazla 8 MB olabilir."); return null; }
@@ -154,7 +158,7 @@ export default function Home() {
     </aside>
 
     <div className="main-area">
-      <header className="topbar"><div className="mobile-brand"><BookOpen size={21} /> okuma<span>halkası</span></div><div className="breadcrumb">OKUMA HALKASI <ChevronRight size={14} /> <strong>{view === "home" ? "Haftanın kitabı" : view === "roadmap" ? "Gelecek kitaplar" : view === "archive" ? "Buluşma arşivi" : "Kitap defteri"}</strong></div><div className="topbar-actions"><span className="preview-pill">TASARIM ÖNİZLEMESİ</span><label className="person-picker"><Avatar member={member} size="small" /><select value={memberId} onChange={(event) => selectMember(Number(event.target.value))} aria-label="Önizleme hesabı seç">{data.members.map((person) => <option key={person.id} value={person.id}>{person.name}{person.role === "admin" ? " · yönetici" : ""}</option>)}</select></label></div></header>
+      <header className="topbar"><div className="mobile-brand"><BookOpen size={21} /> okuma<span>halkası</span></div><div className="breadcrumb">OKUMA HALKASI <ChevronRight size={14} /> <strong>{view === "home" ? "Haftanın kitabı" : view === "roadmap" ? "Gelecek kitaplar" : view === "archive" ? "Buluşma arşivi" : "Kitap defteri"}</strong></div><div className="topbar-actions"><span className="preview-pill">TASARIM ÖNİZLEMESİ</span><label className="person-picker"><Avatar member={member} size="small" /><select value={memberId} onChange={(event) => selectMember(Number(event.target.value))} aria-label="Önizleme hesabı seç">{data.members.map((person) => <option key={person.id} value={person.id}>{person.name}{person.role === "admin" ? " · yönetici" : ""}</option>)}</select></label><button type="button" className="logout-button" onClick={() => void signOut()} aria-label="Çıkış yap" title="Çıkış yap"><LogOut size={17} /></button></div></header>
       <div className="mobile-nav" aria-label="Mobil menü"><button onClick={() => navigate("home")} className={view === "home" ? "active" : ""}><BookOpen size={18} /> Kitap</button><button onClick={() => navigate("archive")} className={view === "archive" || view === "meeting" ? "active" : ""}><Archive size={18} /> Arşiv</button><button onClick={() => navigate("roadmap")} className={view === "roadmap" ? "active" : ""}><Compass size={18} /> Plan</button></div>
       {demoFallback && <div className="preview-notice" role="status">Örnek kayıtlar gösteriliyor. Yerel veritabanı hazır olduğunda kayıt işlemleri açılır.</div>}
       {error && <div className="error-banner" role="alert">{error}<button aria-label="Uyarıyı kapat" onClick={() => setError("")}><X size={16} /></button></div>}
