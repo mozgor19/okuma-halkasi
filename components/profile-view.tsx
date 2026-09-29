@@ -10,6 +10,7 @@ import {
   KeyRound,
   Star,
 } from "lucide-react";
+import { PhotoLightbox } from "@/components/photo-lightbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -339,20 +340,22 @@ export function ProfileView({
                     ? data.books.find((item) => item.id === meeting.bookId)
                     : undefined;
                   return (
-                    <button
-                      type="button"
+                    <PhotoLightbox
                       key={photo.id}
-                      onClick={() => onOpenMeeting(photo.meetingId)}
+                      src={`/api/media/${photo.mediaKey}`}
+                      alt={book ? `${book.title} buluşmasından fotoğraf` : "Buluşma fotoğrafı"}
+                      caption={book?.title ?? "Buluşma"}
+                      detail={meeting ? dateFormat.format(new Date(meeting.date)) : undefined}
+                      action={{
+                        label: "Buluşmayı aç",
+                        onSelect: () => onOpenMeeting(photo.meetingId),
+                      }}
                     >
-                      <img
-                        src={`/api/media/${photo.mediaKey}`}
-                        alt={book ? `${book.title} buluşmasından fotoğraf` : "Buluşma fotoğrafı"}
-                      />
                       <span>
                         <strong>{book?.title ?? "Buluşma"}</strong>
                         {meeting && <small>{dateFormat.format(new Date(meeting.date))}</small>}
                       </span>
-                    </button>
+                    </PhotoLightbox>
                   );
                 })}
               </div>
