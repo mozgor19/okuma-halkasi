@@ -36,11 +36,11 @@ export default function LoginPage() {
       <section className="login-panel" aria-labelledby="login-title">
         <div className="login-brand">
           <span><BookOpen size={26} strokeWidth={1.7} /></span>
-          <strong>okuma<em>halkası</em></strong>
+          <strong>Kitap Tahlil <em>&amp; İstişare</em></strong>
         </div>
         <div className="login-copy">
           <span className="eyebrow">ÜYE GİRİŞİ</span>
-          <h1 id="login-title">Okuma Halkası</h1>
+          <h1 id="login-title">Kitap Tahlil &amp; İstişare</h1>
         </div>
         <form onSubmit={submit} className="login-form">
           <div className="login-field">

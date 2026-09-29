@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Okuma Halkası",
+  title: "Kitap Tahlil & İstişare",
   description: "Okuma grubunun buluşma, kitap, katılım, yorum ve fotoğraf kayıtları.",
   icons: { icon: "/favicon.svg" },
 };
