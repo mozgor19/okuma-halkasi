@@ -12,21 +12,11 @@ export function profileSchemaMissing(error: unknown): boolean {
 
 export async function getMember(id: unknown): Promise<Member | null> {
   if (!Number.isInteger(id) || Number(id) < 1) return null;
-  try {
-    return await database()
-      .prepare(
-        "SELECT id, name, role, color, avatar_media_key AS avatarMediaKey FROM members WHERE id = ?",
-      )
-      .bind(id)
-      .first<Member>();
-  } catch (error) {
-    if (!profileSchemaMissing(error)) throw error;
-    const member = await database()
-      .prepare("SELECT id, name, role, color FROM members WHERE id = ?")
-      .bind(id)
-      .first<Omit<Member, "avatarMediaKey">>();
-    return member ? { ...member, avatarMediaKey: null } : null;
-  }
+  const member = await database()
+    .prepare("SELECT id, name, role, color FROM members WHERE id = ?")
+    .bind(id)
+    .first<Omit<Member, "avatarMediaKey">>();
+  return member ? { ...member, avatarMediaKey: null } : null;
 }
 
 export async function getAuthenticatedMember(request: Request): Promise<Member | null> {
