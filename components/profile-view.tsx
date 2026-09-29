@@ -4,6 +4,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   BookHeart,
+  BookOpen,
   CalendarDays,
   Camera,
   ImagePlus,
@@ -14,7 +15,7 @@ import { PhotoLightbox } from "@/components/photo-lightbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { AppData, Book, Member } from "@/lib/types";
+import { readingLabels, type AppData, type Attendance, type Book, type Member } from "@/lib/types";
 
 type ProfileViewProps = {
   data: AppData;
@@ -92,6 +93,38 @@ function FavoriteRow({
         <Star size={19} fill={active ? "currentColor" : "none"} />
       </button>
     </div>
+  );
+}
+
+type ReadingBookEntry = {
+  book: Book;
+  meetingId: number;
+  date: string;
+  status: Attendance["readingStatus"];
+  rating: number | null;
+  meetingCount: number;
+};
+
+function ReadingBookRow({ entry, onOpen }: { entry: ReadingBookEntry; onOpen: () => void }) {
+  return (
+    <button type="button" className="reading-book-row" onClick={onOpen}>
+      <span className="favorite-cover">
+        {entry.book.coverUrl ? <img src={entry.book.coverUrl} alt="" /> : <BookOpen size={22} />}
+      </span>
+      <span className="reading-book-info">
+        <strong>{entry.book.title}</strong>
+        <span>{entry.book.author}</span>
+        <small>
+          {entry.meetingCount} buluşma · {dateFormat.format(new Date(entry.date))}
+          {entry.rating !== null ? ` · ${entry.rating}/10 puan` : ""}
+        </small>
+      </span>
+      <span className={`reading-status ${entry.status}`}>
+        <i aria-hidden="true" />
+        {readingLabels[entry.status]}
+      </span>
+      <ArrowRight size={17} aria-hidden="true" />
+    </button>
   );
 }
 
@@ -240,11 +273,40 @@ export function ProfileView({
       .filter((favorite) => favorite.memberId === member.id)
       .map((favorite) => favorite.bookId),
   );
-  const favoriteBooks = data.books.filter((book) => favoriteIds.has(book.id));
-  const sortedBooks = [...data.books].sort((left, right) =>
-    Number(favoriteIds.has(right.id)) - Number(favoriteIds.has(left.id))
-    || left.title.localeCompare(right.title, "tr")
-  );
+  const favoriteBooks = data.books
+    .filter((book) => favoriteIds.has(book.id))
+    .sort((left, right) => left.title.localeCompare(right.title, "tr"));
+  const readingBooks = useMemo(() => {
+    const entries = new Map<number, ReadingBookEntry>();
+    for (const meeting of attendedMeetings) {
+      const book = data.books.find((item) => item.id === meeting.bookId);
+      const attendance = data.attendance.find(
+        (item) => item.meetingId === meeting.id && item.memberId === member.id,
+      );
+      if (!book || !attendance) continue;
+      const review = data.reviews.find(
+        (item) => item.meetingId === meeting.id && item.memberId === member.id,
+      );
+      const existing = entries.get(book.id);
+      if (!existing) {
+        entries.set(book.id, {
+          book,
+          meetingId: meeting.id,
+          date: meeting.date,
+          status: attendance.readingStatus,
+          rating: review?.rating ?? null,
+          meetingCount: 1,
+        });
+        continue;
+      }
+      existing.meetingCount += 1;
+      if (existing.status === "unselected" && attendance.readingStatus !== "unselected") {
+        existing.status = attendance.readingStatus;
+      }
+      if (existing.rating === null && review) existing.rating = review.rating;
+    }
+    return [...entries.values()];
+  }, [attendedMeetings, data.attendance, data.books, data.reviews, member.id]);
 
   return (
     <div className="profile-page">
@@ -281,7 +343,7 @@ export function ProfileView({
         <TabsList variant="line" aria-label="Profil bölümleri">
           <TabsTrigger value="overview">Özet</TabsTrigger>
           <TabsTrigger value="gallery">Fotoğraflarım</TabsTrigger>
-          <TabsTrigger value="favorites">Favorilerim</TabsTrigger>
+          <TabsTrigger value="books">Kitaplarım</TabsTrigger>
           <TabsTrigger value="security">Güvenlik</TabsTrigger>
         </TabsList>
 
@@ -368,30 +430,69 @@ export function ProfileView({
           </section>
         </TabsContent>
 
-        <TabsContent value="favorites">
-          <section className="profile-section">
-            <div className="profile-section-heading">
-              <span className="eyebrow">KİTAPLIĞIM</span>
-              <h2>Favorilerim</h2>
-              <p>Yıldız düğmesiyle kitapları kendi listene ekleyip çıkarabilirsin.</p>
-            </div>
-            <div className="favorite-list">
-              {sortedBooks.map((book) => (
-                <FavoriteRow
-                  key={book.id}
-                  book={book}
-                  active={favoriteIds.has(book.id)}
-                  busy={busy}
-                  onToggle={() => {
-                    void onToggleFavorite(book.id, !favoriteIds.has(book.id));
-                  }}
-                />
-              ))}
-              {!sortedBooks.length && (
-                <div className="profile-empty">Henüz kayıtlı kitap yok.</div>
-              )}
-            </div>
-          </section>
+        <TabsContent value="books">
+          <Tabs defaultValue="favorites" className="books-tabs">
+            <TabsList className="books-tabs-list" aria-label="Kitap listeleri">
+              <TabsTrigger value="favorites">
+                <Star size={15} /> Favorilerim <small>{favoriteBooks.length}</small>
+              </TabsTrigger>
+              <TabsTrigger value="reading">
+                <BookOpen size={15} /> Okuduklarım <small>{readingBooks.length}</small>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="favorites" className="books-tab-content">
+              <section className="profile-section">
+                <div className="profile-section-heading">
+                  <span className="eyebrow">FAVORİLERİM</span>
+                  <h2>Yıldızladığım kitaplar</h2>
+                  <p>Favoriye eklediğin kitaplar yalnızca burada görünür.</p>
+                </div>
+                {favoriteBooks.length ? (
+                  <div className="favorite-list">
+                    {favoriteBooks.map((book) => (
+                      <FavoriteRow
+                        key={book.id}
+                        book={book}
+                        active
+                        busy={busy}
+                        onToggle={() => void onToggleFavorite(book.id, false)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="profile-empty">
+                    <Star size={25} />
+                    Henüz yıldızladığın bir kitap yok.
+                  </div>
+                )}
+              </section>
+            </TabsContent>
+            <TabsContent value="reading" className="books-tab-content">
+              <section className="profile-section">
+                <div className="profile-section-heading">
+                  <span className="eyebrow">OKUDUKLARIM</span>
+                  <h2>Buluşmalardaki kitaplarım</h2>
+                  <p>Renkli nokta, en son belirttiğin okuma durumunu gösterir.</p>
+                </div>
+                {readingBooks.length ? (
+                  <div className="reading-book-list">
+                    {readingBooks.map((entry) => (
+                      <ReadingBookRow
+                        key={entry.book.id}
+                        entry={entry}
+                        onOpen={() => onOpenMeeting(entry.meetingId)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="profile-empty">
+                    <BookOpen size={25} />
+                    Henüz katıldığın bir buluşma kitabı yok.
+                  </div>
+                )}
+              </section>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="security">
