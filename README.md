@@ -22,6 +22,8 @@ Her üye kendi kullanıcı adı ve şifresiyle giriş yapar. Oturum çerezi üye
 
 Parolalar `member_accounts` tablosunda düz metin olarak tutulmaz. Her parola ayrı rastgele salt ile PBKDF2-SHA-256 kullanılarak türetilmiş hash biçiminde saklanır. Beş hatalı girişten sonra hesap 15 dakika kilitlenir. Kullanıcı parolasını değiştirdiğinde önceki oturum sürümleri geçersiz olur.
 
+Cloudflare çalışma ortamındaki PBKDF2 sınırı nedeniyle yeni hashler 100.000 iterasyonla üretilir. Eski 210.000 iterasyonlu kayıtlar, ilgili kullanıcı `MEMBER_CREDENTIALS` Secret'ındaki mevcut parolasıyla ilk kez giriş yaptığında otomatik olarak yeniden hashlenir.
+
 Cloudflare Worker içinde `Settings > Variables and Secrets` bölümüne şu Secret'ları ekleyin:
 
 - `SESSION_SECRET`: en az 32 karakterlik rastgele oturum imza anahtarı

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authenticateAccount } from "@/db/accounts";
+import { authenticateAccount, passwordRehashRequired } from "@/db/accounts";
 import { getMember } from "@/db/store";
 import {
   authConfigurationIssue,
@@ -45,6 +45,14 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     console.error("Login failed", error);
+    if (passwordRehashRequired(error)) {
+      return NextResponse.json(
+        {
+          error: "Bu hesabın parola kaydı güncellenmeli. Yönetici MEMBER_CREDENTIALS Secret'ını geçici olarak geri eklemeli.",
+        },
+        { status: 503 },
+      );
+    }
     return NextResponse.json({ error: "Giriş şu anda tamamlanamıyor." }, { status: 503 });
   }
 }

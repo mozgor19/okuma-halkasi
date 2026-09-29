@@ -1,5 +1,7 @@
 const encoder = new TextEncoder();
-const PASSWORD_ITERATIONS = 210_000;
+export const PASSWORD_ITERATIONS = 100_000;
+const MIN_PASSWORD_ITERATIONS = 100_000;
+const MAX_PASSWORD_ITERATIONS = 100_000;
 const PASSWORD_BYTES = 32;
 const SALT_BYTES = 16;
 
@@ -36,6 +38,12 @@ export function normalizeUsername(username: string): string {
   return username.trim().toLowerCase();
 }
 
+export function passwordIterationsSupported(iterations: number): boolean {
+  return Number.isInteger(iterations)
+    && iterations >= MIN_PASSWORD_ITERATIONS
+    && iterations <= MAX_PASSWORD_ITERATIONS;
+}
+
 export function passwordValidationIssue(password: string, username: string): string | null {
   if (password.length < 12) return "Yeni şifre en az 12 karakter olmalı.";
   if (password.length > 200) return "Yeni şifre en fazla 200 karakter olabilir.";
@@ -66,7 +74,7 @@ export async function verifyPassword(
   const expected = fromHex(storedHash);
   const salt = fromHex(storedSalt);
   if (!expected || expected.byteLength !== PASSWORD_BYTES || !salt || salt.byteLength !== SALT_BYTES) return false;
-  if (!Number.isInteger(iterations) || iterations < 100_000 || iterations > 2_000_000) return false;
+  if (!passwordIterationsSupported(iterations)) return false;
   const candidate = await derivePassword(password, salt, iterations);
   const subtle = crypto.subtle as SubtleCrypto & {
     timingSafeEqual(a: ArrayBuffer, b: ArrayBuffer): boolean;

@@ -7,6 +7,7 @@ import {
 import {
   hashPassword,
   normalizeUsername,
+  passwordIterationsSupported,
   passwordValidationIssue,
   verifyPassword,
 } from "@/lib/password";
@@ -23,6 +24,11 @@ type AccountRow = {
 };
 
 export type AccountSession = { memberId: number; sessionVersion: number };
+const PASSWORD_REHASH_REQUIRED = "PASSWORD_REHASH_REQUIRED";
+
+export function passwordRehashRequired(error: unknown): boolean {
+  return error instanceof Error && error.message === PASSWORD_REHASH_REQUIRED;
+}
 export type ChangePasswordResult =
   | { ok: true; sessionVersion: number }
   | { ok: false; reason: "invalid-current" | "invalid-new" | "migration-required"; error: string };
@@ -50,6 +56,19 @@ async function accountByUsername(username: string): Promise<AccountRow | null> {
 
 async function accountByMemberId(memberId: number): Promise<AccountRow | null> {
   return database().prepare(accountSelect + " WHERE member_id = ?").bind(memberId).first<AccountRow>();
+}
+
+async function replaceAccountPassword(account: AccountRow, password: string): Promise<AccountSession> {
+  const passwordRecord = await hashPassword(password);
+  await database().prepare(
+    "UPDATE member_accounts SET password_hash = ?, password_salt = ?, password_iterations = ?, failed_attempts = 0, locked_until = NULL, password_changed_at = CURRENT_TIMESTAMP WHERE member_id = ?",
+  ).bind(
+    passwordRecord.hash,
+    passwordRecord.salt,
+    passwordRecord.iterations,
+    account.memberId,
+  ).run();
+  return { memberId: account.memberId, sessionVersion: account.sessionVersion };
 }
 
 async function migrateLegacyAccount(username: string, password: string, memberId: number): Promise<AccountSession> {
@@ -87,6 +106,11 @@ export async function authenticateAccount(usernameInput: string, password: strin
 
   if (account) {
     if (account.lockedUntil && Date.parse(account.lockedUntil) > Date.now()) return null;
+    if (!passwordIterationsSupported(account.passwordIterations)) {
+      const legacyMemberId = await authenticateLegacyMember(username, password);
+      if (legacyMemberId !== account.memberId) throw new Error(PASSWORD_REHASH_REQUIRED);
+      return replaceAccountPassword(account, password);
+    }
     const valid = await verifyPassword(
       password,
       account.passwordHash,
@@ -152,14 +176,25 @@ export async function changeMemberPassword(
   let username: string;
   let nextVersion: number;
   if (account) {
-    const valid = await verifyPassword(
-      currentPassword,
-      account.passwordHash,
-      account.passwordSalt,
-      account.passwordIterations,
-    );
-    if (!valid) {
-      return { ok: false, reason: "invalid-current", error: "Mevcut şifre yanlış." };
+    if (!passwordIterationsSupported(account.passwordIterations)) {
+      const legacyUsername = await legacyUsernameForMember(memberId, currentPassword);
+      if (legacyUsername !== account.username) {
+        return {
+          ok: false,
+          reason: "migration-required",
+          error: "Bu hesabın parola kaydı güncellenmeli. MEMBER_CREDENTIALS Secret'ını geçici olarak geri ekleyip yeniden giriş yap.",
+        };
+      }
+    } else {
+      const valid = await verifyPassword(
+        currentPassword,
+        account.passwordHash,
+        account.passwordSalt,
+        account.passwordIterations,
+      );
+      if (!valid) {
+        return { ok: false, reason: "invalid-current", error: "Mevcut şifre yanlış." };
+      }
     }
     username = account.username;
     nextVersion = account.sessionVersion + 1;
