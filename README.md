@@ -4,8 +4,11 @@ Altı kişilik haftalık okuma grubu için Türkçe, tam yığın bir web uygula
 
 ## Özellikler
 
-- Haftanın kitabı, buluşma arşivi ve gelecek kitaplar yol haritası
-- Kitap bilgileriyle buluşma veya plan ekleme
+- Tarihe göre bu hafta, sıradaki veya son buluşmayı gösteren ana ekran
+- Buluşma arşivi ve gelecek kitaplar yol haritası
+- Profil fotoğrafı, kişisel buluşma galerisi, favori kitaplar ve okuma özeti
+- Kitap bilgileriyle buluşma veya plan ekleme ve sonradan künye düzenleme
+- Aynı kitap kaydıyla bölüm bilgili devam buluşmaları oluşturma
 - Open Library üzerinden isteğe bağlı kitap arama
 - Tarih, saat, konum, harita bağlantısı ve buluşma notu
 - Katılım, okuma durumu, 1-10 puan ve yorum
@@ -47,8 +50,9 @@ Yeni bir veritabanında SQL dosyalarını sırayla uygulayın:
 1. `drizzle/0000_strange_eternals.sql`
 2. `drizzle/0001_store_media_in_d1.sql`
 3. `drizzle/0002_member_accounts.sql`
+4. `drizzle/0003_member_profiles_and_reading_progress.sql`
 
-Mevcut üretim veritabanında yalnızca henüz uygulanmamış olan `0002_member_accounts.sql` dosyasını çalıştırın. Migration uygulanmadan mevcut Secret hesaplarıyla giriş devam eder; parola değiştirme işlemi migration tamamlanana kadar açılmaz.
+Mevcut üretim veritabanında migration dosyalarını numara sırasıyla ve yalnızca birer kez çalıştırın. Hesap migration'ı uygulanmadıysa önce `0002_member_accounts.sql`, ardından profil, favori ve devam eden okuma alanları için `0003_member_profiles_and_reading_progress.sql` çalıştırılmalıdır. `0003` uygulanmadan yeni profil ve çoklu oturum ekranları veri yükleyemez.
 
 ## Yerel geliştirme
 

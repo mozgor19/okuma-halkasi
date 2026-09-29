@@ -6,6 +6,7 @@ export const members = sqliteTable("members", {
   name: text("name").notNull(),
   role: text("role").notNull().default("member"),
   color: text("color").notNull().default("#5e8b88"),
+  avatarMediaKey: text("avatar_media_key"),
 });
 export const memberAccounts = sqliteTable("member_accounts", {
   memberId: integer("member_id").primaryKey().references(() => members.id),
@@ -36,6 +37,8 @@ export const meetings = sqliteTable("meetings", {
   location: text("location").notNull(),
   mapUrl: text("map_url"),
   note: text("note"),
+  readingScope: text("reading_scope"),
+  bookStatus: text("book_status").notNull().default("completed"),
   createdBy: integer("created_by").notNull().references(() => members.id),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
@@ -72,3 +75,9 @@ export const roadmap = sqliteTable("roadmap", {
   createdBy: integer("created_by").notNull().references(() => members.id),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const favoriteBooks = sqliteTable("favorite_books", {
+  memberId: integer("member_id").notNull().references(() => members.id),
+  bookId: integer("book_id").notNull().references(() => books.id),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [primaryKey({ columns: [table.memberId, table.bookId] })]);

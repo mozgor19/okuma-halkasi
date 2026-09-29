@@ -1,9 +1,10 @@
-export type Member = { id: number; name: string; role: "admin" | "member"; color: string };
+export type Member = { id: number; name: string; role: "admin" | "member"; color: string; avatarMediaKey: string | null };
 export type Book = { id: number; title: string; author: string; publisher: string | null; pages: number | null; isbn: string | null; coverUrl: string | null; sourceUrl: string | null };
-export type Meeting = { id: number; bookId: number; date: string; location: string; mapUrl: string | null; note: string | null; createdBy: number };
+export type Meeting = { id: number; bookId: number; date: string; location: string; mapUrl: string | null; note: string | null; readingScope: string | null; bookStatus: "continuing" | "completed"; createdBy: number };
 export type Attendance = { meetingId: number; memberId: number; readingStatus: "read" | "partial" | "unread" | "unselected" };
 export type Review = { meetingId: number; memberId: number; rating: number; comment: string | null; updatedAt: string };
 export type Photo = { id: number; meetingId: number; mediaKey: string; uploadedBy: number; createdAt: string };
 export type Plan = { id: number; bookId: number; plannedDate: string | null; note: string | null; createdBy: number };
-export type AppData = { currentMemberId?: number; members: Member[]; books: Book[]; meetings: Meeting[]; attendance: Attendance[]; reviews: Review[]; photos: Photo[]; roadmap: Plan[] };
+export type Favorite = { memberId: number; bookId: number; createdAt: string };
+export type AppData = { currentMemberId?: number; members: Member[]; books: Book[]; meetings: Meeting[]; attendance: Attendance[]; reviews: Review[]; photos: Photo[]; roadmap: Plan[]; favorites: Favorite[] };
 export const readingLabels: Record<Attendance["readingStatus"], string> = { read: "Okudum", partial: "Kısmen okudum", unread: "Okumadım", unselected: "Henüz belirtmedi" };
