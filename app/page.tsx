@@ -16,13 +16,35 @@ import { chooseFeatured, meetingTimingLabel } from "@/lib/meeting-time";
 import { type AppData, type Book, type Meeting, type Member, type Attendance, readingLabels } from "@/lib/types";
 
 type View = "home" | "archive" | "roadmap" | "meeting" | "profile";
+type AppNavigationState = { view: View; meetingId: number | null; guard?: boolean };
 type Lookup = { title: string; author: string; publisher: string | null; pages: number | null; isbn: string | null; coverUrl: string | null; sourceUrl: string | null };
 const dateFormat = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" });
 const dayFormat = new Intl.DateTimeFormat("tr-TR", { weekday: "long" });
+const navigationKey = "kitapTahlilNavigation";
+const views: View[] = ["home", "archive", "roadmap", "meeting", "profile"];
 const readableDate = (value: string) => dateFormat.format(new Date(value));
 const emptyData: AppData = { members: [], books: [], meetings: [], attendance: [], reviews: [], photos: [], roadmap: [], favorites: [] };
 const initials = (name: string) => name.split(" ").map((word) => word[0]).slice(0, 2).join("").toUpperCase();
 const validMap = (url: string | null) => url && /^https:\/\//i.test(url) ? url : null;
+
+function readNavigationState(state: unknown): AppNavigationState | null {
+  if (!state || typeof state !== "object") return null;
+  const value = (state as Record<string, unknown>)[navigationKey];
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as Partial<AppNavigationState>;
+  if (!candidate.view || !views.includes(candidate.view)) return null;
+  return {
+    view: candidate.view,
+    meetingId: typeof candidate.meetingId === "number" ? candidate.meetingId : null,
+    guard: candidate.guard === true,
+  };
+}
+
+function historyState(navigation: AppNavigationState) {
+  const current = window.history.state;
+  const base = current && typeof current === "object" ? current : {};
+  return { ...base, [navigationKey]: navigation };
+}
 
 async function readyImage(file: File): Promise<File> {
   if (file.size <= 650_000) return file;
@@ -94,6 +116,18 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const current = readNavigationState(window.history.state);
+    if (!current) {
+      window.history.replaceState(historyState({ view: "home", meetingId: null, guard: true }), "", window.location.href);
+      window.history.pushState(historyState({ view: "home", meetingId: null }), "", window.location.href);
+    } else if (current.guard) {
+      window.history.pushState(historyState({ view: "home", meetingId: null }), "", window.location.href);
+    } else {
+      window.history.replaceState(historyState({ view: "home", meetingId: null }), "", window.location.href);
+    }
+  }, []);
+
   const memberId = data.currentMemberId ?? 0;
   const member = data.members.find((person) => person.id === memberId)
     ?? { id: 0, name: "Üye", role: "member" as const, color: "#5e8b88", avatarMediaKey: null };
@@ -120,6 +154,32 @@ export default function Home() {
   const featuredHeading = featuredChoice.kind === "week" ? "Bu haftanın kitabı" : featuredChoice.kind === "upcoming" ? "Sıradaki buluşma" : "Son buluşma";
   const featuredEyebrow = featuredChoice.kind === "week" ? "BU HAFTA" : featuredChoice.kind === "upcoming" ? "YAKLAŞAN BULUŞMA" : "ARŞİVDEN";
 
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const destination = readNavigationState(event.state);
+      if (!destination) return;
+      const atGuard = destination.guard === true;
+      const nextView = atGuard ? "home" : destination.view;
+      const nextMeetingId = atGuard ? null : destination.meetingId;
+      if (atGuard) {
+        window.history.pushState(historyState({ view: "home", meetingId: null }), "", window.location.href);
+      }
+      if (nextView === "meeting" && nextMeetingId !== null) {
+        const attendance = data.attendance.find((entry) => entry.meetingId === nextMeetingId && entry.memberId === memberId);
+        const review = data.reviews.find((entry) => entry.meetingId === nextMeetingId && entry.memberId === memberId);
+        setStatus(attendance?.readingStatus === "unselected" ? "read" : attendance?.readingStatus ?? "read");
+        setRating(review?.rating ?? null);
+        setComment(review?.comment ?? "");
+      }
+      setMeetingId(nextMeetingId);
+      setView(nextView);
+      setError("");
+      window.scrollTo({ top: 0 });
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [data.attendance, data.reviews, memberId]);
+
   async function perform(action: string, payload: Record<string, unknown>) {
     setBusy(true); setError("");
     try {
@@ -133,8 +193,8 @@ export default function Home() {
       return null;
     } finally { setBusy(false); }
   }
-  function openMeeting(id: number) { const attendance = data.attendance.find((entry) => entry.meetingId === id && entry.memberId === memberId); const review = data.reviews.find((entry) => entry.meetingId === id && entry.memberId === memberId); setStatus(attendance?.readingStatus === "unselected" ? "read" : attendance?.readingStatus ?? "read"); setRating(review?.rating ?? null); setComment(review?.comment ?? ""); setMeetingId(id); setView("meeting"); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); }
-  function navigate(next: View) { setView(next); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function openMeeting(id: number) { const attendance = data.attendance.find((entry) => entry.meetingId === id && entry.memberId === memberId); const review = data.reviews.find((entry) => entry.meetingId === id && entry.memberId === memberId); setStatus(attendance?.readingStatus === "unselected" ? "read" : attendance?.readingStatus ?? "read"); setRating(review?.rating ?? null); setComment(review?.comment ?? ""); if (view !== "meeting" || meetingId !== id) window.history.pushState(historyState({ view: "meeting", meetingId: id }), "", window.location.href); setMeetingId(id); setView("meeting"); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function navigate(next: View) { if (next !== view) window.history.pushState(historyState({ view: next, meetingId: null }), "", window.location.href); setMeetingId(null); setView(next); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); }
   async function signOut() {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.replace("/login");
@@ -170,7 +230,7 @@ export default function Home() {
     </aside>
 
     <div className="main-area">
-      <header className="topbar"><div className="mobile-brand"><BookOpen size={21} /><span>Kitap Tahlil <b>&amp; İstişare</b></span></div><div className="breadcrumb">KİTAP TAHLİL &amp; İSTİŞARE <ChevronRight size={14} /> <strong>{view === "home" ? "Ana sayfa" : view === "roadmap" ? "Gelecek kitaplar" : view === "archive" ? "Buluşmalar" : view === "profile" ? "Profilim" : "Kitap defteri"}</strong></div><div className="topbar-actions"><DropdownMenu><DropdownMenuTrigger asChild><button type="button" className="person-picker" aria-label="Hesap menüsü"><Avatar member={member} size="small" /><strong>{member.name}{member.role === "admin" ? " · yönetici" : ""}</strong><ChevronDown size={15} /></button></DropdownMenuTrigger><DropdownMenuContent align="end" className="account-menu"><DropdownMenuItem onSelect={() => navigate("profile")}><UserRound /> Profilim</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onSelect={() => void signOut()}><LogOut /> Çıkış yap</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></header>
+      <header className="topbar"><button className="mobile-brand" type="button" onClick={() => navigate("home")} aria-label="Ana sayfaya git"><BookOpen size={21} /><span>Kitap Tahlil <b>&amp; İstişare</b></span></button><div className="breadcrumb">KİTAP TAHLİL &amp; İSTİŞARE <ChevronRight size={14} /> <strong>{view === "home" ? "Ana sayfa" : view === "roadmap" ? "Gelecek kitaplar" : view === "archive" ? "Buluşmalar" : view === "profile" ? "Profilim" : "Kitap defteri"}</strong></div><div className="topbar-actions"><DropdownMenu><DropdownMenuTrigger asChild><button type="button" className="person-picker" aria-label="Hesap menüsü"><Avatar member={member} size="small" /><strong>{member.name}{member.role === "admin" ? " · yönetici" : ""}</strong><ChevronDown size={15} /></button></DropdownMenuTrigger><DropdownMenuContent align="end" className="account-menu"><DropdownMenuItem onSelect={() => navigate("profile")}><UserRound /> Profilim</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onSelect={() => void signOut()}><LogOut /> Çıkış yap</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></header>
       <div className="mobile-nav" aria-label="Mobil menü"><button onClick={() => navigate("home")} className={view === "home" ? "active" : ""}><BookOpen size={18} /> Ana sayfa</button><button onClick={() => navigate("archive")} className={view === "archive" || view === "meeting" ? "active" : ""}><Archive size={18} /> Buluşmalar</button><button onClick={() => navigate("roadmap")} className={view === "roadmap" ? "active" : ""}><Compass size={18} /> Plan</button><button onClick={() => navigate("profile")} className={view === "profile" ? "active" : ""}><UserRound size={18} /> Profil</button></div>
       {notice && <div className="success-banner" role="status">{notice}<button aria-label="Bildirimi kapat" onClick={() => setNotice("")}><X size={16} /></button></div>}
       {error && <div className="error-banner" role="alert">{error}<button aria-label="Uyarıyı kapat" onClick={() => setError("")}><X size={16} /></button></div>}
@@ -193,7 +253,7 @@ export default function Home() {
       </main>
       <footer className="footer"><span>Kitap Tahlil <span>&amp; İstişare</span> · Kitap kulübü kayıtları</span></footer>
     </div>
-    {createMode && <BookDialog mode={createMode} member={member} initialBook={scheduledPlanId ? findBook(data.roadmap.find((plan) => plan.id === scheduledPlanId)?.bookId ?? -1) : undefined} initialDate={scheduledPlanId ? data.roadmap.find((plan) => plan.id === scheduledPlanId)?.plannedDate ?? null : null} planId={scheduledPlanId} onClose={() => { setCreateMode(null); setScheduledPlanId(null); }} onUpload={(file) => upload(file, "cover")} onSubmit={async (payload) => { const result = await perform(createMode === "plan" ? "createPlan" : "createMeeting", payload); if (result) { setCreateMode(null); setScheduledPlanId(null); if (createMode === "meeting" && result.meetingId) { setMeetingId(result.meetingId); setView("meeting"); } } }} busy={busy} />}
+    {createMode && <BookDialog mode={createMode} member={member} initialBook={scheduledPlanId ? findBook(data.roadmap.find((plan) => plan.id === scheduledPlanId)?.bookId ?? -1) : undefined} initialDate={scheduledPlanId ? data.roadmap.find((plan) => plan.id === scheduledPlanId)?.plannedDate ?? null : null} planId={scheduledPlanId} onClose={() => { setCreateMode(null); setScheduledPlanId(null); }} onUpload={(file) => upload(file, "cover")} onSubmit={async (payload) => { const result = await perform(createMode === "plan" ? "createPlan" : "createMeeting", payload); if (result) { setCreateMode(null); setScheduledPlanId(null); if (createMode === "meeting" && result.meetingId) openMeeting(result.meetingId); } }} busy={busy} />}
     {editMeetingOpen && <EditMeetingDialog meeting={selectedMeeting} open={editMeetingOpen} busy={busy} onClose={() => setEditMeetingOpen(false)} onSubmit={async (payload) => { const result = await perform("editMeeting", { meetingId: selectedMeeting?.id, ...payload }); if (result) setEditMeetingOpen(false); }} />}
     {editBookOpen && <BookEditDialog book={editBookId ? findBook(editBookId) : activeBook} open={editBookOpen} busy={busy} onClose={() => { setEditBookOpen(false); setEditBookId(null); }} onUpload={(file) => upload(file, "cover")} onSubmit={async (bookId, book) => { const result = await perform("editBook", { bookId, book }); if (result) { setEditBookOpen(false); setEditBookId(null); setNotice("Kitap künyesi güncellendi."); } }} />}
     {continuationOpen && <ContinuationDialog book={activeBook} previousMeeting={selectedMeeting} open={continuationOpen} busy={busy} onClose={() => setContinuationOpen(false)} onSubmit={async (payload) => { const result = await perform("createMeeting", payload); if (result?.meetingId) { setContinuationOpen(false); openMeeting(result.meetingId); } }} />}
