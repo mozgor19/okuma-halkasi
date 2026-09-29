@@ -4,39 +4,21 @@ export const SESSION_COOKIE = "okuma_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
 type MemberCredential = { memberId: number; password: string };
-type AuthConfiguration = { credentials: Record<string, MemberCredential>; secret: string };
-type ConfigurationResult =
-  | { config: AuthConfiguration; issue: null }
-  | { config: null; issue: string };
+export type SessionIdentity = { memberId: number; sessionVersion: number };
 
 const encoder = new TextEncoder();
 
-function configurationResult(): ConfigurationResult {
-  const rawCredentials = env.MEMBER_CREDENTIALS;
-  if (!rawCredentials) {
-    return { config: null, issue: "MEMBER_CREDENTIALS Secret'ı Worker çalışma ortamında bulunamadı." };
-  }
-
+function sessionSecret(): string | null {
   const secret = env.SESSION_SECRET;
-  if (!secret) {
-    return { config: null, issue: "SESSION_SECRET Secret'ı Worker çalışma ortamında bulunamadı." };
-  }
-  if (secret.length < 32) {
-    return { config: null, issue: "SESSION_SECRET en az 32 karakter olmalı." };
-  }
+  return secret && secret.length >= 32 ? secret : null;
+}
 
+function legacyCredentials(): Record<string, MemberCredential> | null {
   try {
-    const raw = JSON.parse(rawCredentials) as unknown;
-    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
-      return { config: null, issue: "MEMBER_CREDENTIALS geçerli bir JSON nesnesi değil." };
-    }
-
+    const raw = JSON.parse(env.MEMBER_CREDENTIALS ?? "") as unknown;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
     const entries = Object.entries(raw);
-    if (!entries.length) {
-      return { config: null, issue: "MEMBER_CREDENTIALS içinde en az bir üye olmalı." };
-    }
-
-    const valid = entries.every(([username, credential]) =>
+    const valid = entries.length > 0 && entries.every(([username, credential]) =>
       /^[a-z0-9._-]{2,40}$/.test(username)
       && !!credential
       && typeof credential === "object"
@@ -46,24 +28,10 @@ function configurationResult(): ConfigurationResult {
       && (credential as MemberCredential).password.length > 0
       && (credential as MemberCredential).password.length <= 200
     );
-    if (!valid) {
-      return { config: null, issue: "MEMBER_CREDENTIALS içindeki kullanıcı adı, memberId veya password alanlarından biri geçersiz." };
-    }
-
-    return {
-      config: {
-        credentials: Object.fromEntries(entries) as Record<string, MemberCredential>,
-        secret,
-      },
-      issue: null,
-    };
+    return valid ? Object.fromEntries(entries) as Record<string, MemberCredential> : null;
   } catch {
-    return { config: null, issue: "MEMBER_CREDENTIALS JSON biçimi geçersiz." };
+    return null;
   }
-}
-
-function configuration(): AuthConfiguration | null {
-  return configurationResult().config;
 }
 
 async function hmac(secret: string, value: string): Promise<ArrayBuffer> {
@@ -102,49 +70,78 @@ async function valuesMatch(secret: string, expected: string, candidate: string):
 }
 
 export function authConfigurationIssue(): string | null {
-  return configurationResult().issue;
+  const secret = env.SESSION_SECRET;
+  if (!secret) return "SESSION_SECRET Secret'ı Worker çalışma ortamında bulunamadı.";
+  if (secret.length < 32) return "SESSION_SECRET en az 32 karakter olmalı.";
+  return null;
 }
 
 export function authIsConfigured(): boolean {
   return authConfigurationIssue() === null;
 }
 
-export async function authenticateMember(username: string, password: string): Promise<number | null> {
-  const config = configuration();
-  const normalizedUsername = username.trim().toLowerCase();
-  const credential = config?.credentials[normalizedUsername];
-  if (!config || !credential || !(await valuesMatch(config.secret, credential.password, password))) return null;
-  return credential.memberId;
+export async function authenticateLegacyMember(username: string, password: string): Promise<number | null> {
+  const credentials = legacyCredentials();
+  const secret = sessionSecret();
+  if (!credentials || !secret) return null;
+  const credential = credentials[username.trim().toLowerCase()];
+  const valid = await valuesMatch(secret, credential?.password ?? "", password);
+  return valid && credential ? credential.memberId : null;
 }
 
-export async function createSessionToken(memberId: number): Promise<string> {
-  const config = configuration();
-  if (!config || !Number.isInteger(memberId) || memberId < 1) throw new Error("Authentication is not configured.");
-  const payload = `${memberId}:${Date.now() + SESSION_MAX_AGE * 1000}`;
-  return payload + "." + toHex(await hmac(config.secret, payload));
+export async function legacyUsernameForMember(memberId: number, password: string): Promise<string | null> {
+  const credentials = legacyCredentials();
+  const secret = sessionSecret();
+  if (!credentials || !secret) return null;
+  const entry = Object.entries(credentials).find(([, credential]) => credential.memberId === memberId);
+  if (!entry || !(await valuesMatch(secret, entry[1].password, password))) return null;
+  return entry[0];
 }
 
-export async function sessionMemberId(token: string | undefined): Promise<number | null> {
-  const config = configuration();
-  if (!config || !token) return null;
+export async function createSessionToken(memberId: number, sessionVersion: number): Promise<string> {
+  const secret = sessionSecret();
+  if (!secret || !Number.isInteger(memberId) || memberId < 1 || !Number.isInteger(sessionVersion) || sessionVersion < 0) {
+    throw new Error("Authentication is not configured.");
+  }
+  const payload = `${memberId}:${sessionVersion}:${Date.now() + SESSION_MAX_AGE * 1000}`;
+  return payload + "." + toHex(await hmac(secret, payload));
+}
+
+export async function sessionIdentity(token: string | undefined): Promise<SessionIdentity | null> {
+  const secret = sessionSecret();
+  if (!secret || !token) return null;
   try { token = decodeURIComponent(token); } catch { return null; }
   const [payload, signature, extra] = token.split(".");
   if (extra !== undefined || !payload) return null;
-  const [memberIdValue, expiresAtValue, payloadExtra] = payload.split(":");
-  if (payloadExtra !== undefined || !/^\d+$/.test(memberIdValue ?? "") || !/^\d{13}$/.test(expiresAtValue ?? "")) return null;
+  const [memberIdValue, sessionVersionValue, expiresAtValue, payloadExtra] = payload.split(":");
+  if (
+    payloadExtra !== undefined
+    || !/^\d+$/.test(memberIdValue ?? "")
+    || !/^\d+$/.test(sessionVersionValue ?? "")
+    || !/^\d{13}$/.test(expiresAtValue ?? "")
+  ) return null;
   const memberId = Number(memberIdValue);
+  const sessionVersion = Number(sessionVersionValue);
   const expiration = Number(expiresAtValue);
-  if (!Number.isInteger(memberId) || memberId < 1 || expiration <= Date.now() || expiration > Date.now() + SESSION_MAX_AGE * 1000) return null;
+  if (
+    !Number.isInteger(memberId)
+    || memberId < 1
+    || !Number.isInteger(sessionVersion)
+    || sessionVersion < 0
+    || expiration <= Date.now()
+    || expiration > Date.now() + SESSION_MAX_AGE * 1000
+  ) return null;
   const bytes = fromHex(signature ?? "");
   if (!bytes) return null;
   const key = await crypto.subtle.importKey(
     "raw",
-    encoder.encode(config.secret),
+    encoder.encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["verify"],
   );
-  return await crypto.subtle.verify("HMAC", key, bytes, encoder.encode(payload)) ? memberId : null;
+  const valid = await crypto.subtle.verify("HMAC", key, bytes, encoder.encode(payload));
+  return valid ? { memberId, sessionVersion } : null;
 }
 
 export function sessionTokenFromRequest(request: Request): string | undefined {

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Archive, ArrowRight, BookOpen, CalendarDays, Camera, Check, ChevronRight, Compass, ExternalLink, ImagePlus, LogOut, MapPin, Plus, Search, Star, Users, X } from "lucide-react";
+import { Archive, ArrowRight, BookOpen, CalendarDays, Camera, Check, ChevronDown, ChevronRight, Compass, ExternalLink, ImagePlus, KeyRound, LogOut, MapPin, Plus, Search, Star, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { demoData } from "@/lib/demo";
 import { type AppData, type Book, type Meeting, type Member, type Attendance, readingLabels } from "@/lib/types";
@@ -59,7 +60,9 @@ export default function Home() {
   const [createMode, setCreateMode] = useState<"meeting" | "plan" | null>(null);
   const [scheduledPlanId, setScheduledPlanId] = useState<number | null>(null);
   const [editMeetingOpen, setEditMeetingOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [demoFallback, setDemoFallback] = useState(false);
   const [status, setStatus] = useState<Attendance["readingStatus"]>("read");
@@ -69,6 +72,10 @@ export default function Home() {
 
   async function reload() {
     const response = await fetch("/api/state", { cache: "no-store" });
+    if (response.status === 401) {
+      window.location.replace("/login");
+      throw new Error("Oturum sona erdi.");
+    }
     if (!response.ok) throw new Error("Buluşma kayıtları yüklenemedi.");
     const updated = await response.json() as AppData;
     if (!updated.members?.length) {
@@ -157,9 +164,10 @@ export default function Home() {
     </aside>
 
     <div className="main-area">
-      <header className="topbar"><div className="mobile-brand"><BookOpen size={21} /> okuma<span>halkası</span></div><div className="breadcrumb">OKUMA HALKASI <ChevronRight size={14} /> <strong>{view === "home" ? "Haftanın kitabı" : view === "roadmap" ? "Gelecek kitaplar" : view === "archive" ? "Buluşma arşivi" : "Kitap defteri"}</strong></div><div className="topbar-actions"><div className="person-picker"><Avatar member={member} size="small" /><strong>{member.name}{member.role === "admin" ? " · yönetici" : ""}</strong></div><button type="button" className="logout-button" onClick={() => void signOut()} aria-label="Çıkış yap" title="Çıkış yap"><LogOut size={17} /></button></div></header>
+      <header className="topbar"><div className="mobile-brand"><BookOpen size={21} /> okuma<span>halkası</span></div><div className="breadcrumb">OKUMA HALKASI <ChevronRight size={14} /> <strong>{view === "home" ? "Haftanın kitabı" : view === "roadmap" ? "Gelecek kitaplar" : view === "archive" ? "Buluşma arşivi" : "Kitap defteri"}</strong></div><div className="topbar-actions"><DropdownMenu><DropdownMenuTrigger asChild><button type="button" className="person-picker" aria-label="Hesap menüsü"><Avatar member={member} size="small" /><strong>{member.name}{member.role === "admin" ? " · yönetici" : ""}</strong><ChevronDown size={15} /></button></DropdownMenuTrigger><DropdownMenuContent align="end" className="account-menu"><DropdownMenuItem onSelect={() => setPasswordOpen(true)}><KeyRound /> Şifremi değiştir</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onSelect={() => void signOut()}><LogOut /> Çıkış yap</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></header>
       <div className="mobile-nav" aria-label="Mobil menü"><button onClick={() => navigate("home")} className={view === "home" ? "active" : ""}><BookOpen size={18} /> Kitap</button><button onClick={() => navigate("archive")} className={view === "archive" || view === "meeting" ? "active" : ""}><Archive size={18} /> Arşiv</button><button onClick={() => navigate("roadmap")} className={view === "roadmap" ? "active" : ""}><Compass size={18} /> Plan</button></div>
       {demoFallback && <div className="preview-notice" role="status">Örnek kayıtlar gösteriliyor. Yerel veritabanı hazır olduğunda kayıt işlemleri açılır.</div>}
+      {notice && <div className="success-banner" role="status">{notice}<button aria-label="Bildirimi kapat" onClick={() => setNotice("")}><X size={16} /></button></div>}
       {error && <div className="error-banner" role="alert">{error}<button aria-label="Uyarıyı kapat" onClick={() => setError("")}><X size={16} /></button></div>}
       <main className="content">
         {view === "home" && <>
@@ -179,9 +187,49 @@ export default function Home() {
       </main>
       <footer className="footer"><span>okuma<span>halkası</span> · Kitap kulübü kayıtları</span><span>Bu ekran örnek üyelerle hazırlanmış önizlemedir.</span></footer>
     </div>
+    {passwordOpen && <PasswordDialog open onClose={() => setPasswordOpen(false)} onChanged={() => { setPasswordOpen(false); setNotice("Şifren değiştirildi. Diğer oturumlar kapatıldı."); }} />}
     <BookDialog mode={createMode} member={member} initialBook={scheduledPlanId ? findBook(data.roadmap.find((plan) => plan.id === scheduledPlanId)?.bookId ?? -1) : undefined} initialDate={scheduledPlanId ? data.roadmap.find((plan) => plan.id === scheduledPlanId)?.plannedDate ?? null : null} planId={scheduledPlanId} onClose={() => { setCreateMode(null); setScheduledPlanId(null); }} onUpload={(file) => upload(file, "cover")} onSubmit={async (payload) => { const result = await perform(createMode === "plan" ? "createPlan" : "createMeeting", payload); if (result) { setCreateMode(null); setScheduledPlanId(null); if (createMode === "meeting" && result.meetingId) { setMeetingId(result.meetingId); setView("meeting"); } } }} busy={busy} />
     <EditMeetingDialog meeting={selectedMeeting} open={editMeetingOpen} busy={busy} onClose={() => setEditMeetingOpen(false)} onSubmit={async (payload) => { const result = await perform("editMeeting", { meetingId: selectedMeeting?.id, ...payload }); if (result) setEditMeetingOpen(false); }} />
   </div>;
+}
+
+function PasswordDialog({ open, onClose, onChanged }: { open: boolean; onClose: () => void; onChanged: () => void }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    if (newPassword !== confirmPassword) {
+      setError("Yeni şifreler eşleşmiyor.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const response = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+      });
+      const result = await response.json() as { error?: string };
+      if (response.status === 401) {
+        window.location.replace("/login");
+        return;
+      }
+      if (!response.ok) throw new Error(result.error ?? "Şifre değiştirilemedi.");
+      onChanged();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Şifre değiştirilemedi.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const validNewPassword = newPassword.length >= 12 && /[a-zçğıöşü]/i.test(newPassword) && /\d/.test(newPassword);
+  return <Dialog open={open} onOpenChange={(value) => !value && onClose()}><DialogContent className="password-dialog"><DialogHeader><DialogTitle>Şifremi değiştir</DialogTitle><DialogDescription>Yeni şifre en az 12 karakter, bir harf ve bir rakam içermeli.</DialogDescription></DialogHeader><form className="create-form password-form" onSubmit={submit}><label>Mevcut şifre<Input type="password" autoComplete="current-password" required maxLength={200} value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label><label>Yeni şifre<Input type="password" autoComplete="new-password" required minLength={12} maxLength={200} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label><label>Yeni şifre tekrar<Input type="password" autoComplete="new-password" required minLength={12} maxLength={200} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} /></label>{error && <p className="form-error" role="alert">{error}</p>}<Button type="submit" disabled={busy || !currentPassword || !validNewPassword || newPassword !== confirmPassword} className="full-button">{busy ? "Değiştiriliyor" : "Şifreyi değiştir"} <KeyRound size={17} /></Button></form></DialogContent></Dialog>;
 }
 
 function EditMeetingDialog({ meeting, open, busy, onClose, onSubmit }: { meeting?: Meeting; open: boolean; busy: boolean; onClose: () => void; onSubmit: (payload: Record<string, unknown>) => Promise<void> }) {

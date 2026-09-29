@@ -1,19 +1,32 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { authIsConfigured, SESSION_COOKIE, sessionMemberId } from "@/lib/auth";
+import { sessionAccountIsCurrent } from "@/db/accounts";
+import {
+  authIsConfigured,
+  SESSION_COOKIE,
+  sessionIdentity,
+} from "@/lib/auth";
 
 const publicPaths = new Set(["/login", "/api/auth/login", "/api/auth/logout"]);
 const publicAsset = /\.(?:css|js|map|svg|png|jpg|jpeg|webp|ico|woff2?)$/i;
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = request.cookies.get(SESSION_COOKIE)?.value;
-  const authenticated = (await sessionMemberId(session)) !== null;
+  if (publicAsset.test(pathname)) return NextResponse.next();
+  if (publicPaths.has(pathname) && pathname !== "/login") return NextResponse.next();
 
-  if (publicPaths.has(pathname) || publicAsset.test(pathname)) {
-    if (pathname === "/login" && authenticated) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-    return NextResponse.next();
+  const session = request.cookies.get(SESSION_COOKIE)?.value;
+  const identity = await sessionIdentity(session);
+  let authenticated = false;
+  try {
+    authenticated = !!identity && await sessionAccountIsCurrent(identity);
+  } catch (error) {
+    console.error("Could not validate session account", error);
+  }
+
+  if (pathname === "/login") {
+    return authenticated
+      ? NextResponse.redirect(new URL("/", request.url))
+      : NextResponse.next();
   }
 
   if (!authIsConfigured() || !authenticated) {

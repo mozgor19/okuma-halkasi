@@ -15,6 +15,13 @@
       "when": 1790600000000,
       "tag": "0001_store_media_in_d1",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790675812640,
+      "tag": "0002_member_accounts",
+      "breakpoints": true
     }
   ]
 }

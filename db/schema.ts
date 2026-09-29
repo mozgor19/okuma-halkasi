@@ -7,6 +7,18 @@ export const members = sqliteTable("members", {
   role: text("role").notNull().default("member"),
   color: text("color").notNull().default("#5e8b88"),
 });
+export const memberAccounts = sqliteTable("member_accounts", {
+  memberId: integer("member_id").primaryKey().references(() => members.id),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  passwordSalt: text("password_salt").notNull(),
+  passwordIterations: integer("password_iterations").notNull(),
+  sessionVersion: integer("session_version").notNull().default(1),
+  failedAttempts: integer("failed_attempts").notNull().default(0),
+  lockedUntil: text("locked_until"),
+  passwordChangedAt: text("password_changed_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
 export const books = sqliteTable("books", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),

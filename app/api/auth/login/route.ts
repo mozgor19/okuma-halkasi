@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { authenticateAccount } from "@/db/accounts";
 import { getMember } from "@/db/store";
 import {
-  authenticateMember,
   authConfigurationIssue,
   createSessionToken,
   SESSION_COOKIE,
@@ -23,19 +23,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Kullanıcı adı veya şifre yanlış." }, { status: 401 });
   }
 
-  const memberId = await authenticateMember(username, password);
-  const member = memberId ? await getMember(memberId) : null;
-  if (!member) {
-    return NextResponse.json({ error: "Kullanıcı adı veya şifre yanlış." }, { status: 401 });
-  }
+  try {
+    const account = await authenticateAccount(username, password);
+    const member = account ? await getMember(account.memberId) : null;
+    if (!account || !member) {
+      return NextResponse.json({ error: "Kullanıcı adı veya şifre yanlış." }, { status: 401 });
+    }
 
-  const response = NextResponse.json({ ok: true });
-  response.cookies.set(SESSION_COOKIE, await createSessionToken(member.id), {
-    httpOnly: true,
-    secure: new URL(request.url).protocol === "https:",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_MAX_AGE,
-  });
-  return response;
+    const response = NextResponse.json({ ok: true });
+    response.cookies.set(
+      SESSION_COOKIE,
+      await createSessionToken(member.id, account.sessionVersion),
+      {
+        httpOnly: true,
+        secure: new URL(request.url).protocol === "https:",
+        sameSite: "lax",
+        path: "/",
+        maxAge: SESSION_MAX_AGE,
+      },
+    );
+    return response;
+  } catch (error) {
+    console.error("Login failed", error);
+    return NextResponse.json({ error: "Giriş şu anda tamamlanamıyor." }, { status: 503 });
+  }
 }
