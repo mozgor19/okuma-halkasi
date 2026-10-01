@@ -9,6 +9,11 @@ import {
 const publicPaths = new Set(["/login", "/api/auth/login", "/api/auth/logout"]);
 const publicAsset = /\.(?:css|js|map|svg|png|jpg|jpeg|webp|ico|woff2?)$/i;
 
+function enforceLocalBrowserRequests(response: NextResponse) {
+  response.headers.set("Content-Security-Policy", "connect-src 'self'");
+  return response;
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (publicAsset.test(pathname)) return NextResponse.next();
@@ -24,19 +29,25 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname === "/login") {
-    return authenticated
-      ? NextResponse.redirect(new URL("/", request.url))
-      : NextResponse.next();
+    return enforceLocalBrowserRequests(
+      authenticated
+        ? NextResponse.redirect(new URL("/", request.url))
+        : NextResponse.next(),
+    );
   }
 
   if (!authIsConfigured() || !authenticated) {
     if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
+      return enforceLocalBrowserRequests(
+        NextResponse.json({ error: "Oturum gerekli." }, { status: 401 }),
+      );
     }
-    return NextResponse.redirect(new URL("/login", request.url));
+    return enforceLocalBrowserRequests(
+      NextResponse.redirect(new URL("/login", request.url)),
+    );
   }
 
-  return NextResponse.next();
+  return enforceLocalBrowserRequests(NextResponse.next());
 }
 
 export const config = {
