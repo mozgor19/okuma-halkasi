@@ -7,8 +7,14 @@ export async function GET(request: Request) {
   if (!member) return Response.json({ error: "Oturum gerekli." }, { status: 401 });
 
   try {
+    const state = await getState();
+    const members = member.role === "admin"
+      ? state.members
+      : state.members.map((person) => person.id === member.id
+          ? person
+          : { ...person, faceReferenceMediaKey: null });
     return Response.json(
-      { ...(await getState()), currentMemberId: member.id },
+      { ...state, members, currentMemberId: member.id },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {

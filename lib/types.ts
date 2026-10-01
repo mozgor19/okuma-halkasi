@@ -1,4 +1,12 @@
-export type Member = { id: number; name: string; role: "admin" | "member"; color: string; avatarMediaKey: string | null };
+export type Member = {
+  id: number;
+  name: string;
+  role: "admin" | "member";
+  color: string;
+  avatarMediaKey: string | null;
+  faceReferenceMediaKey: string | null;
+  faceRecognitionConsent: boolean;
+};
 export type Book = { id: number; title: string; author: string; publisher: string | null; pages: number | null; isbn: string | null; coverUrl: string | null; sourceUrl: string | null };
 export type Meeting = { id: number; bookId: number; date: string; location: string; mapUrl: string | null; note: string | null; readingScope: string | null; bookStatus: "continuing" | "completed"; createdBy: number };
 export type Attendance = { meetingId: number; memberId: number; readingStatus: "read" | "partial" | "unread" | "unselected" };

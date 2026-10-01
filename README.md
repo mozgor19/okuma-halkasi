@@ -15,6 +15,7 @@ Altı kişilik haftalık okuma grubu için Türkçe, tam yığın bir web uygula
 - Buluşma fotoğrafları ve kitap kapakları
 - D1 veritabanında kalıcı kayıt ve görsel saklama
 - Ayrı üye hesapları, parola değiştirme ve sunucu tarafında yönetici yetkisi kontrolü
+- Tarayıcı içinde çalışan, yönetici onaylı fotoğraftan katılımcı önerileri
 
 ## Yetkilendirme
 
@@ -53,8 +54,17 @@ Yeni bir veritabanında SQL dosyalarını sırayla uygulayın:
 2. `drizzle/0001_store_media_in_d1.sql`
 3. `drizzle/0002_member_accounts.sql`
 4. `drizzle/0003_member_profiles_and_reading_progress.sql`
+5. `drizzle/0004_face_recognition.sql`
 
-Mevcut üretim veritabanında migration dosyalarını numara sırasıyla ve yalnızca birer kez çalıştırın. Hesap migration'ı uygulanmadıysa önce `0002_member_accounts.sql`, ardından profil, favori ve devam eden okuma alanları için `0003_member_profiles_and_reading_progress.sql` çalıştırılmalıdır. `0003` uygulanmadan yeni profil ve çoklu oturum ekranları veri yükleyemez.
+Mevcut üretim veritabanında migration dosyalarını numara sırasıyla ve yalnızca birer kez çalıştırın. Hesap migration'ı uygulanmadıysa önce `0002_member_accounts.sql`, ardından profil, favori ve devam eden okuma alanları için `0003_member_profiles_and_reading_progress.sql` çalıştırılmalıdır. Yüz referansları ve katılımcı önerileri için son olarak `0004_face_recognition.sql` uygulanmalıdır.
+
+## Yüz eşleştirme gizliliği
+
+Yüz algılama ve eşleştirme modeli tarayıcıda çalışır. Model dosyaları uygulamanın kendi `/face-models/` yolundan yüklenir; buluşma fotoğrafları, referans fotoğrafları ve yüz vektörleri harici bir yapay zeka servisine gönderilmez. Yüz vektörleri kalıcı olarak saklanmaz.
+
+Referans fotoğrafları oturum korumalı `media` tablosunda tutulur. Her üye kendi referansını kaldırabilir; yönetici de açık rıza verilen üyeler için referans ekleyip kaldırabilir. Sistem yalnız öneri üretir ve katılım kaydı yönetici seçimleri onayladıktan sonra oluşturulur.
+
+Yerel `humans/` klasörü Git tarafından yok sayılır. Yönetici profildeki **Yüz verisi > Toplu aktar** kontrolüyle dosyaları seçtiğinde, dosya adı üye adıyla eşleştirilir. Örneğin `mustafa_ozgor.png`, `Mustafa Özgör` üyesine bağlanır.
 
 ## Yerel geliştirme
 

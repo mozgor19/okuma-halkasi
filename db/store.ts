@@ -10,13 +10,25 @@ export function profileSchemaMissing(error: unknown): boolean {
     .test(error instanceof Error ? error.message : String(error));
 }
 
+export function faceSchemaMissing(error: unknown): boolean {
+  return /(?:no such column:|has no column named).*?(?:face_reference_media_key|face_recognition_consent)/i
+    .test(error instanceof Error ? error.message : String(error));
+}
+
 export async function getMember(id: unknown): Promise<Member | null> {
   if (!Number.isInteger(id) || Number(id) < 1) return null;
   const member = await database()
     .prepare("SELECT id, name, role, color FROM members WHERE id = ?")
     .bind(id)
-    .first<Omit<Member, "avatarMediaKey">>();
-  return member ? { ...member, avatarMediaKey: null } : null;
+    .first<Omit<Member, "avatarMediaKey" | "faceReferenceMediaKey" | "faceRecognitionConsent">>();
+  return member
+    ? {
+        ...member,
+        avatarMediaKey: null,
+        faceReferenceMediaKey: null,
+        faceRecognitionConsent: false,
+      }
+    : null;
 }
 
 export async function getAuthenticatedMember(request: Request): Promise<Member | null> {
@@ -25,11 +37,13 @@ export async function getAuthenticatedMember(request: Request): Promise<Member |
   return getMember(identity.memberId);
 }
 
-async function runStateQueries(extended: boolean) {
+async function runStateQueries(extended: boolean, faceRecognition: boolean) {
   const queries = [
     extended
-      ? "SELECT id, name, role, color, avatar_media_key AS avatarMediaKey FROM members ORDER BY id"
-      : "SELECT id, name, role, color, NULL AS avatarMediaKey FROM members ORDER BY id",
+      ? faceRecognition
+        ? "SELECT id, name, role, color, avatar_media_key AS avatarMediaKey, face_reference_media_key AS faceReferenceMediaKey, face_recognition_consent AS faceRecognitionConsent FROM members ORDER BY id"
+        : "SELECT id, name, role, color, avatar_media_key AS avatarMediaKey, NULL AS faceReferenceMediaKey, 0 AS faceRecognitionConsent FROM members ORDER BY id"
+      : "SELECT id, name, role, color, NULL AS avatarMediaKey, NULL AS faceReferenceMediaKey, 0 AS faceRecognitionConsent FROM members ORDER BY id",
     "SELECT id, title, author, publisher, pages, isbn, cover_url AS coverUrl, source_url AS sourceUrl FROM books ORDER BY id",
     extended
       ? "SELECT id, book_id AS bookId, date, location, map_url AS mapUrl, note, reading_scope AS readingScope, book_status AS bookStatus, created_by AS createdBy FROM meetings ORDER BY date DESC"
@@ -48,7 +62,11 @@ async function runStateQueries(extended: boolean) {
   const results = await Promise.all(
     queries.map(async (query) => (await database().prepare(query).all()).results),
   );
-  const [members, books, meetings, attendance, reviews, photos, roadmap] = results;
+  const [memberRows, books, meetings, attendance, reviews, photos, roadmap] = results;
+  const members = (memberRows as Array<Record<string, unknown>>).map((member) => ({
+    ...member,
+    faceRecognitionConsent: Boolean(member.faceRecognitionConsent),
+  }));
   return {
     members,
     books,
@@ -63,9 +81,17 @@ async function runStateQueries(extended: boolean) {
 
 export async function getState(): Promise<AppData> {
   try {
-    return await runStateQueries(true);
+    return await runStateQueries(true, true);
   } catch (error) {
-    if (!profileSchemaMissing(error)) throw error;
-    return runStateQueries(false);
+    if (faceSchemaMissing(error)) {
+      try {
+        return await runStateQueries(true, false);
+      } catch (fallbackError) {
+        if (profileSchemaMissing(fallbackError)) return runStateQueries(false, false);
+        throw fallbackError;
+      }
+    }
+    if (profileSchemaMissing(error)) return runStateQueries(false, false);
+    throw error;
   }
 }

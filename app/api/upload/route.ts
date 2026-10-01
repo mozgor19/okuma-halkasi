@@ -1,4 +1,4 @@
-import { database, getAuthenticatedMember, profileSchemaMissing } from "@/db/store";
+import { database, faceSchemaMissing, getAuthenticatedMember, profileSchemaMissing } from "@/db/store";
 
 export const runtime = "edge";
 
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     const form = await request.formData();
     const file = form.get("file");
     const purpose = String(form.get("purpose"));
-    if (!(file instanceof File) || !["cover", "photo", "avatar"].includes(purpose)) {
+    if (!(file instanceof File) || !["cover", "photo", "avatar", "faceReference"].includes(purpose)) {
       return Response.json({ error: "Bir fotoğraf seç." }, { status: 400 });
     }
     if (file.size < 1 || file.size > MAX_STORED_IMAGE_BYTES) {
@@ -62,6 +62,26 @@ export async function POST(request: Request) {
       return Response.json({ error: "Buluşma bulunamadı." }, { status: 404 });
     }
 
+    const targetMemberId = Number(form.get("targetMemberId"));
+    const faceTarget = purpose === "faceReference" && Number.isInteger(targetMemberId)
+      ? await database()
+          .prepare("SELECT id, face_reference_media_key AS faceReferenceMediaKey FROM members WHERE id = ?")
+          .bind(targetMemberId)
+          .first<{ id: number; faceReferenceMediaKey: string | null }>()
+      : null;
+    if (
+      purpose === "faceReference"
+      && (
+        !faceTarget
+        || (actor.role !== "admin" && actor.id !== targetMemberId)
+      )
+    ) {
+      return Response.json(
+        { error: faceTarget ? "Bu referans fotoğrafını değiştiremezsin." : "Üye bulunamadı." },
+        { status: faceTarget ? 403 : 404 },
+      );
+    }
+
     const key = crypto.randomUUID();
     const db = database();
     const mediaInsert = db
@@ -84,6 +104,19 @@ export async function POST(request: Request) {
           .prepare("UPDATE members SET avatar_media_key = ? WHERE id = ?")
           .bind(key, actor.id),
       ]);
+    } else if (purpose === "faceReference" && faceTarget) {
+      await db.batch([
+        mediaInsert,
+        db
+          .prepare("UPDATE members SET face_reference_media_key = ?, face_recognition_consent = 1 WHERE id = ?")
+          .bind(key, faceTarget.id),
+      ]);
+      if (faceTarget.faceReferenceMediaKey) {
+        await db
+          .prepare("DELETE FROM media WHERE media_key = ?")
+          .bind(faceTarget.faceReferenceMediaKey)
+          .run();
+      }
     } else {
       await mediaInsert.run();
     }
@@ -91,6 +124,12 @@ export async function POST(request: Request) {
     return Response.json({ url: `/api/media/${key}`, mediaKey: key });
   } catch (error) {
     console.error("Image upload failed", error);
+    if (faceSchemaMissing(error)) {
+      return Response.json(
+        { error: "Yüz eşleştirme için önce 0004 migration'ını D1 veritabanına uygula." },
+        { status: 503 },
+      );
+    }
     if (profileSchemaMissing(error)) {
       return Response.json(
         { error: "Profil fotoğrafı için önce 0003 migration'ını D1 veritabanına uygula." },

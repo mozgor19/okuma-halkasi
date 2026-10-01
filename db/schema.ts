@@ -7,6 +7,8 @@ export const members = sqliteTable("members", {
   role: text("role").notNull().default("member"),
   color: text("color").notNull().default("#5e8b88"),
   avatarMediaKey: text("avatar_media_key"),
+  faceReferenceMediaKey: text("face_reference_media_key"),
+  faceRecognitionConsent: integer("face_recognition_consent", { mode: "boolean" }).notNull().default(false),
 });
 export const memberAccounts = sqliteTable("member_accounts", {
   memberId: integer("member_id").primaryKey().references(() => members.id),

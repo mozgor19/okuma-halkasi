@@ -1,4 +1,4 @@
-import { database, getAuthenticatedMember, getMember, profileSchemaMissing } from "@/db/store";
+import { database, faceSchemaMissing, getAuthenticatedMember, getMember, profileSchemaMissing } from "@/db/store";
 
 export const runtime = "edge";
 
@@ -16,6 +16,7 @@ type Payload = {
   action?: string;
   meetingId?: number;
   targetId?: number;
+  targetIds?: number[];
   planId?: number;
   bookId?: number;
   book?: BookInput;
@@ -267,6 +268,61 @@ export async function POST(request: Request) {
       return Response.json({ ok: true });
     }
 
+    if (input.action === "confirmDetectedAttendance") {
+      if (actor.role !== "admin") {
+        return fail("Fotoğraftan katılımcı eklemeyi yönetici onaylayabilir.", 403);
+      }
+      if (!Array.isArray(input.targetIds)) return fail("Katılımcı seçimi geçersiz.");
+      const targetIds = [...new Set(input.targetIds)];
+      if (
+        !Number.isInteger(input.meetingId)
+        || targetIds.length < 1
+        || targetIds.length > 30
+        || targetIds.some((id) => !Number.isInteger(id) || id < 1)
+      ) {
+        return fail("Katılımcı seçimi geçersiz.");
+      }
+      const [meeting, ...targets] = await Promise.all([
+        database().prepare("SELECT id FROM meetings WHERE id = ?").bind(input.meetingId).first(),
+        ...targetIds.map((id) => getMember(id)),
+      ]);
+      if (!meeting) return fail("Buluşma bulunamadı.", 404);
+      if (targets.some((target) => !target)) return fail("Katılımcılardan biri bulunamadı.", 404);
+      await database().batch(
+        targetIds.map((targetId) =>
+          database()
+            .prepare("INSERT OR IGNORE INTO attendance (meeting_id, member_id, reading_status) VALUES (?, ?, 'unselected')")
+            .bind(input.meetingId, targetId),
+        ),
+      );
+      return Response.json({ ok: true, added: targetIds.length });
+    }
+
+    if (input.action === "clearFaceReference") {
+      const targetId = Number(input.targetId);
+      if (!Number.isInteger(targetId)) return fail("Üye bulunamadı.");
+      if (actor.role !== "admin" && actor.id !== targetId) {
+        return fail("Bu yüz referansını kaldıramazsın.", 403);
+      }
+      const target = await database()
+        .prepare("SELECT id, face_reference_media_key AS faceReferenceMediaKey FROM members WHERE id = ?")
+        .bind(targetId)
+        .first<{ id: number; faceReferenceMediaKey: string | null }>();
+      if (!target) return fail("Üye bulunamadı.", 404);
+      const statements = [
+        database()
+          .prepare("UPDATE members SET face_reference_media_key = NULL, face_recognition_consent = 0 WHERE id = ?")
+          .bind(targetId),
+      ];
+      if (target.faceReferenceMediaKey) {
+        statements.push(
+          database().prepare("DELETE FROM media WHERE media_key = ?").bind(target.faceReferenceMediaKey),
+        );
+      }
+      await database().batch(statements);
+      return Response.json({ ok: true });
+    }
+
     if (input.action === "deletePlan") {
       if (actor.role !== "admin") return fail("Planları yönetici değiştirebilir.", 403);
       if (!Number.isInteger(input.planId)) return fail("Plan bulunamadı.");
@@ -335,6 +391,9 @@ export async function POST(request: Request) {
     return fail("Bilinmeyen işlem.");
   } catch (error) {
     console.error("Reading circle action failed", error);
+    if (faceSchemaMissing(error)) {
+      return fail("Yüz eşleştirme için önce 0004 migration'ını D1 veritabanına uygula.", 503);
+    }
     if (profileSchemaMissing(error)) {
       return fail("Profil, favori ve devam özellikleri için önce 0003 migration'ını D1 veritabanına uygula.", 503);
     }

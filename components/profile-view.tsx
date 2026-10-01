@@ -9,7 +9,10 @@ import {
   Camera,
   ImagePlus,
   KeyRound,
+  ScanFace,
+  ShieldCheck,
   Star,
+  Trash2,
 } from "lucide-react";
 import { PhotoLightbox } from "@/components/photo-lightbox";
 import { Button } from "@/components/ui/button";
@@ -23,6 +26,8 @@ type ProfileViewProps = {
   busy: boolean;
   onOpenMeeting: (meetingId: number) => void;
   onUploadAvatar: (file: File) => Promise<string | null>;
+  onUploadFaceReference: (memberId: number, file: File) => Promise<string | null>;
+  onClearFaceReference: (memberId: number) => Promise<boolean>;
   onToggleFavorite: (bookId: number, active: boolean) => Promise<void>;
   onNotice: (message: string) => void;
 };
@@ -40,6 +45,14 @@ const initials = (name: string) =>
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
+const faceFileKey = (value: string) => value
+  .toLocaleLowerCase("tr-TR")
+  .replaceAll("ı", "i")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .replace(/[^a-z0-9]+/g, "_")
+  .replace(/^_|_$/g, "");
 
 function ProfileAvatar({ member }: { member: Member }) {
   return (
@@ -233,12 +246,139 @@ function PasswordForm({ onChanged }: { onChanged: () => void }) {
   );
 }
 
+function FaceReferencePanel({
+  data,
+  member,
+  busy,
+  onUpload,
+  onClear,
+  onNotice,
+}: {
+  data: AppData;
+  member: Member;
+  busy: boolean;
+  onUpload: (memberId: number, file: File) => Promise<string | null>;
+  onClear: (memberId: number) => Promise<boolean>;
+  onNotice: (message: string) => void;
+}) {
+  const [workingId, setWorkingId] = useState<number | null>(null);
+  const visibleMembers = member.role === "admin"
+    ? data.members
+    : data.members.filter((person) => person.id === member.id);
+
+  return (
+    <section className="profile-section face-reference-section">
+      <div className="profile-section-heading face-reference-heading">
+        <div>
+          <span className="eyebrow">YÜZ EŞLEŞTİRME</span>
+          <h2>Referans fotoğrafları</h2>
+          <p>Referanslar korumalı alanda tutulur; eşleştirme yalnızca cihazında yapılır.</p>
+        </div>
+        <div className="face-heading-actions">
+          <span className="local-processing"><ShieldCheck size={17} /> Tarayıcıda işlenir</span>
+          {member.role === "admin" && (
+            <label className={`face-bulk-upload ${workingId !== null || busy ? "disabled" : ""}`}>
+              <ImagePlus size={16} /> Toplu aktar
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                disabled={workingId !== null || busy}
+                onChange={async (event) => {
+                  const files = [...(event.target.files ?? [])];
+                  event.target.value = "";
+                  if (!files.length) return;
+                  const assignments = files.map((file) => {
+                    const key = faceFileKey(file.name.replace(/\.[^.]+$/, ""));
+                    return { file, person: data.members.find((candidate) => faceFileKey(candidate.name) === key) };
+                  });
+                  const matched = assignments.filter((entry): entry is { file: File; person: Member } => Boolean(entry.person));
+                  if (!matched.length) {
+                    onNotice("Dosya adları üyelerle eşleşmedi.");
+                    return;
+                  }
+                  setWorkingId(-1);
+                  let uploaded = 0;
+                  for (const assignment of matched) {
+                    if (await onUpload(assignment.person.id, assignment.file)) uploaded += 1;
+                  }
+                  setWorkingId(null);
+                  const unmatched = files.length - matched.length;
+                  onNotice(`${uploaded} yüz referansı aktarıldı${unmatched ? `; ${unmatched} dosya adı eşleşmedi` : ""}.`);
+                }}
+              />
+            </label>
+          )}
+        </div>
+      </div>
+      <div className="face-reference-grid">
+        {visibleMembers.map((person) => {
+          const active = person.faceRecognitionConsent && person.faceReferenceMediaKey;
+          const working = workingId === person.id;
+          return (
+            <div className="face-reference-row" key={person.id}>
+              <span className="face-reference-preview" style={{ backgroundColor: person.color }}>
+                {person.faceReferenceMediaKey
+                  ? <img src={`/api/media/${person.faceReferenceMediaKey}`} alt="" />
+                  : <ScanFace size={25} />}
+              </span>
+              <span className="face-reference-person">
+                <strong>{person.name}</strong>
+                <small className={active ? "reference-active" : ""}>
+                  {active ? "Referans etkin" : "Referans yok"}
+                </small>
+              </span>
+              <label className={`face-reference-upload ${working || busy ? "disabled" : ""}`}>
+                <ImagePlus size={16} />
+                {active ? "Değiştir" : "Ekle"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={working || busy}
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (!file) return;
+                    setWorkingId(person.id);
+                    const uploaded = await onUpload(person.id, file);
+                    setWorkingId(null);
+                    if (uploaded) onNotice(`${person.name} için yüz referansı kaydedildi.`);
+                  }}
+                />
+              </label>
+              {active && (
+                <button
+                  type="button"
+                  className="face-reference-remove"
+                  disabled={working || busy}
+                  aria-label={`${person.name} yüz referansını kaldır`}
+                  title="Yüz referansını kaldır"
+                  onClick={async () => {
+                    setWorkingId(person.id);
+                    const removed = await onClear(person.id);
+                    setWorkingId(null);
+                    if (removed) onNotice(`${person.name} için yüz referansı kaldırıldı.`);
+                  }}
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function ProfileView({
   data,
   member,
   busy,
   onOpenMeeting,
   onUploadAvatar,
+  onUploadFaceReference,
+  onClearFaceReference,
   onToggleFavorite,
   onNotice,
 }: ProfileViewProps) {
@@ -344,6 +484,7 @@ export function ProfileView({
           <TabsTrigger value="overview">Özet</TabsTrigger>
           <TabsTrigger value="gallery">Fotoğraflarım</TabsTrigger>
           <TabsTrigger value="books">Kitaplarım</TabsTrigger>
+          <TabsTrigger value="face">Yüz verisi</TabsTrigger>
           <TabsTrigger value="security">Güvenlik</TabsTrigger>
         </TabsList>
 
@@ -493,6 +634,17 @@ export function ProfileView({
               </section>
             </TabsContent>
           </Tabs>
+        </TabsContent>
+
+        <TabsContent value="face">
+          <FaceReferencePanel
+            data={data}
+            member={member}
+            busy={busy}
+            onUpload={onUploadFaceReference}
+            onClear={onClearFaceReference}
+            onNotice={onNotice}
+          />
         </TabsContent>
 
         <TabsContent value="security">
