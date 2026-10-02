@@ -29,13 +29,15 @@
 .photo-lightbox-stage{display:grid;place-items:center;min-height:0;padding:48px 20px 20px}
 .photo-lightbox-stage img{display:block;width:auto;height:auto;max-width:100%;max-height:calc(92vh - 120px);object-fit:contain}
 .photo-lightbox-meta{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 18px;background:#1a292d;border-top:1px solid #ffffff1f}
-.photo-lightbox-meta>div{min-width:0;display:grid;gap:3px}
+.photo-lightbox-copy{min-width:0;display:grid;gap:3px}
+.photo-lightbox-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .photo-lightbox-meta strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 17px Georgia,serif}
 .photo-lightbox-meta span{color:#b8c8c5;font-size:11px}
 .photo-lightbox-meta button{flex:none;border:0;background:transparent;color:#f0c588;display:inline-flex;align-items:center;gap:7px;padding:8px;font-size:12px;font-weight:800}
+.photo-lightbox-meta .photo-delete-action{color:#f1a39c}.photo-lightbox-meta .photo-delete-action:hover{color:#ffc1ba;background:#7a302c52}.photo-lightbox-meta button:disabled{opacity:.5}
 .photo-lightbox [data-slot="dialog-close"]{top:12px;right:12px;z-index:3;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#16272b;opacity:.9}
 .photo-lightbox [data-slot="dialog-close"]:hover{opacity:1}
-@media(max-width:680px){.photo-grid .photo-lightbox-trigger{height:125px}.photo-zoom-indicator{opacity:1;width:30px;height:30px;top:7px;right:7px}.photo-lightbox{width:calc(100vw - 16px);max-width:calc(100vw - 16px);max-height:94vh}.photo-lightbox-stage{padding:48px 10px 12px}.photo-lightbox-stage img{max-height:calc(94vh - 116px)}.photo-lightbox-meta{padding:12px;gap:10px}.photo-lightbox-meta strong{font-size:15px}.photo-lightbox-meta button{font-size:11px}}
+@media(max-width:680px){.photo-grid .photo-lightbox-trigger{height:125px}.photo-zoom-indicator{opacity:1;width:30px;height:30px;top:7px;right:7px}.photo-lightbox{width:calc(100vw - 16px);max-width:calc(100vw - 16px);max-height:94vh}.photo-lightbox-stage{padding:48px 10px 12px}.photo-lightbox-stage img{max-height:calc(94vh - 116px)}.photo-lightbox-meta{padding:12px;gap:10px;align-items:flex-start;flex-direction:column}.photo-lightbox-actions{width:100%;justify-content:space-between}.photo-lightbox-meta strong{font-size:15px}.photo-lightbox-meta button{font-size:11px}}
 
 
 /* Profile book collections */

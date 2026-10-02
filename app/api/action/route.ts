@@ -15,6 +15,7 @@ type BookInput = {
 type Payload = {
   action?: string;
   meetingId?: number;
+  photoId?: number;
   targetId?: number;
   targetIds?: number[];
   planId?: number;
@@ -243,6 +244,23 @@ export async function POST(request: Request) {
           .bind(actor.id, book.id)
           .run();
       }
+      return Response.json({ ok: true });
+    }
+
+    if (input.action === "deletePhoto") {
+      if (actor.role !== "admin") {
+        return fail("Fotoğrafları yalnızca yönetici silebilir.", 403);
+      }
+      if (!Number.isInteger(input.photoId)) return fail("Fotoğraf bulunamadı.");
+      const photo = await database()
+        .prepare("SELECT media_key AS mediaKey FROM photos WHERE id = ?")
+        .bind(input.photoId)
+        .first<{ mediaKey: string }>();
+      if (!photo) return fail("Fotoğraf bulunamadı.", 404);
+      await database().batch([
+        database().prepare("DELETE FROM photos WHERE id = ?").bind(input.photoId),
+        database().prepare("DELETE FROM media WHERE media_key = ?").bind(photo.mediaKey),
+      ]);
       return Response.json({ ok: true });
     }
 
