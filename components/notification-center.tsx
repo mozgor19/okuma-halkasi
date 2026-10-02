@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Bell, BellRing, CalendarClock } from "lucide-react";
+import { Bell, BellRing, CalendarClock } from "@/components/icons";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { AppData } from "@/lib/types";
 

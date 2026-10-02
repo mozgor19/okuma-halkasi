@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Archive, ArrowRight, BookOpen, CalendarDays, CalendarPlus, Camera, Check, ChevronDown, ChevronRight, Compass, Download, ExternalLink, ImagePlus, LogOut, MapPin, Pencil, Plus, Search, Star, Trash2, UserPlus, UserRound, Users, X } from "lucide-react";
+import { Archive, ArrowRight, BookOpen, CalendarDays, CalendarPlus, Camera, Check, ChevronDown, ChevronRight, Compass, Download, ExternalLink, ImagePlus, LogOut, MapPin, Pencil, Plus, Search, Star, Trash2, UserPlus, UserRound, Users, X } from "@/components/icons";
 import { AttendanceSuggestionDialog } from "@/components/attendance-suggestion-dialog";
 import { BookEditDialog } from "@/components/book-edit-dialog";
 import { GlobalSearchDialog } from "@/components/global-search-dialog";

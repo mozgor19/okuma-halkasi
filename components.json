@@ -17,5 +17,7 @@
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
-  "registries": {}
+  "registries": {
+    "@hugeicons-animated": "https://hugeicons-animated.com/r/{name}.json"
+  }
 }

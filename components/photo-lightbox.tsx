@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { ArrowRight, Maximize2, Trash2 } from "lucide-react";
+import { ArrowRight, Maximize2, Trash2 } from "@/components/icons";
 import {
   Dialog,
   DialogContent,

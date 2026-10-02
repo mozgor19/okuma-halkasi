@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { BookOpen, LockKeyhole, UserRound } from "lucide-react";
+import { BookOpen, LockKeyhole, UserRound } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

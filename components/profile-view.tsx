@@ -14,7 +14,7 @@ import {
   ShieldCheck,
   Star,
   Trash2,
-} from "lucide-react";
+} from "@/components/icons";
 import { PhotoLightbox } from "@/components/photo-lightbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
