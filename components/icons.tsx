@@ -30,6 +30,7 @@ import {
   StarIcon as StarSourceIcon,
   Tick02Icon,
   UserGroupIcon,
+  UserSwitchIcon as UserSwitchSourceIcon,
 } from "@hugeicons/core-free-icons";
 import { Archive02Icon } from "@/components/ui/archive-02";
 import { ArrowLeft02Icon } from "@/components/ui/arrow-left-02";
@@ -148,6 +149,7 @@ export const ScanFace = createStaticIcon(ScanFaceSourceIcon, "ScanFace");
 export const ShieldCheck = createStaticIcon(ShieldCheckSourceIcon, "ShieldCheck");
 export const Star = createStaticIcon(StarSourceIcon, "Star");
 export const Users = createStaticIcon(UserGroupIcon, "Users");
+export const UserSwitch = createStaticIcon(UserSwitchSourceIcon, "UserSwitch");
 
 export const ArrowDownIcon = createStaticIcon(ArrowDown01Icon, "ArrowDownIcon");
 export const ChevronLeftIcon = createStaticIcon(ArrowLeft01Icon, "ChevronLeftIcon");
