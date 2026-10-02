@@ -203,12 +203,16 @@ export async function POST(request: Request) {
 
     if (input.action === "review") {
       const meetingId = Number(input.meetingId);
-      const rating = Number(input.rating);
-      if (!Number.isInteger(rating) || rating < 1 || rating > 10) {
-        return fail("Puan 1-10 arasında zorunludur.");
-      }
       if (!["read", "partial", "unread"].includes(input.readingStatus ?? "")) {
         return fail("Okuma durumunu seç.");
+      }
+      const hasRating = input.rating !== null && input.rating !== undefined;
+      const rating = hasRating ? Number(input.rating) : null;
+      if (rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 10)) {
+        return fail("Puan 1-10 arasında olmalıdır.");
+      }
+      if (input.readingStatus !== "unread" && rating === null) {
+        return fail("Okuduysan veya kısmen okuduysan puan vermelisin.");
       }
       const meeting = Number.isInteger(meetingId)
         ? await database()
@@ -226,18 +230,23 @@ export async function POST(request: Request) {
       ) {
         return fail("Okuma sayfası kitap uzunluğuyla uyumlu değil.");
       }
-      await database().batch([
+      const statements = [
         database()
           .prepare(
             "INSERT INTO attendance (meeting_id, member_id, reading_status, current_page) VALUES (?, ?, ?, ?) ON CONFLICT(meeting_id, member_id) DO UPDATE SET reading_status = excluded.reading_status, current_page = excluded.current_page",
           )
           .bind(meetingId, actor.id, input.readingStatus, currentPage),
-        database()
-          .prepare(
-            "INSERT INTO reviews (meeting_id, member_id, rating, comment) VALUES (?, ?, ?, ?) ON CONFLICT(meeting_id, member_id) DO UPDATE SET rating = excluded.rating, comment = excluded.comment, updated_at = CURRENT_TIMESTAMP",
-          )
-          .bind(meetingId, actor.id, rating, clean(input.comment, 1000) || null),
-      ]);
+        rating === null
+          ? database()
+              .prepare("DELETE FROM reviews WHERE meeting_id = ? AND member_id = ?")
+              .bind(meetingId, actor.id)
+          : database()
+              .prepare(
+                "INSERT INTO reviews (meeting_id, member_id, rating, comment) VALUES (?, ?, ?, ?) ON CONFLICT(meeting_id, member_id) DO UPDATE SET rating = excluded.rating, comment = excluded.comment, updated_at = CURRENT_TIMESTAMP",
+              )
+              .bind(meetingId, actor.id, rating, clean(input.comment, 1000) || null),
+      ];
+      await database().batch(statements);
       return Response.json({ ok: true });
     }
 

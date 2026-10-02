@@ -25,7 +25,7 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
       const review = data.reviews.find((item) => item.meetingId === meeting.id && item.memberId === memberId);
       if (time >= now && time - now <= week) {
         items.push({ id: `upcoming-${meeting.id}`, meetingId: meeting.id, title: book.title, detail: attendance ? "Yaklaşan buluşma" : "Yaklaşan buluşma · katılımını belirt", time });
-      } else if (time < now && now - time <= fortnight && attendance && !review) {
+      } else if (time < now && now - time <= fortnight && attendance && attendance.readingStatus !== "unread" && !review) {
         items.push({ id: `review-${meeting.id}`, meetingId: meeting.id, title: book.title, detail: "Puanın ve yorumun bekleniyor", time });
       }
     }
