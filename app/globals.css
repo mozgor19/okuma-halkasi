@@ -167,8 +167,20 @@
 .trash-row strong{font-size:13px;color:#243f45}.trash-row small{font-size:10px;color:#7b8986}
 .trash-row button{width:34px;height:34px;display:grid;place-items:center;border:1px solid #cfdbd4;border-radius:6px;background:#eef4ef;color:#35665e}
 .trash-row button.purge-button{border-color:#e2cfca;background:#f7ece8;color:#9b5048}
+.trash-row.restore-only{grid-template-columns:40px minmax(0,1fr) 36px}
+.management-list{display:grid;gap:8px}
+.management-row{display:grid;grid-template-columns:48px minmax(0,1fr) auto 150px;align-items:center;gap:12px;border:1px solid #dfe1d9;border-radius:7px;background:#fffefa;padding:11px 12px}
+.management-avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;overflow:hidden;color:#fff;font:600 13px Georgia,serif}
+.management-avatar img{width:100%;height:100%;object-fit:cover}
+.management-person{min-width:0;display:grid;gap:3px}
+.management-person strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#243f45;font-size:13px}
+.management-person small{color:#7b8986;font-size:10px}
+.role-badge{display:inline-flex;align-items:center;justify-content:center;border-radius:5px;padding:6px 9px;background:#edf0ec;color:#667773;font-size:10px;font-weight:800;white-space:nowrap}
+.role-badge.admin{background:#e7f0eb;color:#35685c}
+.role-badge.super_admin{background:#f7ead5;color:#8b5f2e}
+.management-row button{justify-self:end;width:150px;color:#315f66}
 @media(max-width:900px){.roadmap-item{flex-wrap:wrap}.plan-details{min-width:200px}.plan-actions{margin-left:auto}.vote-admin-bar{justify-content:flex-start}}
-@media(max-width:680px){.topbar-actions{gap:5px}.topbar-tool{width:34px;height:34px}.notification-menu{max-height:70vh}.roadmap-item .plan-details{min-width:calc(100% - 95px)}.plan-voting{width:100%;display:flex;align-items:center;justify-content:flex-end}.plan-actions{justify-content:flex-end}.vote-admin-bar{align-items:flex-start;flex-wrap:wrap}.gallery-actions{width:100%;justify-content:flex-end}.section-row{flex-wrap:wrap}.trash-row{grid-template-columns:36px minmax(0,1fr) 34px 34px;gap:7px}.global-search-dialog{padding:18px}}
+@media(max-width:680px){.management-row{grid-template-columns:42px minmax(0,1fr) auto}.management-avatar{width:42px;height:42px}.management-row button{grid-column:2/4;width:100%}.topbar-actions{gap:5px}.topbar-tool{width:34px;height:34px}.notification-menu{max-height:70vh}.roadmap-item .plan-details{min-width:calc(100% - 95px)}.plan-voting{width:100%;display:flex;align-items:center;justify-content:flex-end}.plan-actions{justify-content:flex-end}.vote-admin-bar{align-items:flex-start;flex-wrap:wrap}.gallery-actions{width:100%;justify-content:flex-end}.section-row{flex-wrap:wrap}.trash-row{grid-template-columns:36px minmax(0,1fr) 34px 34px;gap:7px}.global-search-dialog{padding:18px}}
 
 @media(max-width:480px){.mobile-brand{max-width:175px}.person-picker{width:34px;height:34px;padding:1px;justify-content:center}.person-picker .avatar{display:grid}.person-picker strong,.person-picker>[data-icon]{display:none}.info-lines>span{flex-wrap:wrap}}
 

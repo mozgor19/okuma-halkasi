@@ -1,7 +1,7 @@
 export type Member = {
   id: number;
   name: string;
-  role: "admin" | "member";
+  role: "super_admin" | "admin" | "member";
   color: string;
   avatarMediaKey: string | null;
   faceReferenceMediaKey: string | null;
@@ -20,3 +20,5 @@ export type BookVote = { memberId: number; roadmapId: number; createdAt: string 
 export type TrashItem = { type: "meeting" | "plan"; id: number; bookId: number; deletedAt: string; date: string | null };
 export type AppData = { currentMemberId?: number; members: Member[]; books: Book[]; meetings: Meeting[]; attendance: Attendance[]; reviews: Review[]; photos: Photo[]; roadmap: Plan[]; favorites: Favorite[]; bookVotes: BookVote[]; voteVisibility: "open" | "secret"; trash: TrashItem[]; clubFeaturesReady: boolean };
 export const readingLabels: Record<Attendance["readingStatus"], string> = { read: "Okudum", partial: "Kısmen okudum", unread: "Okumadım", unselected: "Henüz belirtmedi" };
+export const isAdminRole = (role: Member["role"]) => role === "super_admin" || role === "admin";
+export const isSuperAdminRole = (role: Member["role"]) => role === "super_admin";

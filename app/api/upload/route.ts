@@ -1,4 +1,5 @@
 import { database, faceSchemaMissing, getAuthenticatedMember, profileSchemaMissing } from "@/db/store";
+import { isSuperAdminRole } from "@/lib/types";
 
 export const runtime = "edge";
 
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
       purpose === "faceReference"
       && (
         !faceTarget
-        || (actor.role !== "admin" && actor.id !== targetMemberId)
+        || (!isSuperAdminRole(actor.role) && actor.id !== targetMemberId)
       )
     ) {
       return Response.json(

@@ -1,4 +1,5 @@
 import { clubSchemaMissing, database, faceSchemaMissing, getAuthenticatedMember, getMember, profileSchemaMissing } from "@/db/store";
+import { isAdminRole, isSuperAdminRole } from "@/lib/types";
 
 export const runtime = "edge";
 
@@ -36,6 +37,7 @@ type Payload = {
   voteVisibility?: string;
   trashType?: string;
   guestName?: string;
+  role?: string;
 };
 
 const clean = (value: unknown, max: number) =>
@@ -121,6 +123,9 @@ export async function POST(request: Request) {
 
   try {
     if (input.action === "createMeeting" || input.action === "createPlan") {
+      if (input.action === "createMeeting" && !isAdminRole(actor.role)) {
+        return fail("Buluşmayı yönetici oluşturabilir.", 403);
+      }
       if (
         input.action === "createMeeting"
         && (!validMeetingDate(input.date) || !clean(input.location, 180))
@@ -142,7 +147,7 @@ export async function POST(request: Request) {
 
       let bookId: number;
       if (input.action === "createMeeting" && Number.isInteger(input.planId)) {
-        if (actor.role !== "admin") {
+        if (!isAdminRole(actor.role)) {
           return fail("Planı yönetici buluşmaya taşıyabilir.", 403);
         }
         const plan = await database()
@@ -169,7 +174,7 @@ export async function POST(request: Request) {
           )
           .bind(
             bookId,
-            actor.role === "admin" ? input.date || null : null,
+            isAdminRole(actor.role) ? input.date || null : null,
             clean(input.note, 1000) || null,
             actor.id,
           )
@@ -295,7 +300,7 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "setVoteVisibility") {
-      if (actor.role !== "admin") return fail("Oylama ayarını yönetici değiştirebilir.", 403);
+      if (!isAdminRole(actor.role)) return fail("Oylama ayarını yönetici değiştirebilir.", 403);
       if (!["open", "secret"].includes(input.voteVisibility ?? "")) {
         return fail("Oylama görünürlüğü geçersiz.");
       }
@@ -309,13 +314,13 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "clearBookVotes") {
-      if (actor.role !== "admin") return fail("Oyları yönetici sıfırlayabilir.", 403);
+      if (!isAdminRole(actor.role)) return fail("Oyları yönetici sıfırlayabilir.", 403);
       await database().prepare("DELETE FROM book_votes").run();
       return Response.json({ ok: true });
     }
 
     if (input.action === "addGuest") {
-      if (actor.role !== "admin") return fail("Misafir katılımcıyı yönetici ekleyebilir.", 403);
+      if (!isAdminRole(actor.role)) return fail("Misafir katılımcıyı yönetici ekleyebilir.", 403);
       const meetingId = Number(input.meetingId);
       const name = clean(input.guestName, 80);
       if (!Number.isInteger(meetingId) || name.length < 2) {
@@ -345,7 +350,7 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "deleteMeeting") {
-      if (actor.role !== "admin") return fail("Buluşmayı yönetici silebilir.", 403);
+      if (!isAdminRole(actor.role)) return fail("Buluşmayı yönetici silebilir.", 403);
       if (!Number.isInteger(input.meetingId)) return fail("Buluşma bulunamadı.");
       await database()
         .prepare("UPDATE meetings SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL")
@@ -355,7 +360,7 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "restoreTrash") {
-      if (actor.role !== "admin") return fail("Çöp kutusunu yönetici düzenleyebilir.", 403);
+      if (!isAdminRole(actor.role)) return fail("Çöp kutusunu yönetici düzenleyebilir.", 403);
       const id = Number(input.targetId);
       if (!Number.isInteger(id) || !["meeting", "plan"].includes(input.trashType ?? "")) {
         return fail("Çöp kaydı geçersiz.");
@@ -369,7 +374,7 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "purgeTrash") {
-      if (actor.role !== "admin") return fail("Kalıcı silmeyi yönetici yapabilir.", 403);
+      if (!isSuperAdminRole(actor.role)) return fail("Kalıcı silmeyi yalnızca ana yönetici yapabilir.", 403);
       const id = Number(input.targetId);
       if (!Number.isInteger(id) || !["meeting", "plan"].includes(input.trashType ?? "")) {
         return fail("Çöp kaydı geçersiz.");
@@ -420,7 +425,7 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "deletePhoto") {
-      if (actor.role !== "admin") {
+      if (!isAdminRole(actor.role)) {
         return fail("Fotoğrafları yalnızca yönetici silebilir.", 403);
       }
       if (!Number.isInteger(input.photoId)) return fail("Fotoğraf bulunamadı.");
@@ -437,7 +442,7 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "addAttendance") {
-      if (actor.role !== "admin") {
+      if (!isAdminRole(actor.role)) {
         return fail("Başka birini yönetici ekleyebilir.", 403);
       }
       const target = Number.isInteger(input.targetId)
@@ -461,7 +466,7 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "confirmDetectedAttendance") {
-      if (actor.role !== "admin") {
+      if (!isAdminRole(actor.role)) {
         return fail("Fotoğraftan katılımcı eklemeyi yönetici onaylayabilir.", 403);
       }
       if (!Array.isArray(input.targetIds)) return fail("Katılımcı seçimi geçersiz.");
@@ -490,10 +495,25 @@ export async function POST(request: Request) {
       return Response.json({ ok: true, added: targetIds.length });
     }
 
+    if (input.action === "setMemberRole") {
+      if (!isSuperAdminRole(actor.role)) return fail("Yönetici atamasını yalnızca ana yönetici yapabilir.", 403);
+      const targetId = Number(input.targetId);
+      if (!Number.isInteger(targetId) || !["admin", "member"].includes(input.role ?? "")) return fail("Üye veya rol geçersiz.");
+      if (targetId === actor.id) return fail("Ana yönetici kendi rolünü değiştiremez.", 403);
+      const target = await database()
+        .prepare("SELECT id, role, is_guest AS isGuest FROM members WHERE id = ?")
+        .bind(targetId)
+        .first<{ id: number; role: string; isGuest: number }>();
+      if (!target || target.isGuest) return fail("Üye bulunamadı.", 404);
+      if (target.role === "super_admin") return fail("Ana yönetici rolü bu ekrandan değiştirilemez.", 403);
+      await database().prepare("UPDATE members SET role = ? WHERE id = ?").bind(input.role, targetId).run();
+      return Response.json({ ok: true });
+    }
+
     if (input.action === "clearFaceReference") {
       const targetId = Number(input.targetId);
       if (!Number.isInteger(targetId)) return fail("Üye bulunamadı.");
-      if (actor.role !== "admin" && actor.id !== targetId) {
+      if (!isSuperAdminRole(actor.role) && actor.id !== targetId) {
         return fail("Bu yüz referansını kaldıramazsın.", 403);
       }
       const target = await database()
@@ -516,7 +536,7 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "deletePlan") {
-      if (actor.role !== "admin") return fail("Planları yönetici değiştirebilir.", 403);
+      if (!isAdminRole(actor.role)) return fail("Planları yönetici değiştirebilir.", 403);
       if (!Number.isInteger(input.planId)) return fail("Plan bulunamadı.");
       await database()
         .prepare("UPDATE roadmap SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL")
@@ -526,7 +546,7 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "editBook") {
-      if (actor.role !== "admin") return fail("Kitap künyesini yönetici düzenleyebilir.", 403);
+      if (!isAdminRole(actor.role)) return fail("Kitap künyesini yönetici düzenleyebilir.", 403);
       const existing = await existingBook(input.bookId);
       if (!existing || !input.book || typeof input.book !== "object") {
         return fail("Kitap bulunamadı.", 404);
@@ -551,7 +571,7 @@ export async function POST(request: Request) {
     }
 
     if (input.action === "editMeeting") {
-      if (actor.role !== "admin") return fail("Buluşmayı yönetici düzenleyebilir.", 403);
+      if (!isAdminRole(actor.role)) return fail("Buluşmayı yönetici düzenleyebilir.", 403);
       if (
         !Number.isInteger(input.meetingId)
         || !validMeetingDate(input.date)

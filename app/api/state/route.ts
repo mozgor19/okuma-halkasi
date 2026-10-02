@@ -1,4 +1,5 @@
 import { getAuthenticatedMember, getState } from "@/db/store";
+import { isAdminRole } from "@/lib/types";
 
 export const runtime = "edge";
 
@@ -8,12 +9,12 @@ export async function GET(request: Request) {
 
   try {
     const state = await getState();
-    const members = member.role === "admin"
+    const members = isAdminRole(member.role)
       ? state.members
       : state.members.map((person) => person.id === member.id
           ? person
           : { ...person, faceReferenceMediaKey: null });
-    const bookVotes = state.voteVisibility === "secret" && member.role !== "admin"
+    const bookVotes = state.voteVisibility === "secret" && !isAdminRole(member.role)
       ? state.bookVotes.map((vote) => vote.memberId === member.id ? vote : { ...vote, memberId: 0 })
       : state.bookVotes;
     return Response.json(

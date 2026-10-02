@@ -19,7 +19,7 @@ import { PhotoLightbox } from "@/components/photo-lightbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { readingLabels, type AppData, type Attendance, type Book, type Member } from "@/lib/types";
+import { isAdminRole, readingLabels, type AppData, type Attendance, type Book, type Member } from "@/lib/types";
 
 type ProfileViewProps = {
   data: AppData;
@@ -32,6 +32,7 @@ type ProfileViewProps = {
   onToggleFavorite: (bookId: number, active: boolean) => Promise<void>;
   onRestoreTrash: (type: "meeting" | "plan", id: number) => Promise<void>;
   onPurgeTrash: (type: "meeting" | "plan", id: number) => Promise<void>;
+  onSetMemberRole: (memberId: number, role: "admin" | "member") => Promise<boolean>;
   onNotice: (message: string) => void;
 };
 
@@ -56,6 +57,12 @@ const faceFileKey = (value: string) => value
   .replace(/[\u0300-\u036f]/g, "")
   .replace(/[^a-z0-9]+/g, "_")
   .replace(/^_|_$/g, "");
+
+const roleLabels: Record<Member["role"], string> = {
+  super_admin: "Ana yönetici",
+  admin: "Yönetici",
+  member: "Katılımcı",
+};
 
 function ProfileAvatar({ member }: { member: Member }) {
   return (
@@ -267,7 +274,7 @@ function FaceReferencePanel({
   onNotice: (message: string) => void;
 }) {
   const [workingId, setWorkingId] = useState<number | null>(null);
-  const visibleMembers = member.role === "admin"
+  const visibleMembers = member.role === "super_admin"
     ? data.members.filter((person) => !person.isGuest)
     : data.members.filter((person) => person.id === member.id);
 
@@ -281,7 +288,7 @@ function FaceReferencePanel({
         </div>
         <div className="face-heading-actions">
           <span className="local-processing"><ShieldCheck size={17} /> Tarayıcıda işlenir</span>
-          {member.role === "admin" && (
+          {member.role === "super_admin" && (
             <label className={`face-bulk-upload ${workingId !== null || busy ? "disabled" : ""}`}>
               <ImagePlus size={16} /> Toplu aktar
               <input
@@ -387,6 +394,7 @@ export function ProfileView({
   onToggleFavorite,
   onRestoreTrash,
   onPurgeTrash,
+  onSetMemberRole,
   onNotice,
 }: ProfileViewProps) {
   const [avatarBusy, setAvatarBusy] = useState(false);
@@ -465,7 +473,7 @@ export function ProfileView({
           <div>
             <span className="eyebrow">PROFİLİM</span>
             <h1>{member.name}</h1>
-            <p>{member.role === "admin" ? "Yönetici" : "Üye"}</p>
+            <p>{roleLabels[member.role]}</p>
           </div>
         </div>
         <label className={`profile-photo-button ${avatarBusy ? "disabled" : ""}`}>
@@ -495,7 +503,8 @@ export function ProfileView({
           <TabsTrigger value="books">Kitaplarım</TabsTrigger>
           <TabsTrigger value="face">Yüz verisi</TabsTrigger>
           <TabsTrigger value="security">Güvenlik</TabsTrigger>
-          {member.role === "admin" && <TabsTrigger value="trash">Çöp kutusu</TabsTrigger>}
+          {isAdminRole(member.role) && <TabsTrigger value="trash">Çöp kutusu</TabsTrigger>}
+          {member.role === "super_admin" && <TabsTrigger value="management">Yönetim</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="overview">
@@ -657,28 +666,28 @@ export function ProfileView({
           />
         </TabsContent>
 
-        {member.role === "admin" && (
+        {isAdminRole(member.role) && (
           <TabsContent value="trash">
             <section className="profile-section">
               <div className="profile-section-heading">
                 <span className="eyebrow">ÇÖP KUTUSU</span>
                 <h2>Silinen kayıtlar</h2>
-                <p>Buluşmaları ve kitap adaylarını geri alabilir veya kalıcı olarak silebilirsin.</p>
+                <p>{member.role === "super_admin" ? "Buluşmaları ve kitap adaylarını geri alabilir veya kalıcı olarak silebilirsin." : "Buluşmaları ve kitap adaylarını geri alabilirsin."}</p>
               </div>
               <div className="trash-list">
                 {data.trash.map((item) => {
                   const book = data.books.find((entry) => entry.id === item.bookId);
                   return (
-                    <div className="trash-row" key={`${item.type}-${item.id}`}>
+                    <div className={member.role === "super_admin" ? "trash-row" : "trash-row restore-only"} key={`${item.type}-${item.id}`}>
                       <span className="trash-icon"><Trash2 size={18} /></span>
                       <span>
                         <strong>{book?.title ?? "Silinen kayıt"}</strong>
                         <small>{item.type === "meeting" ? "Buluşma" : "Kitap adayı"} · {dateFormat.format(new Date(item.deletedAt))}</small>
                       </span>
                       <button type="button" title="Geri al" aria-label="Kaydı geri al" disabled={busy} onClick={() => void onRestoreTrash(item.type, item.id)}><RotateCcw size={17} /></button>
-                      <button type="button" className="purge-button" title="Kalıcı sil" aria-label="Kaydı kalıcı sil" disabled={busy} onClick={() => {
+                      {member.role === "super_admin" && <button type="button" className="purge-button" title="Kalıcı sil" aria-label="Kaydı kalıcı sil" disabled={busy} onClick={() => {
                         if (window.confirm("Bu kayıt ve bağlı verileri kalıcı olarak silinsin mi? Bu işlem geri alınamaz.")) void onPurgeTrash(item.type, item.id);
-                      }}><Trash2 size={17} /></button>
+                      }}><Trash2 size={17} /></button>}
                     </div>
                   );
                 })}
@@ -688,6 +697,51 @@ export function ProfileView({
           </TabsContent>
         )}
 
+        {member.role === "super_admin" && (
+          <TabsContent value="management">
+            <section className="profile-section">
+              <div className="profile-section-heading">
+                <span className="eyebrow">YETKİLER</span>
+                <h2>Yönetici atamaları</h2>
+                <p>Yöneticiler buluşma, katılım, fotoğraf ve kitap oylaması işlemlerini yönetebilir. Rol atayamaz ve başka üyelerin yüz verisini değiştiremez.</p>
+              </div>
+              <div className="management-list">
+                {data.members.filter((person) => !person.isGuest).map((person) => {
+                  const nextRole = person.role === "admin" ? "member" : "admin";
+                  const protectedRole = person.role === "super_admin";
+                  return (
+                    <div className="management-row" key={person.id}>
+                      <span className="management-avatar" style={{ backgroundColor: person.color }}>
+                        {person.avatarMediaKey ? <img src={"/api/media/" + person.avatarMediaKey} alt="" /> : initials(person.name)}
+                      </span>
+                      <span className="management-person">
+                        <strong>{person.name}</strong>
+                        <small>{roleLabels[person.role]}</small>
+                      </span>
+                      <span className={"role-badge " + person.role}>{roleLabels[person.role]}</span>
+                      {!protectedRole && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={busy}
+                          onClick={() => {
+                            const message = nextRole === "admin"
+                              ? person.name + " buluşma yöneticisi yapılsın mı?"
+                              : person.name + " için yönetici yetkisi kaldırılsın mı?";
+                            if (window.confirm(message)) void onSetMemberRole(person.id, nextRole);
+                          }}
+                        >
+                          <ShieldCheck size={16} />
+                          {nextRole === "admin" ? "Yönetici yap" : "Yetkiyi kaldır"}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </TabsContent>
+        )}
         <TabsContent value="security">
           <PasswordForm
             onChanged={() => onNotice("Şifren değiştirildi. Diğer oturumlar kapatıldı.")}

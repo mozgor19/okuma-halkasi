@@ -1,4 +1,5 @@
 import { database, faceSchemaMissing, getAuthenticatedMember } from "@/db/store";
+import { isAdminRole } from "@/lib/types";
 export const runtime = "edge";
 
 type MediaRow = { data: number[]; contentType: string };
@@ -20,7 +21,7 @@ export async function GET(request: Request, context: { params: Promise<{ key: st
     } catch (error) {
       if (!faceSchemaMissing(error)) throw error;
     }
-    if (referenceOwner && actor.role !== "admin" && actor.id !== referenceOwner.id) {
+    if (referenceOwner && !isAdminRole(actor.role) && actor.id !== referenceOwner.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
