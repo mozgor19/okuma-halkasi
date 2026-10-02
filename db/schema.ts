@@ -9,6 +9,8 @@ export const members = sqliteTable("members", {
   avatarMediaKey: text("avatar_media_key"),
   faceReferenceMediaKey: text("face_reference_media_key"),
   faceRecognitionConsent: integer("face_recognition_consent", { mode: "boolean" }).notNull().default(false),
+  isGuest: integer("is_guest", { mode: "boolean" }).notNull().default(false),
+  guestMeetingId: integer("guest_meeting_id"),
 });
 export const memberAccounts = sqliteTable("member_accounts", {
   memberId: integer("member_id").primaryKey().references(() => members.id),
@@ -43,11 +45,13 @@ export const meetings = sqliteTable("meetings", {
   bookStatus: text("book_status").notNull().default("completed"),
   createdBy: integer("created_by").notNull().references(() => members.id),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  deletedAt: text("deleted_at"),
 });
 export const attendance = sqliteTable("attendance", {
   meetingId: integer("meeting_id").notNull().references(() => meetings.id),
   memberId: integer("member_id").notNull().references(() => members.id),
   readingStatus: text("reading_status").notNull().default("unselected"),
+  currentPage: integer("current_page"),
 }, (table) => [primaryKey({ columns: [table.meetingId, table.memberId] })]);
 export const reviews = sqliteTable("reviews", {
   meetingId: integer("meeting_id").notNull().references(() => meetings.id),
@@ -76,6 +80,7 @@ export const roadmap = sqliteTable("roadmap", {
   note: text("note"),
   createdBy: integer("created_by").notNull().references(() => members.id),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  deletedAt: text("deleted_at"),
 });
 
 export const favoriteBooks = sqliteTable("favorite_books", {
@@ -83,3 +88,14 @@ export const favoriteBooks = sqliteTable("favorite_books", {
   bookId: integer("book_id").notNull().references(() => books.id),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [primaryKey({ columns: [table.memberId, table.bookId] })]);
+
+export const bookVotes = sqliteTable("book_votes", {
+  memberId: integer("member_id").primaryKey().references(() => members.id),
+  roadmapId: integer("roadmap_id").notNull().references(() => roadmap.id),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const clubSettings = sqliteTable("club_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});

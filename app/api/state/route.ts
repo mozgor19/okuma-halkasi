@@ -13,8 +13,11 @@ export async function GET(request: Request) {
       : state.members.map((person) => person.id === member.id
           ? person
           : { ...person, faceReferenceMediaKey: null });
+    const bookVotes = state.voteVisibility === "secret" && member.role !== "admin"
+      ? state.bookVotes.map((vote) => vote.memberId === member.id ? vote : { ...vote, memberId: 0 })
+      : state.bookVotes;
     return Response.json(
-      { ...state, members, currentMemberId: member.id },
+      { ...state, members, bookVotes, currentMemberId: member.id },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {

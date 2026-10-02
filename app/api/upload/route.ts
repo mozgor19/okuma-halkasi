@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       purpose === "photo"
       && (
         !Number.isInteger(meetingId)
-        || !(await database().prepare("SELECT id FROM meetings WHERE id = ?").bind(meetingId).first())
+        || !(await database().prepare("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL").bind(meetingId).first())
       )
     ) {
       return Response.json({ error: "Buluşma bulunamadı." }, { status: 404 });

@@ -1,4 +1,4 @@
-import { database, faceSchemaMissing, getAuthenticatedMember, getMember, profileSchemaMissing } from "@/db/store";
+import { clubSchemaMissing, database, faceSchemaMissing, getAuthenticatedMember, getMember, profileSchemaMissing } from "@/db/store";
 
 export const runtime = "edge";
 
@@ -31,6 +31,11 @@ type Payload = {
   rating?: number;
   comment?: string;
   active?: boolean;
+  currentPage?: number | null;
+  roadmapId?: number | null;
+  voteVisibility?: string;
+  trashType?: string;
+  guestName?: string;
 };
 
 const clean = (value: unknown, max: number) =>
@@ -116,9 +121,6 @@ export async function POST(request: Request) {
 
   try {
     if (input.action === "createMeeting" || input.action === "createPlan") {
-      if (input.action === "createPlan" && actor.role !== "admin") {
-        return fail("Gelecek kitapları yönetici ekleyebilir.", 403);
-      }
       if (
         input.action === "createMeeting"
         && (!validMeetingDate(input.date) || !clean(input.location, 180))
@@ -144,7 +146,7 @@ export async function POST(request: Request) {
           return fail("Planı yönetici buluşmaya taşıyabilir.", 403);
         }
         const plan = await database()
-          .prepare("SELECT book_id AS bookId FROM roadmap WHERE id = ?")
+          .prepare("SELECT book_id AS bookId FROM roadmap WHERE id = ? AND deleted_at IS NULL")
           .bind(input.planId)
           .first<{ bookId: number }>();
         if (!plan) return fail("Planlanan kitap bulunamadı.", 404);
@@ -167,7 +169,7 @@ export async function POST(request: Request) {
           )
           .bind(
             bookId,
-            input.date || null,
+            actor.role === "admin" ? input.date || null : null,
             clean(input.note, 1000) || null,
             actor.id,
           )
@@ -192,6 +194,7 @@ export async function POST(request: Request) {
       const result = Number.isInteger(input.planId)
         ? (await database().batch([
             insert,
+            database().prepare("DELETE FROM book_votes WHERE roadmap_id = ?").bind(input.planId),
             database().prepare("DELETE FROM roadmap WHERE id = ?").bind(input.planId),
           ]))[0]
         : await insert.run();
@@ -207,18 +210,28 @@ export async function POST(request: Request) {
       if (!["read", "partial", "unread"].includes(input.readingStatus ?? "")) {
         return fail("Okuma durumunu seç.");
       }
+      const meeting = Number.isInteger(meetingId)
+        ? await database()
+            .prepare("SELECT b.pages FROM meetings m JOIN books b ON b.id = m.book_id WHERE m.id = ? AND m.deleted_at IS NULL")
+            .bind(meetingId)
+            .first<{ pages: number | null }>()
+        : null;
+      if (!meeting) return fail("Buluşma bulunamadı.", 404);
+      const currentPage = input.currentPage === null || input.currentPage === undefined
+        ? null
+        : Number(input.currentPage);
       if (
-        !Number.isInteger(meetingId)
-        || !(await database().prepare("SELECT id FROM meetings WHERE id = ?").bind(meetingId).first())
+        currentPage !== null
+        && (!Number.isInteger(currentPage) || currentPage < 0 || (meeting.pages && currentPage > meeting.pages))
       ) {
-        return fail("Buluşma bulunamadı.", 404);
+        return fail("Okuma sayfası kitap uzunluğuyla uyumlu değil.");
       }
       await database().batch([
         database()
           .prepare(
-            "INSERT INTO attendance (meeting_id, member_id, reading_status) VALUES (?, ?, ?) ON CONFLICT(meeting_id, member_id) DO UPDATE SET reading_status = excluded.reading_status",
+            "INSERT INTO attendance (meeting_id, member_id, reading_status, current_page) VALUES (?, ?, ?, ?) ON CONFLICT(meeting_id, member_id) DO UPDATE SET reading_status = excluded.reading_status, current_page = excluded.current_page",
           )
-          .bind(meetingId, actor.id, input.readingStatus),
+          .bind(meetingId, actor.id, input.readingStatus, currentPage),
         database()
           .prepare(
             "INSERT INTO reviews (meeting_id, member_id, rating, comment) VALUES (?, ?, ?, ?) ON CONFLICT(meeting_id, member_id) DO UPDATE SET rating = excluded.rating, comment = excluded.comment, updated_at = CURRENT_TIMESTAMP",
@@ -247,6 +260,156 @@ export async function POST(request: Request) {
       return Response.json({ ok: true });
     }
 
+
+    if (input.action === "voteBook") {
+      const roadmapId = Number(input.roadmapId);
+      if (!Number.isInteger(roadmapId)) return fail("Kitap adayı bulunamadı.");
+      const candidate = await database()
+        .prepare("SELECT id FROM roadmap WHERE id = ? AND deleted_at IS NULL")
+        .bind(roadmapId)
+        .first();
+      if (!candidate) return fail("Kitap adayı bulunamadı.", 404);
+      if (input.active) {
+        await database()
+          .prepare(
+            "INSERT INTO book_votes (member_id, roadmap_id) VALUES (?, ?) ON CONFLICT(member_id) DO UPDATE SET roadmap_id = excluded.roadmap_id, created_at = CURRENT_TIMESTAMP",
+          )
+          .bind(actor.id, roadmapId)
+          .run();
+      } else {
+        await database()
+          .prepare("DELETE FROM book_votes WHERE member_id = ? AND roadmap_id = ?")
+          .bind(actor.id, roadmapId)
+          .run();
+      }
+      return Response.json({ ok: true });
+    }
+
+    if (input.action === "setVoteVisibility") {
+      if (actor.role !== "admin") return fail("Oylama ayarını yönetici değiştirebilir.", 403);
+      if (!["open", "secret"].includes(input.voteVisibility ?? "")) {
+        return fail("Oylama görünürlüğü geçersiz.");
+      }
+      await database()
+        .prepare(
+          "INSERT INTO club_settings (key, value) VALUES ('book_vote_visibility', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        )
+        .bind(input.voteVisibility)
+        .run();
+      return Response.json({ ok: true });
+    }
+
+    if (input.action === "clearBookVotes") {
+      if (actor.role !== "admin") return fail("Oyları yönetici sıfırlayabilir.", 403);
+      await database().prepare("DELETE FROM book_votes").run();
+      return Response.json({ ok: true });
+    }
+
+    if (input.action === "addGuest") {
+      if (actor.role !== "admin") return fail("Misafir katılımcıyı yönetici ekleyebilir.", 403);
+      const meetingId = Number(input.meetingId);
+      const name = clean(input.guestName, 80);
+      if (!Number.isInteger(meetingId) || name.length < 2) {
+        return fail("Misafir adı ve buluşma gerekli.");
+      }
+      const meeting = await database()
+        .prepare("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL")
+        .bind(meetingId)
+        .first();
+      if (!meeting) return fail("Buluşma bulunamadı.", 404);
+      const colors = ["#5e8b88", "#bd8464", "#769e9a", "#9881a5", "#a08b65", "#6d8eaa"];
+      const color = colors[name.length % colors.length];
+      const result = await database()
+        .prepare(
+          "INSERT INTO members (name, role, color, is_guest, guest_meeting_id) VALUES (?, 'member', ?, 1, ?)",
+        )
+        .bind(name, color, meetingId)
+        .run();
+      const guestId = Number(result.meta.last_row_id);
+      await database()
+        .prepare(
+          "INSERT INTO attendance (meeting_id, member_id, reading_status) VALUES (?, ?, 'unselected')",
+        )
+        .bind(meetingId, guestId)
+        .run();
+      return Response.json({ ok: true, memberId: guestId });
+    }
+
+    if (input.action === "deleteMeeting") {
+      if (actor.role !== "admin") return fail("Buluşmayı yönetici silebilir.", 403);
+      if (!Number.isInteger(input.meetingId)) return fail("Buluşma bulunamadı.");
+      await database()
+        .prepare("UPDATE meetings SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL")
+        .bind(input.meetingId)
+        .run();
+      return Response.json({ ok: true });
+    }
+
+    if (input.action === "restoreTrash") {
+      if (actor.role !== "admin") return fail("Çöp kutusunu yönetici düzenleyebilir.", 403);
+      const id = Number(input.targetId);
+      if (!Number.isInteger(id) || !["meeting", "plan"].includes(input.trashType ?? "")) {
+        return fail("Çöp kaydı geçersiz.");
+      }
+      const table = input.trashType === "meeting" ? "meetings" : "roadmap";
+      await database()
+        .prepare(`UPDATE ${table} SET deleted_at = NULL WHERE id = ? AND deleted_at IS NOT NULL`)
+        .bind(id)
+        .run();
+      return Response.json({ ok: true });
+    }
+
+    if (input.action === "purgeTrash") {
+      if (actor.role !== "admin") return fail("Kalıcı silmeyi yönetici yapabilir.", 403);
+      const id = Number(input.targetId);
+      if (!Number.isInteger(id) || !["meeting", "plan"].includes(input.trashType ?? "")) {
+        return fail("Çöp kaydı geçersiz.");
+      }
+      if (input.trashType === "plan") {
+        const plan = await database()
+          .prepare("SELECT id FROM roadmap WHERE id = ? AND deleted_at IS NOT NULL")
+          .bind(id)
+          .first();
+        if (!plan) return fail("Silinen plan bulunamadı.", 404);
+        await database().batch([
+          database().prepare("DELETE FROM book_votes WHERE roadmap_id = ?").bind(id),
+          database().prepare("DELETE FROM roadmap WHERE id = ?").bind(id),
+        ]);
+        return Response.json({ ok: true });
+      }
+
+      const meeting = await database()
+        .prepare("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NOT NULL")
+        .bind(id)
+        .first();
+      if (!meeting) return fail("Silinen buluşma bulunamadı.", 404);
+      const photoRows = (await database()
+        .prepare("SELECT media_key AS mediaKey FROM photos WHERE meeting_id = ?")
+        .bind(id)
+        .all<{ mediaKey: string }>()).results;
+      const guestRows = (await database()
+        .prepare("SELECT id FROM members WHERE is_guest = 1 AND guest_meeting_id = ?")
+        .bind(id)
+        .all<{ id: number }>()).results;
+      const statements = [
+        database().prepare("DELETE FROM reviews WHERE meeting_id = ?").bind(id),
+        database().prepare("DELETE FROM attendance WHERE meeting_id = ?").bind(id),
+        database().prepare("DELETE FROM photos WHERE meeting_id = ?").bind(id),
+        ...photoRows.map((photo) =>
+          database().prepare("DELETE FROM media WHERE media_key = ?").bind(photo.mediaKey)
+        ),
+        database().prepare("DELETE FROM meetings WHERE id = ?").bind(id),
+        ...guestRows.flatMap((guest) => [
+          database().prepare("DELETE FROM favorite_books WHERE member_id = ?").bind(guest.id),
+          database().prepare("DELETE FROM book_votes WHERE member_id = ?").bind(guest.id),
+          database().prepare("DELETE FROM member_accounts WHERE member_id = ?").bind(guest.id),
+          database().prepare("DELETE FROM members WHERE id = ?").bind(guest.id),
+        ]),
+      ];
+      await database().batch(statements);
+      return Response.json({ ok: true });
+    }
+
     if (input.action === "deletePhoto") {
       if (actor.role !== "admin") {
         return fail("Fotoğrafları yalnızca yönetici silebilir.", 403);
@@ -268,12 +431,14 @@ export async function POST(request: Request) {
       if (actor.role !== "admin") {
         return fail("Başka birini yönetici ekleyebilir.", 403);
       }
-      const target = await getMember(input.targetId);
-      if (!target || !Number.isInteger(input.meetingId)) {
+      const target = Number.isInteger(input.targetId)
+        ? await database().prepare("SELECT id, is_guest AS isGuest FROM members WHERE id = ?").bind(input.targetId).first<{ id: number; isGuest: number }>()
+        : null;
+      if (!target || target.isGuest || !Number.isInteger(input.meetingId)) {
         return fail("Katılımcı veya buluşma bulunamadı.");
       }
       const meeting = await database()
-        .prepare("SELECT id FROM meetings WHERE id = ?")
+        .prepare("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL")
         .bind(input.meetingId)
         .first();
       if (!meeting) return fail("Buluşma bulunamadı.", 404);
@@ -301,7 +466,7 @@ export async function POST(request: Request) {
         return fail("Katılımcı seçimi geçersiz.");
       }
       const [meeting, ...targets] = await Promise.all([
-        database().prepare("SELECT id FROM meetings WHERE id = ?").bind(input.meetingId).first(),
+        database().prepare("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL").bind(input.meetingId).first(),
         ...targetIds.map((id) => getMember(id)),
       ]);
       if (!meeting) return fail("Buluşma bulunamadı.", 404);
@@ -345,7 +510,7 @@ export async function POST(request: Request) {
       if (actor.role !== "admin") return fail("Planları yönetici değiştirebilir.", 403);
       if (!Number.isInteger(input.planId)) return fail("Plan bulunamadı.");
       await database()
-        .prepare("DELETE FROM roadmap WHERE id = ?")
+        .prepare("UPDATE roadmap SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL")
         .bind(input.planId)
         .run();
       return Response.json({ ok: true });
@@ -391,7 +556,7 @@ export async function POST(request: Request) {
       }
       await database()
         .prepare(
-          "UPDATE meetings SET date = ?, location = ?, map_url = ?, note = ?, reading_scope = ?, book_status = ? WHERE id = ?",
+          "UPDATE meetings SET date = ?, location = ?, map_url = ?, note = ?, reading_scope = ?, book_status = ? WHERE id = ? AND deleted_at IS NULL",
         )
         .bind(
           input.date,
@@ -409,6 +574,9 @@ export async function POST(request: Request) {
     return fail("Bilinmeyen işlem.");
   } catch (error) {
     console.error("Reading circle action failed", error);
+    if (clubSchemaMissing(error)) {
+      return fail("Oylama, çöp kutusu, misafir ve okuma ilerlemesi için önce 0005 migration'ını D1 veritabanına uygula.", 503);
+    }
     if (faceSchemaMissing(error)) {
       return fail("Yüz eşleştirme için önce 0004 migration'ını D1 veritabanına uygula.", 503);
     }

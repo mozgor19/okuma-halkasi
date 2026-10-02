@@ -9,6 +9,7 @@ import {
   Camera,
   ImagePlus,
   KeyRound,
+  RotateCcw,
   ScanFace,
   ShieldCheck,
   Star,
@@ -29,6 +30,8 @@ type ProfileViewProps = {
   onUploadFaceReference: (memberId: number, file: File) => Promise<string | null>;
   onClearFaceReference: (memberId: number) => Promise<boolean>;
   onToggleFavorite: (bookId: number, active: boolean) => Promise<void>;
+  onRestoreTrash: (type: "meeting" | "plan", id: number) => Promise<void>;
+  onPurgeTrash: (type: "meeting" | "plan", id: number) => Promise<void>;
   onNotice: (message: string) => void;
 };
 
@@ -116,6 +119,7 @@ type ReadingBookEntry = {
   status: Attendance["readingStatus"];
   rating: number | null;
   meetingCount: number;
+  currentPage: number | null;
 };
 
 function ReadingBookRow({ entry, onOpen }: { entry: ReadingBookEntry; onOpen: () => void }) {
@@ -130,6 +134,7 @@ function ReadingBookRow({ entry, onOpen }: { entry: ReadingBookEntry; onOpen: ()
         <small>
           {entry.meetingCount} buluşma · {dateFormat.format(new Date(entry.date))}
           {entry.rating !== null ? ` · ${entry.rating}/10 puan` : ""}
+          {entry.currentPage !== null && entry.book.pages ? ` · ${entry.currentPage}/${entry.book.pages}. sayfa` : ""}
         </small>
       </span>
       <span className={`reading-status ${entry.status}`}>
@@ -263,7 +268,7 @@ function FaceReferencePanel({
 }) {
   const [workingId, setWorkingId] = useState<number | null>(null);
   const visibleMembers = member.role === "admin"
-    ? data.members
+    ? data.members.filter((person) => !person.isGuest)
     : data.members.filter((person) => person.id === member.id);
 
   return (
@@ -290,7 +295,7 @@ function FaceReferencePanel({
                   if (!files.length) return;
                   const assignments = files.map((file) => {
                     const key = faceFileKey(file.name.replace(/\.[^.]+$/, ""));
-                    return { file, person: data.members.find((candidate) => faceFileKey(candidate.name) === key) };
+                    return { file, person: data.members.find((candidate) => !candidate.isGuest && faceFileKey(candidate.name) === key) };
                   });
                   const matched = assignments.filter((entry): entry is { file: File; person: Member } => Boolean(entry.person));
                   if (!matched.length) {
@@ -380,6 +385,8 @@ export function ProfileView({
   onUploadFaceReference,
   onClearFaceReference,
   onToggleFavorite,
+  onRestoreTrash,
+  onPurgeTrash,
   onNotice,
 }: ProfileViewProps) {
   const [avatarBusy, setAvatarBusy] = useState(false);
@@ -436,6 +443,7 @@ export function ProfileView({
           status: attendance.readingStatus,
           rating: review?.rating ?? null,
           meetingCount: 1,
+          currentPage: attendance.currentPage,
         });
         continue;
       }
@@ -444,6 +452,7 @@ export function ProfileView({
         existing.status = attendance.readingStatus;
       }
       if (existing.rating === null && review) existing.rating = review.rating;
+      if (existing.currentPage === null && attendance.currentPage !== null) existing.currentPage = attendance.currentPage;
     }
     return [...entries.values()];
   }, [attendedMeetings, data.attendance, data.books, data.reviews, member.id]);
@@ -486,6 +495,7 @@ export function ProfileView({
           <TabsTrigger value="books">Kitaplarım</TabsTrigger>
           <TabsTrigger value="face">Yüz verisi</TabsTrigger>
           <TabsTrigger value="security">Güvenlik</TabsTrigger>
+          {member.role === "admin" && <TabsTrigger value="trash">Çöp kutusu</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="overview">
@@ -646,6 +656,37 @@ export function ProfileView({
             onNotice={onNotice}
           />
         </TabsContent>
+
+        {member.role === "admin" && (
+          <TabsContent value="trash">
+            <section className="profile-section">
+              <div className="profile-section-heading">
+                <span className="eyebrow">ÇÖP KUTUSU</span>
+                <h2>Silinen kayıtlar</h2>
+                <p>Buluşmaları ve kitap adaylarını geri alabilir veya kalıcı olarak silebilirsin.</p>
+              </div>
+              <div className="trash-list">
+                {data.trash.map((item) => {
+                  const book = data.books.find((entry) => entry.id === item.bookId);
+                  return (
+                    <div className="trash-row" key={`${item.type}-${item.id}`}>
+                      <span className="trash-icon"><Trash2 size={18} /></span>
+                      <span>
+                        <strong>{book?.title ?? "Silinen kayıt"}</strong>
+                        <small>{item.type === "meeting" ? "Buluşma" : "Kitap adayı"} · {dateFormat.format(new Date(item.deletedAt))}</small>
+                      </span>
+                      <button type="button" title="Geri al" aria-label="Kaydı geri al" disabled={busy} onClick={() => void onRestoreTrash(item.type, item.id)}><RotateCcw size={17} /></button>
+                      <button type="button" className="purge-button" title="Kalıcı sil" aria-label="Kaydı kalıcı sil" disabled={busy} onClick={() => {
+                        if (window.confirm("Bu kayıt ve bağlı verileri kalıcı olarak silinsin mi? Bu işlem geri alınamaz.")) void onPurgeTrash(item.type, item.id);
+                      }}><Trash2 size={17} /></button>
+                    </div>
+                  );
+                })}
+                {!data.trash.length && <div className="profile-empty">Çöp kutusu boş.</div>}
+              </div>
+            </section>
+          </TabsContent>
+        )}
 
         <TabsContent value="security">
           <PasswordForm

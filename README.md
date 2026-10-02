@@ -5,13 +5,15 @@ Altı kişilik haftalık okuma grubu için Türkçe, tam yığın bir web uygula
 ## Özellikler
 
 - Tarihe göre bu hafta, sıradaki veya son buluşmayı gösteren ana ekran
-- Buluşma arşivi ve gelecek kitaplar yol haritası
+- Buluşma arşivi, oylamalı gelecek kitaplar yol haritası ve geri alınabilir çöp kutusu
 - Profil fotoğrafı, kişisel buluşma galerisi, favori kitaplar ve okuma özeti
 - Kitap bilgileriyle buluşma veya plan ekleme ve sonradan künye düzenleme
 - Aynı kitap kaydıyla bölüm bilgili devam buluşmaları oluşturma
 - Open Library üzerinden isteğe bağlı kitap arama
 - Tarih, saat, konum, harita bağlantısı ve buluşma notu
-- Katılım, okuma durumu, 1-10 puan ve yorum
+- Katılım, okuma durumu, kaldığı sayfa, 1-10 puan ve yorum
+- Genel kayıt araması, buluşma bildirimleri, takvim dosyası ve ZIP albüm indirme
+- Yalnızca ilgili buluşmaya bağlı misafir katılımcılar
 - Buluşma fotoğrafları ve kitap kapakları
 - D1 veritabanında kalıcı kayıt ve görsel saklama
 - Ayrı üye hesapları, parola değiştirme ve sunucu tarafında yönetici yetkisi kontrolü
@@ -55,8 +57,9 @@ Yeni bir veritabanında SQL dosyalarını sırayla uygulayın:
 3. `drizzle/0002_member_accounts.sql`
 4. `drizzle/0003_member_profiles_and_reading_progress.sql`
 5. `drizzle/0004_face_recognition.sql`
+6. `drizzle/0005_club_tools.sql`
 
-Mevcut üretim veritabanında migration dosyalarını numara sırasıyla ve yalnızca birer kez çalıştırın. Hesap migration'ı uygulanmadıysa önce `0002_member_accounts.sql`, ardından profil, favori ve devam eden okuma alanları için `0003_member_profiles_and_reading_progress.sql` çalıştırılmalıdır. Yüz referansları ve katılımcı önerileri için son olarak `0004_face_recognition.sql` uygulanmalıdır.
+Mevcut üretim veritabanında migration dosyalarını numara sırasıyla ve yalnızca birer kez çalıştırın. Hesap migration'ı uygulanmadıysa önce `0002_member_accounts.sql`, ardından profil, favori ve devam eden okuma alanları için `0003_member_profiles_and_reading_progress.sql` çalıştırılmalıdır. Yüz referansları ve katılımcı önerileri için `0004_face_recognition.sql`; kitap oylaması, okuma sayfası, misafirler ve çöp kutusu için son olarak `0005_club_tools.sql` uygulanmalıdır.
 
 ## Yüz eşleştirme gizliliği
 
