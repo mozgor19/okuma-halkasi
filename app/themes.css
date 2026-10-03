@@ -84,6 +84,10 @@ html.dark[data-scheme="minimal"]{
   --accent:#a49e94;--app-primary:var(--text);--app-accent-2:#8f8980;--app-accent-soft:var(--surface-2);
 }
 html.dark[data-scheme="notebook"] .eyebrow{background:var(--app-accent-2);color:var(--app-bg)}
+html.dark[data-scheme="notebook"] .profile-tabs [data-slot="tabs-trigger"]{color:var(--app-muted)!important}
+html.dark[data-scheme="notebook"] .profile-tabs [data-slot="tabs-trigger"]:hover{color:var(--app-text)!important}
+html.dark[data-scheme="notebook"] .profile-tabs [data-slot="tabs-trigger"][data-state="active"]{color:var(--app-text)!important}
+html.dark[data-scheme="notebook"] .profile-tabs [data-slot="tabs-trigger"][data-state="active"]:after{background:var(--app-primary)!important;opacity:1}
 
 body,.app-shell{background:var(--app-bg);color:var(--app-text);font-family:var(--font-body);transition:background-color .18s ease,color .18s ease}
 .app-shell *{letter-spacing:0}
