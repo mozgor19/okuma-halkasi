@@ -12,6 +12,8 @@ import {
   CalendarClockIcon,
   CalendarDaysIcon,
   Camera01Icon,
+  ColorsIcon as ColorsSourceIcon,
+  ComputerIcon as ComputerSourceIcon,
   CircleIcon as CircleSourceIcon,
   GripVerticalIcon as GripVerticalSourceIcon,
   ImageAdd01Icon,
@@ -21,6 +23,7 @@ import {
   Location01Icon,
   LockKeyholeIcon as LockKeyholeSourceIcon,
   MinusSignIcon,
+  Moon02Icon as MoonSourceIcon,
   MoreHorizontalIcon as MoreHorizontalSourceIcon,
   OctagonXIcon as OctagonXSourceIcon,
   PanelLeftIcon as PanelLeftSourceIcon,
@@ -28,6 +31,7 @@ import {
   ScanFaceIcon as ScanFaceSourceIcon,
   ShieldCheckIcon as ShieldCheckSourceIcon,
   StarIcon as StarSourceIcon,
+  Sun03Icon as SunSourceIcon,
   Tick02Icon,
   UserGroupIcon,
   UserSwitchIcon as UserSwitchSourceIcon,
@@ -138,16 +142,20 @@ export const BookOpen = createStaticIcon(BookOpen01Icon, "BookOpen");
 export const CalendarClock = createStaticIcon(CalendarClockIcon, "CalendarClock");
 export const CalendarDays = createStaticIcon(CalendarDaysIcon, "CalendarDays");
 export const Camera = createStaticIcon(Camera01Icon, "Camera");
+export const Colors = createStaticIcon(ColorsSourceIcon, "Colors");
+export const Computer = createStaticIcon(ComputerSourceIcon, "Computer");
 export const Check = createStaticIcon(Tick02Icon, "Check");
 export const ImagePlus = createStaticIcon(ImageAdd01Icon, "ImagePlus");
 export const KeyRound = createStaticIcon(KeyRoundSourceIcon, "KeyRound");
 export const LoaderCircle = createStaticIcon(LoaderCircleSourceIcon, "LoaderCircle");
 export const LockKeyhole = createStaticIcon(LockKeyholeSourceIcon, "LockKeyhole");
 export const MapPin = createStaticIcon(Location01Icon, "MapPin");
+export const Moon = createStaticIcon(MoonSourceIcon, "Moon");
 export const Pencil = createStaticIcon(PencilEdit01Icon, "Pencil");
 export const ScanFace = createStaticIcon(ScanFaceSourceIcon, "ScanFace");
 export const ShieldCheck = createStaticIcon(ShieldCheckSourceIcon, "ShieldCheck");
 export const Star = createStaticIcon(StarSourceIcon, "Star");
+export const Sun = createStaticIcon(SunSourceIcon, "Sun");
 export const Users = createStaticIcon(UserGroupIcon, "Users");
 export const UserSwitch = createStaticIcon(UserSwitchSourceIcon, "UserSwitch");
 

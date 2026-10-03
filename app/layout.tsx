@@ -1,5 +1,26 @@
 import type { Metadata, Viewport } from "next";
+import { AppearanceProvider } from "@/components/appearance-provider";
 import "./globals.css";
+import "./themes.css";
+
+const appearanceScript = `
+try {
+  const schemes = ["editorial", "catalogue", "notebook", "minimal"];
+  const modes = ["light", "dark", "system"];
+  const savedScheme = localStorage.getItem("kitapTahlilScheme");
+  const savedMode = localStorage.getItem("kitapTahlilColorMode");
+  const scheme = schemes.includes(savedScheme) ? savedScheme : "notebook";
+  const mode = modes.includes(savedMode) ? savedMode : "system";
+  const resolved = mode === "system"
+    ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    : mode;
+  const root = document.documentElement;
+  root.dataset.scheme = scheme;
+  root.dataset.mode = mode;
+  root.dataset.colorMode = resolved;
+  root.style.colorScheme = resolved;
+} catch {}
+`;
 
 export const metadata: Metadata = {
   title: "Kitap Tahlil & İstişare",
@@ -25,8 +46,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#14252d",
-  colorScheme: "light",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f9f7f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#101820" },
+  ],
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -35,8 +59,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr">
-      <body>{children}</body>
+    <html lang="tr" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: appearanceScript }} /></head>
+      <body><AppearanceProvider>{children}</AppearanceProvider></body>
     </html>
   );
 }

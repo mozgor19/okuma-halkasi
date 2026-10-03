@@ -16,6 +16,7 @@ import {
   Trash2,
 } from "@/components/icons";
 import { PhotoLightbox } from "@/components/photo-lightbox";
+import { AppearanceSettings } from "@/components/appearance-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -501,6 +502,7 @@ export function ProfileView({
           <TabsTrigger value="overview">Özet</TabsTrigger>
           <TabsTrigger value="gallery">Fotoğraflarım</TabsTrigger>
           <TabsTrigger value="books">Kitaplarım</TabsTrigger>
+          <TabsTrigger value="appearance">Görünüm</TabsTrigger>
           <TabsTrigger value="face">Yüz verisi</TabsTrigger>
           <TabsTrigger value="security">Güvenlik</TabsTrigger>
           {isAdminRole(member.role) && <TabsTrigger value="trash">Çöp kutusu</TabsTrigger>}
@@ -653,6 +655,10 @@ export function ProfileView({
               </section>
             </TabsContent>
           </Tabs>
+        </TabsContent>
+
+        <TabsContent value="appearance">
+          <AppearanceSettings />
         </TabsContent>
 
         <TabsContent value="face">
