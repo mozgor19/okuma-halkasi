@@ -61,7 +61,7 @@ async function readyImage(file: File): Promise<File> {
     canvas.width = Math.round(image.width * scale); canvas.height = Math.round(image.height * scale);
     const context = canvas.getContext("2d");
     if (!context) throw new Error("Fotoğraf işlenemedi.");
-    context.fillStyle = "#ffffff"; context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--surface-1").trim(); context.fillRect(0, 0, canvas.width, canvas.height);
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
     const encode = (quality: number) => new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Fotoğraf işlenemedi.")), "image/jpeg", quality));
     let result = await encode(.76);
@@ -146,7 +146,7 @@ export default function Home() {
 
   const memberId = data.currentMemberId ?? 0;
   const accountMember = data.members.find((person) => person.id === memberId)
-    ?? { id: 0, name: "Üye", role: "member" as const, color: "#5e8b88", avatarMediaKey: null, faceReferenceMediaKey: null, faceRecognitionConsent: false, isGuest: false, guestMeetingId: null };
+    ?? { id: 0, name: "Üye", role: "member" as const, color: "var(--accent)", avatarMediaKey: null, faceReferenceMediaKey: null, faceRecognitionConsent: false, isGuest: false, guestMeetingId: null };
   const isAdminAccount = isAdminRole(accountMember.role);
   const participantView = isAdminAccount && viewMode === "member";
   const member: Member = participantView ? { ...accountMember, role: "member" } : accountMember;
@@ -392,7 +392,7 @@ export default function Home() {
       {error && <div className="error-banner" role="alert">{error}<button aria-label="Uyarıyı kapat" onClick={() => setError("")}><X size={16} /></button></div>}
       <main className="content">
         {view === "home" && <>
-          <section className="hero" style={{ backgroundImage: "linear-gradient(90deg, #101f28 1%, #101f28ee 34%, #101f2866 67%, #101f2808 100%), url('/reading-room.png')" }}>
+          <section className="hero">
             <div className="hero-copy"><span className="eyebrow light">{featuredEyebrow}</span><h1>Kitap Tahlil &amp; İstişare</h1><p>Buluşma, katılım, puan, yorum ve fotoğraflar tek yerde.</p>{featured && <button className="hero-link" onClick={() => openMeeting(featured.id)}>Buluşma kaydını aç <ArrowRight size={18} /></button>}</div>
             <div className="hero-counter"><span>{String(data.members.filter((person) => !person.isGuest).length).padStart(2, "0")}</span><small>aktif üye</small></div>
           </section>
