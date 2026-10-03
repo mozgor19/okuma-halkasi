@@ -20,6 +20,32 @@ html{
   --app-danger:#b5433a;
   --app-shadow:#172d4524;
   --app-radius:4px;
+  /* Components consume semantic roles; schemes only redefine the --app-* palette. */
+  --color-canvas:var(--app-bg);
+  --color-surface:var(--app-surface);
+  --color-surface-subtle:var(--app-surface-alt);
+  --color-text:var(--app-text);
+  --color-text-muted:var(--app-muted);
+  --color-border:var(--app-border);
+  --color-action:var(--app-primary);
+  --color-action-hover:color-mix(in srgb,var(--app-primary) 84%,var(--app-text));
+  --color-on-action:var(--app-primary-contrast);
+  --color-focus:var(--app-accent);
+  --color-highlight:var(--app-accent-2);
+  --color-highlight-soft:var(--app-accent-soft);
+  --color-on-highlight:var(--app-text);
+  --color-danger:var(--app-danger);
+  --color-inverse-surface:var(--app-sidebar);
+  --color-inverse-text:var(--app-sidebar-text);
+  --color-inverse-text-muted:var(--app-sidebar-muted);
+  --control-bg:var(--color-surface-subtle);
+  --control-bg-active:var(--color-surface);
+  --control-text:var(--color-text);
+  --control-text-muted:var(--color-text-muted);
+  --control-border:var(--color-border);
+  --tab-text:var(--color-text-muted);
+  --tab-text-active:var(--color-text);
+  --tab-indicator:var(--color-action);
   --background:var(--app-bg);
   --foreground:var(--app-text);
   --card:var(--app-surface);
@@ -70,6 +96,7 @@ html.dark{
   --app-accent-2:#d8c168;--app-accent-soft:#373124;--app-sidebar:#171510;
   --app-sidebar-text:var(--text);--app-sidebar-muted:var(--text-muted);
   --app-danger:var(--accent);--app-shadow:transparent;
+  --color-on-highlight:var(--app-bg);
 }
 html.dark[data-scheme="editorial"]{
   --accent:#c9766b;--app-primary:var(--accent);--app-accent-2:#d0b76f;--app-accent-soft:#362f23;
@@ -83,11 +110,7 @@ html.dark[data-scheme="notebook"]{
 html.dark[data-scheme="minimal"]{
   --accent:#a49e94;--app-primary:var(--text);--app-accent-2:#8f8980;--app-accent-soft:var(--surface-2);
 }
-html.dark[data-scheme="notebook"] .eyebrow{background:var(--app-accent-2);color:var(--app-bg)}
-html.dark[data-scheme="notebook"] .profile-tabs [data-slot="tabs-trigger"]{color:var(--app-muted)!important}
-html.dark[data-scheme="notebook"] .profile-tabs [data-slot="tabs-trigger"]:hover{color:var(--app-text)!important}
-html.dark[data-scheme="notebook"] .profile-tabs [data-slot="tabs-trigger"][data-state="active"]{color:var(--app-text)!important}
-html.dark[data-scheme="notebook"] .profile-tabs [data-slot="tabs-trigger"][data-state="active"]:after{background:var(--app-primary)!important;opacity:1}
+html.dark[data-scheme="notebook"] .eyebrow{background:var(--color-highlight);color:var(--color-on-highlight)}
 
 body,.app-shell{background:var(--app-bg);color:var(--app-text);font-family:var(--font-body);transition:background-color .18s ease,color .18s ease}
 .app-shell *{letter-spacing:0}
@@ -179,7 +202,7 @@ html[data-scheme="notebook"] .main-area{background-image:repeating-linear-gradie
 html[data-scheme="notebook"] .content{position:relative}
 html[data-scheme="notebook"] .content:before{content:"";position:absolute;top:0;bottom:0;left:35px;width:2px;background:color-mix(in srgb,var(--app-accent) 55%,transparent);pointer-events:none}
 html[data-scheme="notebook"] :where(.hero,.featured-book-card,.members-card,.next-card,.mini-archive,.archive-item,.roadmap-item,.paper-card){border-radius:3px;border:2px solid var(--app-text);box-shadow:5px 5px 0 var(--app-accent-2)}
-html[data-scheme="notebook"] .eyebrow{width:fit-content;background:var(--app-accent-2);color:#172d45;padding:3px 6px}
+html[data-scheme="notebook"] .eyebrow{width:fit-content;background:var(--color-highlight);color:var(--color-on-highlight);padding:3px 6px}
 html[data-scheme="notebook"] .brand-emblem{background:var(--app-accent-2);color:#172d45;border-color:var(--app-sidebar-text);box-shadow:3px 3px 0 color-mix(in srgb,var(--app-sidebar-text) 65%,transparent)}
 html[data-scheme="notebook"] .hero{transform:rotate(.15deg)}
 
@@ -221,57 +244,89 @@ html[data-scheme="minimal"] .side-nav button.active{background:var(--app-surface
 .scheme-confirm-dialog [data-slot="alert-dialog-media"]{background:var(--app-accent-soft);color:var(--app-accent);border-radius:var(--app-radius)}
 
 /* Dark mode is isolated here so the original daylight schemes remain untouched. */
-.dark body,.dark .app-shell,.dark .main-area{background-color:var(--app-bg);color:var(--app-text)}
+.dark body,.dark .app-shell,.dark .main-area{background-color:var(--color-canvas);color:var(--color-text)}
 .dark :is(.topbar,.mobile-nav,.footer,.featured-book-card,.members-card,.next-card,.mini-archive,.archive-item,.roadmap-item,.paper-card,.meeting-score,.profile-stats>div,.favorite-row,.reading-book-row,.face-reference-row,.notification-menu,.global-search-result,.trash-row,.management-row,.login-panel,.create-dialog,.password-dialog,.global-search-dialog,.lookup-results,.lookup-results button){
-  background:var(--app-surface);border-color:var(--app-border);color:var(--app-text)
+  background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)
 }
 .dark :is(.next-card,.cover-stage,.meeting-cover,.favorite-cover,.profile-gallery button,.gallery-empty,.profile-empty,.reading-status,.role-badge,.local-processing,.trash-icon){
-  background:var(--app-surface-alt);border-color:var(--app-border);color:var(--app-text-muted)
+  background:var(--color-surface-subtle);border-color:var(--color-border);color:var(--color-text-muted)
 }
 .dark :is(.section-top h2,.paper-card h2,.mini-archive h3,.featured-details h3,.archive-item h3,.roadmap-item h3,.meeting-head h1,.meeting-info h2,.profile-identity h1,.profile-section-heading h2,.profile-stats strong,.profile-meeting-list strong,.favorite-row strong,.reading-book-info strong,.notification-heading strong,.notification-item strong,.global-search-results strong,.trash-row strong,.management-person strong){
-  color:var(--app-text)
+  color:var(--color-text)
 }
 .dark :is(.author,.book-meta,.members-card p,.next-card p,.mini-archive p,.page-intro p,.archive-item p,.roadmap-item p,.meeting-head p,.meeting-info p,.muted,.review-item p,.participant-list p,.profile-identity p,.profile-section-heading p,.profile-stats span,.profile-meeting-list small,.favorite-row span,.reading-book-info>span,.reading-book-info small,.notification-heading small,.notification-item small,.notification-empty,.global-search-results small,.trash-row small,.management-person small){
-  color:var(--app-muted)
+  color:var(--color-text-muted)
 }
 .dark :is(.eyebrow,.card-heading,.edition-marker,.feature-action,.text-link,.small-link,.profile-meeting-list button,.archive-arrow,.score-chip,.info-lines svg,.info-lines a){
-  color:var(--app-accent)
+  color:var(--color-focus)
 }
 .dark :is(input,textarea,select,.global-search-input){
-  background:var(--app-surface);border-color:var(--app-border)!important;color:var(--app-text)
+  background:var(--color-surface);border-color:var(--color-border)!important;color:var(--color-text)
 }
-.dark :is(input,textarea)::placeholder{color:var(--app-muted);opacity:1}
+.dark :is(input,textarea)::placeholder{color:var(--color-text-muted);opacity:1}
 .dark :is([data-slot="dialog-content"],[data-slot="alert-dialog-content"],[data-slot="dropdown-menu-content"],[data-slot="select-content"],[data-slot="popover-content"],[data-slot="hover-card-content"],[data-slot="sheet-content"]){
-  background:var(--app-surface-alt);border-color:var(--app-border);color:var(--app-text)
+  background:var(--color-surface-subtle);border-color:var(--color-border);color:var(--color-text)
 }
-.dark :is([data-slot="dialog-title"],[data-slot="alert-dialog-title"]){color:var(--app-text)}
-.dark :is([data-slot="dialog-description"],[data-slot="alert-dialog-description"]){color:var(--app-muted)}
+.dark :is([data-slot="dialog-title"],[data-slot="alert-dialog-title"]){color:var(--color-text)}
+.dark :is([data-slot="dialog-description"],[data-slot="alert-dialog-description"]){color:var(--color-text-muted)}
 .dark :is(.person-picker,.topbar-tool,.logout-button,.profile-photo-button,.face-reference-upload,.face-bulk-upload,.plan-schedule,.upload-button){
-  background:var(--app-surface);border-color:var(--app-border);color:var(--app-text-muted)
+  background:var(--color-surface);border-color:var(--color-border);color:var(--color-text-muted)
 }
 .dark :is(.person-picker:hover,.person-picker[data-state="open"],.topbar-tool:hover,.topbar-tool[data-state="open"],.logout-button:hover,.profile-meeting-list button:hover,.reading-book-row:hover,.notification-item:hover,.global-search-results>button:hover){
-  background:color-mix(in srgb,var(--app-surface-alt) 86%,var(--app-text));color:var(--app-text)
+  background:color-mix(in srgb,var(--color-surface-subtle) 86%,var(--color-text));color:var(--color-text)
 }
 .dark :is(.book-progress.continuing,.continuing-badge,.continuation-band,.favorite.active,.favorite-row.is-favorite,.favorite-row.is-favorite .favorite-toggle){
-  background:var(--app-accent-soft);border-color:var(--app-accent-2);color:var(--app-text)
+  background:var(--color-highlight-soft);border-color:var(--color-highlight);color:var(--color-text)
 }
-.dark .participation-card{background:var(--app-sidebar);border-color:var(--app-border);color:var(--app-sidebar-text)}
-.dark .participation-card :is(h2,.field-label){color:var(--app-sidebar-text)}
-.dark .participation-card :is(p,.field-label span){color:var(--app-sidebar-muted)}
-.dark :is(.read-options label,.rating-grid button){background:var(--app-surface-alt);border-color:var(--app-border);color:var(--app-text)}
-.dark :is(.rating-grid button:hover,.rating-grid button.selected){background:color-mix(in srgb,var(--app-accent-2) 86%,var(--app-text));border-color:var(--app-accent-2);color:var(--app-bg)}
-.dark :is(.page-actions button,.full-button,.empty-panel button,.profile-password-form button,.login-form>button){background:var(--app-primary);color:var(--app-primary-contrast)}
-.dark :is(.page-actions button,.full-button,.profile-password-form button,.login-form>button):hover{background:color-mix(in srgb,var(--app-primary) 84%,var(--app-text))}
-.dark :is(.success-banner,.error-banner){background:var(--app-surface-alt);border:1px solid var(--app-border);color:var(--app-text)}
-.dark :is(.destructive-link,.purge-button,.face-reference-remove,.profile-password-form .form-error){color:var(--app-danger)}
-.dark .trash-row button{background:var(--app-surface-alt);border-color:var(--app-border);color:var(--app-text)}
-.dark .trash-row button.purge-button{background:var(--app-accent-soft);border-color:var(--app-accent);color:var(--app-accent)}
-.dark .profile-avatar{box-shadow:none;border:1px solid var(--app-border)}
+.dark .participation-card{background:var(--color-inverse-surface);border-color:var(--color-border);color:var(--color-inverse-text)}
+.dark .participation-card :is(h2,.field-label){color:var(--color-inverse-text)}
+.dark .participation-card :is(p,.field-label span){color:var(--color-inverse-text-muted)}
+.dark :is(.read-options label,.rating-grid button){background:var(--color-surface-subtle);border-color:var(--color-border);color:var(--color-text)}
+.dark :is(.rating-grid button:hover,.rating-grid button.selected){background:color-mix(in srgb,var(--color-highlight) 86%,var(--color-text));border-color:var(--color-highlight);color:var(--color-canvas)}
+.dark :is(.page-actions button,.full-button,.empty-panel button,.profile-password-form button,.login-form>button){background:var(--color-action);color:var(--color-on-action)}
+.dark :is(.page-actions button,.full-button,.profile-password-form button,.login-form>button):hover{background:color-mix(in srgb,var(--color-action) 84%,var(--color-text))}
+.dark :is(.success-banner,.error-banner){background:var(--color-surface-subtle);border:1px solid var(--color-border);color:var(--color-text)}
+.dark :is(.destructive-link,.purge-button,.face-reference-remove,.profile-password-form .form-error){color:var(--color-danger)}
+.dark .trash-row button{background:var(--color-surface-subtle);border-color:var(--color-border);color:var(--color-text)}
+.dark .trash-row button.purge-button{background:var(--color-highlight-soft);border-color:var(--color-focus);color:var(--color-focus)}
+.dark .profile-avatar{box-shadow:none;border:1px solid var(--color-border)}
 .dark .book-cover{box-shadow:none}
-.dark .cover-placeholder{background:var(--app-surface-alt);border-color:var(--app-accent-2);color:var(--app-text);box-shadow:none}
+.dark .cover-placeholder{background:var(--color-surface-subtle);border-color:var(--color-highlight);color:var(--color-text);box-shadow:none}
 .dark .mobile-nav{box-shadow:none}
-.dark :is(button,a,input,textarea,select,[tabindex]):focus-visible{outline:2px solid var(--app-accent);outline-offset:2px;box-shadow:none!important}
-.dark :is(button,input,textarea,select):disabled,.dark .disabled{background:var(--app-surface-alt)!important;color:var(--app-muted)!important;border-color:var(--app-border)!important;opacity:1!important}
+.dark :is(button,a,input,textarea,select,[tabindex]):focus-visible{outline:2px solid var(--color-focus);outline-offset:2px;box-shadow:none!important}
+.dark :is(button,input,textarea,select):disabled,.dark .disabled{background:var(--color-surface-subtle)!important;color:var(--color-text-muted)!important;border-color:var(--color-border)!important;opacity:1!important}
+
+/* Shared dark component contract: every scheme inherits the same readable roles. */
+.dark :is(.profile-tabs,.books-tabs) [data-slot="tabs-list"]{border-color:var(--color-border);color:var(--tab-text)}
+.dark :is(.profile-tabs,.books-tabs) [data-slot="tabs-trigger"]{color:var(--tab-text)!important}
+.dark :is(.profile-tabs,.books-tabs) [data-slot="tabs-trigger"]:hover{color:var(--tab-text-active)!important}
+.dark :is(.profile-tabs,.books-tabs) [data-slot="tabs-trigger"][data-state="active"]{color:var(--tab-text-active)!important}
+.dark :is(.profile-tabs,.books-tabs) [data-slot="tabs-trigger"][data-state="active"]:after{background:var(--tab-indicator)!important;opacity:1}
+.dark .books-tabs>.books-tabs-list{background:var(--control-bg);border-color:var(--control-border)}
+.dark .books-tabs>.books-tabs-list [data-slot="tabs-trigger"][data-state="active"]{background:var(--control-bg-active)}
+.dark .books-tabs>.books-tabs-list small{background:var(--control-bg-active);color:var(--control-text-muted)}
+.dark .books-tabs>.books-tabs-list [data-state="active"] small{background:var(--color-highlight-soft);color:var(--color-text)}
+
+.dark :is(.feature-action,.members-card button,.next-card button,.text-link,.small-link:not(.destructive-link)){color:var(--color-action)}
+.dark :is(.feature-action,.members-card button,.next-card button,.text-link,.small-link:not(.destructive-link)):hover{color:var(--color-action-hover)}
+.dark .footer>span:first-child{color:var(--color-text)}
+.dark .footer>span:first-child span{color:var(--color-highlight)}
+.dark .footer>span+span{color:var(--color-text-muted)}
+
+.dark .page-actions>span,.dark .vote-admin-bar,.dark .plan-voting>span{color:var(--color-text-muted)}
+.dark .vote-visibility{background:var(--control-bg);border-color:var(--control-border)}
+.dark .vote-visibility button{background:transparent;color:var(--control-text-muted)}
+.dark .vote-visibility button:hover{color:var(--control-text)}
+.dark .vote-visibility button.active{background:var(--control-bg-active);color:var(--control-text)}
+.dark .vote-button{background:var(--control-bg);border-color:var(--control-border);color:var(--color-action)}
+.dark .vote-button:hover{background:color-mix(in srgb,var(--control-bg) 86%,var(--color-text));color:var(--color-action-hover)}
+.dark .vote-button.active{background:var(--color-highlight-soft);border-color:var(--color-highlight);color:var(--color-text)}
+.dark .vote-names{color:var(--color-text-muted)!important}
+.dark .plan-schedule{background:var(--control-bg);border-color:var(--control-border);color:var(--control-text)}
+.dark .plan-schedule:hover{background:color-mix(in srgb,var(--control-bg) 86%,var(--color-text))}
+.dark .icon-action{color:var(--color-action)}
+.dark .icon-action:hover{background:var(--control-bg);color:var(--color-action-hover)}
+
 .dark img{filter:none!important;mix-blend-mode:normal}
 .dark *,.dark *:before,.dark *:after{box-shadow:none!important;text-shadow:none!important}
 
