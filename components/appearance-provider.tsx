@@ -47,7 +47,6 @@ function applyAppearance(scheme: AppearanceScheme, mode: ColorMode, resolvedMode
   root.dataset.scheme = scheme;
   root.dataset.mode = mode;
   root.dataset.colorMode = resolvedMode;
-  root.classList.toggle("dark", resolvedMode === "dark");
   root.style.colorScheme = resolvedMode;
 }
 
