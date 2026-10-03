@@ -18,6 +18,7 @@ try {
   root.dataset.scheme = scheme;
   root.dataset.mode = mode;
   root.dataset.colorMode = resolved;
+  root.classList.toggle("dark", resolved === "dark");
   root.style.colorScheme = resolved;
 } catch {}
 `;
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f9f7f0" },
-    { media: "(prefers-color-scheme: dark)", color: "#101820" },
+    { media: "(prefers-color-scheme: dark)", color: "#15130f" },
   ],
   colorScheme: "light dark",
 };
