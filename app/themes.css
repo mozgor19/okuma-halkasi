@@ -1124,3 +1124,258 @@ html.dark .favorite{
   color:var(--color-text)
 }
 @media(prefers-reduced-motion:reduce){body,.app-shell{transition:none}}
+
+
+/* Component contract: shared structure and semantic color roles for every scheme. */
+:where(.meeting-layout,.meeting-main,.meeting-side,.paper-card,.section-row,.gallery-actions,.roadmap-page,.roadmap-list,.roadmap-item,.plan-details,.profile-page,.profile-section,.face-reference-grid,.face-reference-row,.management-list,.management-row,.dialog-scroll,.create-form,.form-two,.form-three,.admin-add){
+  min-width:0;
+}
+:where(.face-reference-person strong,.management-person strong,.review-item strong,.participant-list span:nth-child(2)){
+  color:var(--color-text);
+}
+:where(.face-reference-person small,.management-person small,.review-count,.participant-list small,.admin-add small,.create-form label,.lookup-results small){
+  color:var(--color-text-muted);
+}
+:where(.face-reference-row,.management-row,.trash-row,.favorite-row,.reading-book-row){
+  border-color:var(--color-border);
+  background:var(--color-surface);
+}
+:where(.face-reference-upload,.face-bulk-upload,.profile-photo-button,.upload-button,.management-row button,.roadmap-admin button){
+  border-color:var(--control-border);
+  background:var(--control-bg);
+  color:var(--control-text);
+}
+:where(.face-reference-upload,.face-bulk-upload,.profile-photo-button,.upload-button,.management-row button,.roadmap-admin button):hover{
+  background:var(--control-bg-active);
+  color:var(--color-action-hover);
+}
+.face-reference-remove{
+  border-color:var(--color-border);
+  background:var(--color-surface-subtle);
+  color:var(--color-danger);
+}
+.face-reference-remove:hover{background:var(--color-highlight-soft)}
+.role-badge{border:1px solid var(--color-border);background:var(--color-surface-subtle);color:var(--color-text-muted)}
+.local-processing{border-color:var(--color-border);background:var(--color-surface-subtle);color:var(--color-text-muted)}
+.create-dialog{
+  width:min(720px,calc(100vw - 24px));
+  max-width:min(720px,calc(100vw - 24px));
+  border-color:var(--color-border);
+  background:var(--color-surface);
+  color:var(--color-text);
+}
+.create-dialog [data-slot="dialog-title"]{color:var(--color-text)}
+.create-dialog [data-slot="dialog-description"]{color:var(--color-text-muted)}
+.create-dialog [data-slot="dialog-close"]{color:var(--color-text-muted)}
+.create-dialog [data-slot="dialog-close"]:hover{background:var(--color-surface-subtle);color:var(--color-text)}
+.create-form :is(input,textarea,select),.lookup-row input,.admin-add :is(input,select){
+  border:1px solid var(--control-border)!important;
+  background:var(--control-bg-active);
+  color:var(--control-text);
+}
+.create-form :is(input,textarea,select):hover,.lookup-row input:hover,.admin-add :is(input,select):hover{border-color:var(--color-action)!important}
+.create-form :is(input,textarea,select):focus-visible,.lookup-row input:focus-visible,.admin-add :is(input,select):focus-visible{
+  border-color:var(--color-focus)!important;
+  outline:2px solid color-mix(in srgb,var(--color-focus) 35%,transparent);
+  outline-offset:1px;
+}
+.create-form :is(input,textarea)::placeholder,.lookup-row input::placeholder,.admin-add input::placeholder{color:var(--color-text-muted);opacity:1}
+.create-form option,.admin-add option{background:var(--color-surface);color:var(--color-text)}
+.create-form input[type="file"]{min-height:42px;padding:6px}
+.create-form input[type="file"]::file-selector-button{
+  min-height:28px;
+  margin-right:10px;
+  border:1px solid var(--color-border);
+  border-radius:var(--app-radius);
+  background:var(--color-surface-subtle);
+  color:var(--color-text);
+}
+.lookup-results,.lookup-results button{border-color:var(--color-border);background:var(--color-surface);color:var(--color-text)}
+.lookup-results button:hover{background:var(--color-surface-subtle)}
+.admin-add{border-color:var(--color-border)}
+.admin-add label{color:var(--color-text)}
+.admin-add>div{display:grid;grid-template-columns:minmax(0,1fr) 42px;width:100%}
+.admin-add :is(select,input){width:100%;height:42px;border-radius:var(--app-radius) 0 0 var(--app-radius)}
+.admin-add button{
+  width:42px;
+  height:42px;
+  border:1px solid var(--color-action);
+  border-radius:0 var(--app-radius) var(--app-radius) 0;
+  background:var(--color-action);
+  color:var(--color-on-action);
+}
+.admin-add button:hover{background:var(--color-action-hover)}
+.gallery-actions{max-width:100%}
+.gallery-actions .upload-button{min-height:42px;border:1px solid var(--color-border)!important}
+.section-row>div:first-child{min-width:0}
+.review-count{white-space:nowrap}
+.roadmap-admin{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:32px;
+  margin-top:34px;
+  padding:24px;
+  border:1px dashed var(--color-border);
+  color:var(--color-text);
+}
+.roadmap-admin p{max-width:var(--measure);margin:8px 0 0;color:var(--color-text-muted);font-size:var(--text-small)}
+.roadmap-admin p strong{color:var(--color-text)}
+.roadmap-admin-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.roadmap-admin button{
+  min-height:42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border:1px solid var(--color-border);
+  border-radius:var(--app-radius);
+  padding:8px 11px;
+  font-weight:600;
+  white-space:nowrap;
+}
+.roadmap-admin button:disabled{cursor:not-allowed}
+
+/* Dark surfaces are explicit; daylight scheme palettes above are unchanged. */
+.dark{color-scheme:dark}
+.dark :where(.face-reference-person strong,.management-person strong,.review-item strong,.participant-list span:nth-child(2),.admin-add label,.create-form label){color:var(--color-text)}
+.dark :where(.face-reference-person small,.management-person small,.review-count,.participant-list small,.admin-add small,.lookup-results small){color:var(--color-text-muted)}
+.dark .face-reference-person small.reference-active{color:#72b999}
+.dark .face-reference-person small.reference-active:before{background:#72b999;box-shadow:none}
+.dark .face-reference-person small:not(.reference-active):before{background:var(--color-text-muted)}
+.dark :where(.face-reference-upload,.face-bulk-upload,.profile-photo-button,.upload-button,.management-row button,.roadmap-admin button){
+  border-color:var(--color-border);
+  background:var(--color-surface-subtle);
+  color:var(--color-text);
+}
+.dark :where(.face-reference-upload,.face-bulk-upload,.profile-photo-button,.upload-button,.management-row button,.roadmap-admin button):hover{
+  background:color-mix(in srgb,var(--color-surface-subtle) 86%,var(--color-text));
+  color:var(--color-action-hover);
+}
+.dark .face-reference-remove{border-color:var(--color-border);background:var(--color-surface-subtle);color:var(--color-danger)}
+.dark .role-badge{border-color:var(--color-border);background:var(--color-surface-subtle);color:var(--color-text)}
+.dark .role-badge.super_admin{color:var(--color-highlight)}
+.dark .role-badge.admin{color:#72b999}
+.dark .local-processing{border-color:var(--color-border);background:var(--color-surface-subtle);color:var(--color-text)}
+.dark .create-dialog{border-color:var(--color-border);background:var(--color-surface);color:var(--color-text)}
+.dark .create-form :is(input,textarea,select),.dark .lookup-row input,.dark .admin-add :is(input,select){
+  border-color:var(--color-border)!important;
+  background:var(--color-surface-subtle);
+  color:var(--color-text);
+}
+.dark .create-form :is(input,textarea)::placeholder,.dark .lookup-row input::placeholder,.dark .admin-add input::placeholder{color:var(--color-text-muted);opacity:1}
+.dark .create-form input[type="file"]::file-selector-button{border-color:var(--color-border);background:var(--color-surface);color:var(--color-text)}
+.dark :where(.review-count,.participant-list small,.participants-card h2 small){color:var(--color-text-muted)}
+.dark .admin-add button{border-color:var(--color-action);background:var(--color-action);color:var(--color-on-action)}
+.dark .roadmap-admin{border-color:var(--color-text-muted);background:transparent;color:var(--color-text)}
+.dark .roadmap-admin p{color:var(--color-text-muted)}
+
+/* Notebook live screens follow the approved prototype's ledger rhythm. */
+html[data-scheme="notebook"] .roadmap-admin{
+  margin-top:42px;
+  border:2px dashed var(--color-text);
+  background:transparent;
+  padding:28px;
+}
+html[data-scheme="notebook"] .roadmap-admin button{border-color:var(--color-text);background:transparent;color:var(--color-text)}
+html[data-scheme="notebook"] .roadmap-admin button:hover{background:color-mix(in srgb,var(--notebook-highlight) 24%,transparent)}
+html[data-scheme="notebook"] .roadmap-item{grid-template-columns:70px minmax(0,1fr) auto}
+html[data-scheme="notebook"] .roadmap-item .plan-details>.eyebrow,
+html[data-scheme="notebook"] .roadmap-item .plan-details>small,
+html[data-scheme="notebook"] .roadmap-item .vote-names,
+html[data-scheme="notebook"] .roadmap-item .plan-actions{display:none}
+html[data-scheme="notebook"] .roadmap-item .plan-details h3{margin:0;font-size:var(--text-h2)}
+html[data-scheme="notebook"] .roadmap-item .plan-details p{margin:4px 0 0;color:var(--color-text-muted)}
+html[data-scheme="notebook"] .roadmap-item .plan-voting{
+  min-width:82px;
+  display:flex;
+  flex-direction:row-reverse;
+  align-items:center;
+  justify-content:flex-start;
+  gap:7px;
+}
+html[data-scheme="notebook"] .roadmap-item .vote-button{
+  width:36px;
+  min-width:36px;
+  min-height:36px;
+  overflow:hidden;
+  border:0;
+  padding:0;
+  color:var(--color-text);
+}
+html[data-scheme="notebook"] .roadmap-item .vote-button svg{flex:none}
+html[data-scheme="notebook"] .roadmap-item .vote-button:not(.active){font-size:0}
+html[data-scheme="notebook"] .roadmap-item .vote-button.active{width:auto;padding:0 9px;font-size:0;background:transparent}
+html[data-scheme="notebook"] .roadmap-item .plan-voting>span{font-size:var(--text-small);font-weight:600;color:var(--color-text)}
+html.dark[data-scheme="notebook"] .roadmap-item.is-voted{background:color-mix(in srgb,var(--color-highlight) 14%,transparent)}
+html.dark[data-scheme="notebook"] .roadmap-item .vote-button{background:transparent;color:var(--color-text)}
+html.dark[data-scheme="notebook"] .roadmap-item .vote-button:hover{background:var(--color-surface-subtle)}
+html[data-scheme="notebook"] .management-row button{border:1px solid var(--color-text);background:transparent;color:var(--color-text)}
+html[data-scheme="notebook"] .management-row button:hover{background:color-mix(in srgb,var(--notebook-highlight) 20%,transparent)}
+html[data-scheme="notebook"] .face-reference-upload{border:1px solid var(--color-text);background:transparent;color:var(--color-text)}
+html[data-scheme="notebook"] .face-reference-remove{border:1px solid var(--color-border);background:transparent}
+html[data-scheme="notebook"] .create-dialog{border:2px solid var(--color-text);border-radius:4px}
+html[data-scheme="notebook"] .create-form :is(input,textarea,select),html[data-scheme="notebook"] .lookup-row input{
+  min-height:44px;
+  border-radius:4px;
+}
+html[data-scheme="notebook"] .meeting-main,html[data-scheme="notebook"] .meeting-side{min-width:0}
+html[data-scheme="notebook"] .gallery-card .section-row,html[data-scheme="notebook"] .reviews-card .section-row{align-items:flex-start}
+html[data-scheme="notebook"] .gallery-actions{flex:none}
+html[data-scheme="notebook"] .review-count{padding-top:8px}
+
+@media(max-width:900px){
+  .roadmap-admin{align-items:stretch;display:grid}
+  .roadmap-admin-actions{justify-content:flex-start}
+  .meeting-layout,.meeting-side{min-width:0}
+  .gallery-actions{width:100%;justify-content:flex-start}
+}
+@media(max-width:680px){
+  .create-dialog{width:calc(100vw - 20px);max-width:calc(100vw - 20px);padding:20px}
+  .dialog-scroll{overflow-x:hidden}
+  .lookup-row{display:grid;grid-template-columns:minmax(0,1fr) auto}
+  .lookup-row button{min-width:82px}
+  .roadmap-admin{padding:20px}
+  .roadmap-admin-actions{display:grid;grid-template-columns:1fr}
+  .roadmap-admin-actions button{width:100%}
+  html[data-scheme="notebook"] .roadmap-item{grid-template-columns:38px minmax(0,1fr)!important;gap:10px}
+  html[data-scheme="notebook"] .roadmap-item .plan-number{display:block}
+  html[data-scheme="notebook"] .roadmap-item .plan-details{grid-column:2}
+  html[data-scheme="notebook"] .roadmap-item .plan-voting{grid-column:2;width:auto;justify-self:start;justify-content:flex-end}
+  html[data-scheme="notebook"] .roadmap-item .plan-details h3{font-size:var(--text-small)}
+  html[data-scheme="notebook"] .section-row{display:grid;grid-template-columns:minmax(0,1fr)}
+  html[data-scheme="notebook"] .gallery-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}
+  html[data-scheme="notebook"] .gallery-actions .upload-button{justify-content:center;white-space:normal;text-align:center}
+  html[data-scheme="notebook"] .meeting-info{grid-template-columns:88px minmax(0,1fr)}
+  html[data-scheme="notebook"] .meeting-cover .book-cover{width:78px;height:116px}
+  html[data-scheme="notebook"] .info-lines>span{align-items:flex-start;flex-wrap:wrap}
+}
+
+
+/* Specific dark bindings for legacy selectors with higher specificity. */
+.dark .face-reference-person strong,
+.dark .management-person strong,
+.dark .review-item strong,
+.dark .participant-list span:nth-child(2){color:var(--color-text)}
+.dark .face-reference-person small,
+.dark .management-person small,
+.dark .review-count,
+.dark .participant-list small,
+.dark .admin-add small{color:var(--color-text-muted)}
+.dark .create-dialog .create-form label,
+.dark .create-dialog .cover-field,
+.dark .create-dialog .cover-field span{color:var(--color-text)}
+.dark .create-dialog .lookup-error{color:var(--color-danger)}
+.dark .create-dialog .lookup-row button{
+  border-color:var(--color-border);
+  background:var(--color-surface-subtle);
+  color:var(--color-text)
+}
+.dark .create-dialog .lookup-row button:hover{background:color-mix(in srgb,var(--color-surface-subtle) 86%,var(--color-text))}
+.dark .create-dialog .lookup-row button:disabled{
+  border-color:var(--color-border)!important;
+  background:var(--color-surface-subtle)!important;
+  color:var(--color-text-muted)!important
+}
+.dark .create-dialog input[type="date"],
+.dark .create-dialog input[type="datetime-local"]{color-scheme:dark}
