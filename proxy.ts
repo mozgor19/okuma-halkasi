@@ -6,7 +6,7 @@ import {
   sessionIdentity,
 } from "@/lib/auth";
 
-const publicPaths = new Set(["/login", "/api/auth/login", "/api/auth/logout"]);
+const publicPaths = new Set(["/login", "/design-lab", "/api/auth/login", "/api/auth/logout"]);
 const publicAsset = /\.(?:css|js|map|svg|png|jpg|jpeg|webp|ico|woff2?)$/i;
 
 function enforceLocalBrowserRequests(response: NextResponse) {
