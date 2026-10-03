@@ -955,4 +955,172 @@ html.dark[data-scheme="notebook"] :is(.featured-book-card,.members-card,.next-ca
   html[data-scheme="notebook"] .paper-card{padding:26px 0}
 }
 
+/* Global appearance control and notebook responsive corrections. */
+.appearance-mode-menu{
+  min-width:180px;
+  border-color:var(--app-border);
+  border-radius:var(--app-radius);
+  background:var(--app-surface);
+  color:var(--app-text)
+}
+.appearance-mode-menu [data-slot="dropdown-menu-label"]{
+  color:var(--app-text);
+  font-family:var(--font-display);
+  font-size:13px
+}
+.appearance-mode-menu [data-slot="dropdown-menu-separator"]{background:var(--app-border)}
+.appearance-mode-menu [data-slot="dropdown-menu-radio-item"]{
+  min-height:38px;
+  border-radius:var(--app-radius);
+  color:var(--app-muted)
+}
+.appearance-mode-menu [data-slot="dropdown-menu-radio-item"]:focus{
+  background:var(--app-surface-alt);
+  color:var(--app-text)
+}
+.appearance-mode-menu [data-slot="dropdown-menu-radio-item"][data-state="checked"]{
+  color:var(--app-text);
+  font-weight:700
+}
+.appearance-mode-menu [data-slot="dropdown-menu-radio-item"] small{
+  margin-left:auto;
+  color:var(--app-muted);
+  font-size:11px;
+  font-weight:400
+}
+
+html[data-scheme="notebook"] .hero .theme-copy-default{display:inline}
+html[data-scheme="notebook"] .hero p.theme-copy-default{display:block}
+html[data-scheme="notebook"] .hero .theme-copy-notebook,
+html[data-scheme="notebook"] .notebook-hero-media{display:none}
+html[data-scheme="notebook"] .hero{
+  min-height:340px;
+  display:block;
+  overflow:hidden;
+  border:2px solid var(--color-text);
+  border-radius:4px;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb,var(--color-inverse-surface) 96%,transparent) 0%,
+      color-mix(in srgb,var(--color-inverse-surface) 76%,transparent) 54%,
+      transparent 100%
+    ),
+    url('/reading-room.png') center/cover!important
+}
+html[data-scheme="notebook"] .hero-copy{
+  max-width:620px;
+  padding:44px 50px;
+  color:var(--color-inverse-text)
+}
+html[data-scheme="notebook"] .hero-copy h1{max-width:14ch;margin:18px 0 14px}
+html[data-scheme="notebook"] .hero-copy p{color:var(--color-inverse-text-muted)}
+html[data-scheme="notebook"] .hero-copy .eyebrow.light{
+  background:var(--notebook-highlight);
+  color:var(--color-on-highlight)
+}
+html[data-scheme="notebook"] .hero-counter{display:grid;color:var(--color-inverse-text)}
+
+html.dark[data-scheme="notebook"] .continuation-band{
+  border:1px solid var(--color-border);
+  border-left:4px solid var(--color-highlight);
+  background:var(--color-surface-subtle);
+  color:var(--color-text)
+}
+html.dark[data-scheme="notebook"] .continuation-band strong{color:var(--color-text)}
+html.dark[data-scheme="notebook"] .continuation-band .eyebrow{
+  background:var(--color-highlight);
+  color:var(--color-on-highlight)
+}
+html.dark[data-scheme="notebook"] .meeting-side{
+  background:var(--color-surface);
+  padding-right:28px
+}
+html.dark[data-scheme="notebook"] .participation-card :is(.progress-input,textarea){
+  border:1px solid var(--color-border)!important;
+  background:var(--color-surface-subtle)!important;
+  color:var(--color-text)!important
+}
+html.dark[data-scheme="notebook"] .participation-card textarea:disabled{
+  background:var(--color-surface)!important;
+  color:var(--color-text-muted)!important
+}
+
+@media(min-width:1051px){
+  html[data-scheme="notebook"] .sidebar{grid-template-columns:260px minmax(0,1fr) 320px}
+  html[data-scheme="notebook"] .topbar{width:320px}
+}
+@media(max-width:1050px) and (min-width:681px){
+  html[data-scheme="notebook"] .sidebar{grid-template-columns:220px minmax(0,1fr) 230px}
+  html[data-scheme="notebook"] .topbar{width:230px}
+}
+@media(max-width:680px){
+  html[data-scheme="notebook"] .mobile-brand{max-width:min(200px,calc(100vw - 190px))}
+  html[data-scheme="notebook"] .hero{min-height:315px;display:block}
+  html[data-scheme="notebook"] .hero-copy{padding:32px 24px}
+  html[data-scheme="notebook"] .hero-copy h1{max-width:11ch;margin:18px 0 14px}
+  html[data-scheme="notebook"] .hero-counter{display:none}
+  html[data-scheme="notebook"] .roadmap-item{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:14px;
+    padding:20px 0
+  }
+  html[data-scheme="notebook"] .roadmap-item .plan-number{display:none}
+  html[data-scheme="notebook"] .roadmap-item .plan-details{
+    grid-column:1;
+    width:100%;
+    min-width:0!important
+  }
+  html[data-scheme="notebook"] .roadmap-item .plan-details .eyebrow{
+    max-width:100%;
+    white-space:normal
+  }
+  html[data-scheme="notebook"] .roadmap-item .plan-details h3{
+    max-width:100%;
+    overflow-wrap:normal;
+    word-break:normal;
+    hyphens:none
+  }
+  html[data-scheme="notebook"] .roadmap-item .plan-voting{
+    grid-column:1;
+    width:100%;
+    justify-self:stretch;
+    justify-content:flex-start
+  }
+  html[data-scheme="notebook"] .roadmap-item .plan-actions{
+    grid-column:1;
+    width:100%;
+    justify-content:flex-start
+  }
+  html.dark[data-scheme="notebook"] .meeting-side{
+    margin:0 -18px;
+    padding-right:18px;
+    padding-left:18px
+  }
+}
+html[data-scheme="notebook"] .hero .hero-link{
+  border-color:var(--color-inverse-text);
+  background:color-mix(in srgb,var(--color-inverse-surface) 62%,transparent);
+  color:var(--color-inverse-text);
+  box-shadow:4px 4px 0 var(--notebook-highlight)
+}
+html[data-scheme="notebook"] .hero .hero-link:hover{
+  background:color-mix(in srgb,var(--color-inverse-surface) 82%,transparent);
+  color:var(--color-inverse-text)
+}
+html.dark .meeting-score strong{color:var(--color-text)}
+html.dark .meeting-score small{color:var(--color-text-muted)}
+html.dark .info-lines{color:var(--color-text-muted)}
+html.dark .back-link{color:var(--color-action)}
+html.dark .book-progress{
+  border:1px solid var(--color-border);
+  background:var(--color-surface-subtle);
+  color:var(--color-text)
+}
+html.dark .favorite{
+  border-color:var(--color-border);
+  background:var(--color-surface);
+  color:var(--color-text)
+}
 @media(prefers-reduced-motion:reduce){body,.app-shell{transition:none}}

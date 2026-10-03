@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Colors, Computer, Moon, Sun } from "@/components/icons";
-import { useAppearance, type AppearanceScheme, type ColorMode } from "@/components/appearance-provider";
+import { Check, Colors } from "@/components/icons";
+import { useAppearance, type AppearanceScheme } from "@/components/appearance-provider";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,18 +26,8 @@ const schemes: Array<{
   { id: "minimal", name: "Minimal", description: "Yalnızca işlev, çizgi ve okunabilirlik." },
 ];
 
-const modes: Array<{
-  id: ColorMode;
-  name: string;
-  icon: typeof Sun;
-}> = [
-  { id: "light", name: "Gündüz", icon: Sun },
-  { id: "dark", name: "Gece", icon: Moon },
-  { id: "system", name: "Sistem", icon: Computer },
-];
-
 export function AppearanceSettings() {
-  const { scheme, mode, resolvedMode, setScheme, setMode } = useAppearance();
+  const { scheme, setScheme } = useAppearance();
   const [pendingScheme, setPendingScheme] = useState<AppearanceScheme | null>(null);
   const pending = schemes.find((item) => item.id === pendingScheme);
 
@@ -70,31 +60,6 @@ export function AppearanceSettings() {
             {scheme === item.id && <span className="scheme-selected"><Check size={16} /> Etkin</span>}
           </button>
         ))}
-      </div>
-
-      <div className="mode-setting">
-        <div>
-          <strong>Renk modu</strong>
-          <span>Sistem şu anda {resolvedMode === "dark" ? "gece" : "gündüz"} görünümünde.</span>
-        </div>
-        <div className="mode-control" role="radiogroup" aria-label="Renk modu">
-          {modes.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                type="button"
-                role="radio"
-                aria-checked={mode === item.id}
-                className={mode === item.id ? "selected" : ""}
-                key={item.id}
-                onClick={() => setMode(item.id)}
-              >
-                <Icon size={19} />
-                <span>{item.name}</span>
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       <AlertDialog open={pendingScheme !== null} onOpenChange={(open) => { if (!open) setPendingScheme(null); }}>
