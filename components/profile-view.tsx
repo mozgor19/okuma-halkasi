@@ -472,7 +472,7 @@ export function ProfileView({
         <div className="profile-identity">
           <ProfileAvatar member={member} />
           <div>
-            <span className="eyebrow">PROFİLİM</span>
+            <span className="eyebrow"><span className="theme-copy-default">PROFİLİM</span><span className="theme-copy-notebook">ÜYE NO / {String(member.id).padStart(2, "0")}</span></span>
             <h1>{member.name}</h1>
             <p>{roleLabels[member.role]}</p>
           </div>
@@ -500,11 +500,11 @@ export function ProfileView({
       <Tabs defaultValue="overview" className="profile-tabs">
         <TabsList variant="line" aria-label="Profil bölümleri">
           <TabsTrigger value="overview">Özet</TabsTrigger>
-          <TabsTrigger value="gallery">Fotoğraflarım</TabsTrigger>
           <TabsTrigger value="books">Kitaplarım</TabsTrigger>
+          <TabsTrigger value="gallery">Galerim</TabsTrigger>
           <TabsTrigger value="appearance">Görünüm</TabsTrigger>
-          <TabsTrigger value="face">Yüz verisi</TabsTrigger>
           <TabsTrigger value="security">Güvenlik</TabsTrigger>
+          <TabsTrigger value="face">Yüz verisi</TabsTrigger>
           {isAdminRole(member.role) && <TabsTrigger value="trash">Çöp kutusu</TabsTrigger>}
           {member.role === "super_admin" && <TabsTrigger value="management">Yönetim</TabsTrigger>}
         </TabsList>
@@ -512,7 +512,7 @@ export function ProfileView({
         <TabsContent value="overview">
           <section className="profile-stats" aria-label="Okuma istatistikleri">
             <div><strong>{attendedMeetings.length}</strong><span>katıldığı buluşma</span></div>
-            <div><strong>{myReviews.length}</strong><span>değerlendirme</span></div>
+            <div><strong>{readingBooks.length}</strong><span>kitap</span></div>
             <div><strong>{average}</strong><span>ortalama puan</span></div>
             <div><strong>{favoriteBooks.length}</strong><span>favori kitap</span></div>
           </section>

@@ -18,3 +18,11 @@
 - Use `--color-action` for interactive text and icons, `--color-text-muted` for secondary copy, and the `--control-*` or `--tab-*` roles for their named components.
 - Maintain at least WCAG 4.5:1 contrast for body text and 3:1 for controls, indicators, and focus rings.
 - SVG icons must use `currentColor`; never invert photographs for dark mode.
+
+## Notebook Direction
+
+- Treat the notebook direction in `/design-lab` as the visual source of truth for `data-scheme="notebook"`.
+- Preserve its product grammar in production: desktop top navigation, mobile bottom navigation, ruled paper and margin line, yellow labels, outlined commands, ledger rows, and divided profile statistics.
+- Do not reduce notebook to decorative colors or shadows on the default card layout. Adapt every live feature into the notebook grammar without removing functionality.
+- Keep notebook-only structure behind scheme-scoped classes so editorial, catalogue, and minimal remain independent.
+- Before shipping notebook changes, verify light and dark modes at 1440px desktop and 390px mobile widths, including Home, Plan, Meeting, and every Profile tab.
