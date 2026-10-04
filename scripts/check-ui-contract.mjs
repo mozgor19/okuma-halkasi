@@ -9,6 +9,14 @@ function requireText(source, needle, label) {
   if (!source.includes(needle)) failures.push(label);
 }
 
+function requireRule(source, selector, declarations, label) {
+  const selectorStart = source.indexOf(selector);
+  const blockStart = selectorStart < 0 ? -1 : source.indexOf("{", selectorStart);
+  const blockEnd = blockStart < 0 ? -1 : source.indexOf("}", blockStart);
+  const block = blockStart < 0 || blockEnd < 0 ? "" : source.slice(blockStart + 1, blockEnd);
+  if (declarations.some((declaration) => !block.includes(declaration))) failures.push(label);
+}
+
 function rgb(hex) {
   const value = hex.replace("#", "");
   return [0, 2, 4].map((offset) => Number.parseInt(value.slice(offset, offset + 2), 16));
@@ -52,6 +60,9 @@ const componentSelectors = [
   ".dark .profile-password-form label",
 ];
 for (const selector of componentSelectors) requireText(css, selector, `Tema sözleşmesi kapsamıyor: ${selector}`);
+
+requireRule(css, ".vote-reset-button", ["min-height:36px", "padding:7px 12px"], "Oy sıfırlama düğmesinin güvenli iç boşluğu eksik");
+requireRule(css, '.create-form input[type="file"]::file-selector-button', ["min-height:32px", "padding:4px 12px"], "Dosya seçme düğmesinin güvenli iç boşluğu eksik");
 
 const sourceContracts = [
   [page, 'className="roadmap-admin"', "Canlı yol haritasında yönetici araçları yok"],

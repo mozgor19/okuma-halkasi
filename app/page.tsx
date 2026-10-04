@@ -426,7 +426,7 @@ export default function Home() {
                   <button className={data.voteVisibility === "open" ? "active" : ""} onClick={() => void perform("setVoteVisibility", { voteVisibility: "open" })}>Açık</button>
                   <button className={data.voteVisibility === "secret" ? "active" : ""} onClick={() => void perform("setVoteVisibility", { voteVisibility: "secret" })}>Gizli</button>
                 </div>
-                <button className="small-link" disabled={!data.bookVotes.length || busy} onClick={() => {
+                <button className="small-link vote-reset-button" disabled={!data.bookVotes.length || busy} onClick={() => {
                   if (window.confirm("Tüm kitap oyları sıfırlansın mı?")) void perform("clearBookVotes", {});
                 }}>Oyları sıfırla</button>
               </div>
@@ -482,7 +482,7 @@ export default function Home() {
               <div className="roadmap-admin-actions">
                 <button type="button" onClick={() => { setEditBookId(roadmapSelectionBook.id); setEditBookOpen(true); }}><Pencil size={17} /> Künyeyi düzenle</button>
                 <button type="button" onClick={() => { setScheduledPlanId(roadmapSelection.id); setCreateMode("meeting"); }}><CalendarPlus size={17} /> Buluşma oluştur</button>
-                <button type="button" disabled={!data.bookVotes.length || busy} onClick={() => {
+                <button type="button" className="vote-reset-button" disabled={!data.bookVotes.length || busy} onClick={() => {
                   if (window.confirm("Tüm kitap oyları sıfırlansın mı?")) void perform("clearBookVotes", {});
                 }}>Oyları sıfırla</button>
               </div>
