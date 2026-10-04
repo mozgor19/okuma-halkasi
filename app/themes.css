@@ -189,6 +189,7 @@ html[data-scheme="catalogue"] .login-brand>span,html[data-scheme="notebook"] .lo
 .login-brand em{color:var(--app-accent)}
 .login-field>label{color:var(--app-muted)}
 .login-input{
+  position:relative;
   height:44px;
   display:grid;
   grid-template-columns:42px minmax(0,1fr);
@@ -200,11 +201,26 @@ html[data-scheme="catalogue"] .login-brand>span,html[data-scheme="notebook"] .lo
   padding:0;
   overflow:hidden
 }
+.login-input:before{
+  content:"";
+  position:absolute;
+  z-index:1;
+  top:0;
+  bottom:0;
+  left:41px;
+  width:1px;
+  background:var(--control-border);
+  pointer-events:none
+}
 .login-input>svg{
-  width:42px;
-  height:42px;
-  border-right:1px solid var(--control-border);
-  padding:11px
+  position:absolute;
+  z-index:2;
+  top:50%;
+  left:12px;
+  width:18px;
+  height:18px;
+  padding:0;
+  transform:translateY(-50%)
 }
 .login-input input{
   width:100%;
@@ -216,6 +232,14 @@ html[data-scheme="catalogue"] .login-brand>span,html[data-scheme="notebook"] .lo
   outline:0!important;
   box-shadow:none!important;
   padding:0 12px
+}
+.login-input input:is(:-webkit-autofill,:-webkit-autofill:hover,:-webkit-autofill:focus),
+.login-input input:autofill{
+  -webkit-text-fill-color:var(--control-text)!important;
+  -webkit-box-shadow:0 0 0 1000px var(--control-bg-active) inset!important;
+  box-shadow:0 0 0 1000px var(--control-bg-active) inset!important;
+  caret-color:var(--control-text);
+  transition:none!important
 }
 .login-input:focus-within{
   border-color:var(--color-focus);

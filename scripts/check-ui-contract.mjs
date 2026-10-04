@@ -73,6 +73,9 @@ requireRule(css, ".admin-add>div>button", ["border:0!important", "border-left:1p
 requireRule(css, ".dark .admin-add>div>button:disabled", ["border:0!important", "border-left:1px solid var(--color-border)!important"], "Koyu modda devre dışı birleşik alan çerçevesi bozuluyor");
 requireRule(css, 'html[data-scheme="notebook"] .side-nav button:after', ["background:var(--notebook-nav-track)"], "Defter navigasyonu Design Lab sekme şeridini kullanmıyor");
 requireRule(css, ".login-input input", ["border:0!important", "background:transparent!important", "outline:0!important"], "Giriş alanı iç içe ikinci bir kutu üretiyor");
+requireRule(css, ".login-input:before", ["left:41px", "width:1px", "background:var(--control-border)"], "Giriş alanı ikon ayırıcısı bağımsız değil");
+requireRule(css, ".login-input>svg", ["top:50%", "left:12px", "width:18px", "height:18px", "transform:translateY(-50%)"], "Giriş alanı ikonu hücresinde ortalanmıyor");
+requireRule(css, ".login-input input:is(:-webkit-autofill,:-webkit-autofill:hover,:-webkit-autofill:focus)", ["-webkit-text-fill-color:var(--control-text)!important", "-webkit-box-shadow:0 0 0 1000px var(--control-bg-active) inset!important", "transition:none!important"], "Tarayıcı otomatik doldurma rengi giriş alanını bölüyor");
 requireRule(css, ".login-input:focus-within", ["outline:2px solid var(--color-focus)", "outline-offset:-2px"], "Giriş alanının ortak odak çerçevesi eksik");
 requireText(css, "--notebook-nav-track:#dbe3e4", "Defter gündüz navigasyon şeridi referans renkten sapıyor");
 requireText(css, "--notebook-nav-track:color-mix(in srgb,var(--color-text) 16%,var(--color-surface))", "Defter gece navigasyon şeridi tanımlı değil");
