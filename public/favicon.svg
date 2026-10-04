@@ -1,14 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
   <title id="title">Kitap Tahlil ve İstişare</title>
-  <desc id="description">Açık kitap biçiminde okuma grubu simgesi</desc>
-  <rect width="1024" height="1024" fill="#14252d"/>
-  <rect x="72" y="72" width="880" height="880" rx="220" fill="#1d3942" stroke="#d9aa68" stroke-width="12"/>
-  <circle cx="452" cy="242" r="15" fill="#d9aa68"/>
-  <circle cx="512" cy="224" r="15" fill="#f4dfb9"/>
-  <circle cx="572" cy="242" r="15" fill="#d9aa68"/>
-  <path d="M174 330c120-42 238-25 338 61v390c-94-80-205-102-338-62V330Z" fill="#f7f1e4" stroke="#d9aa68" stroke-width="18" stroke-linejoin="round"/>
-  <path d="M850 330c-120-42-238-25-338 61v390c94-80 205-102 338-62V330Z" fill="#f7f1e4" stroke="#d9aa68" stroke-width="18" stroke-linejoin="round"/>
-  <path d="M512 391v390" fill="none" stroke="#d9aa68" stroke-width="18" stroke-linecap="round"/>
-  <path d="M230 440c78-16 150-5 218 32M230 524c78-16 150-5 218 32M230 608c78-16 150-5 218 32M794 440c-78-16-150-5-218 32M794 524c-78-16-150-5-218 32M794 608c-78-16-150-5-218 32" fill="none" stroke="#31535a" stroke-width="17" stroke-linecap="round"/>
-  <path d="M454 782c38 14 58 32 58 32s20-18 58-32" fill="none" stroke="#d9aa68" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <desc id="description">Defter sayfası üzerinde açık kitap simgesi</desc>
+  <rect width="1024" height="1024" fill="#f9f7f0"/>
+  <g stroke="#dbe3e4" stroke-width="10">
+    <path d="M0 214h1024M0 326h1024M0 438h1024M0 550h1024M0 662h1024M0 774h1024M0 886h1024"/>
+  </g>
+  <path d="M166 0v1024" stroke="#e5a39a" stroke-width="12"/>
+  <rect x="252" y="250" width="548" height="548" rx="34" fill="#172d45"/>
+  <rect x="224" y="222" width="548" height="548" rx="34" fill="#ffe16b" stroke="#172d45" stroke-width="16"/>
+  <path d="M306 378c77-24 145-6 206 55v238c-61-54-129-72-206-48V378Z" fill="#fffdf7" stroke="#172d45" stroke-width="17" stroke-linejoin="round"/>
+  <path d="M718 378c-77-24-145-6-206 55v238c61-54 129-72 206-48V378Z" fill="#fffdf7" stroke="#172d45" stroke-width="17" stroke-linejoin="round"/>
+  <path d="M512 433v238" stroke="#172d45" stroke-width="17" stroke-linecap="round"/>
+  <path d="M346 455c45-7 84 4 121 31M346 520c45-7 84 4 121 31M678 455c-45-7-84 4-121 31M678 520c-45-7-84 4-121 31" fill="none" stroke="#617083" stroke-width="13" stroke-linecap="round"/>
+  <path d="M472 315h80v76l-40-25-40 25Z" fill="#ec543f" stroke="#172d45" stroke-width="12" stroke-linejoin="round"/>
 </svg>

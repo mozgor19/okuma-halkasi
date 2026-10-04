@@ -3,6 +3,9 @@ import fs from "node:fs";
 const css = fs.readFileSync("app/themes.css", "utf8");
 const page = fs.readFileSync("app/page.tsx", "utf8");
 const profile = fs.readFileSync("components/profile-view.tsx", "utf8");
+const manifest = fs.readFileSync("public/manifest.webmanifest", "utf8");
+const layout = fs.readFileSync("app/layout.tsx", "utf8");
+const notifications = fs.readFileSync("components/notification-center.tsx", "utf8");
 const failures = [];
 
 function requireText(source, needle, label) {
@@ -68,6 +71,30 @@ requireRule(css, ".admin-add>div:focus-within", ["outline:2px solid var(--color-
 requireRule(css, ".admin-add>div>:is(select,input)", ["border:0!important", "border-radius:0!important"], "Birleşik alanın iç kontrolü çift çerçeve üretiyor");
 requireRule(css, ".admin-add>div>button", ["border:0!important", "border-left:1px solid var(--control-border)!important"], "Birleşik alan düğmesinin iç ayırıcısı eksik");
 requireRule(css, ".dark .admin-add>div>button:disabled", ["border:0!important", "border-left:1px solid var(--color-border)!important"], "Koyu modda devre dışı birleşik alan çerçevesi bozuluyor");
+requireRule(css, 'html[data-scheme="notebook"] .side-nav button:after', ["background:var(--notebook-nav-track)"], "Defter navigasyonu Design Lab sekme şeridini kullanmıyor");
+requireRule(css, ".login-input input", ["border:0!important", "background:transparent!important", "outline:0!important"], "Giriş alanı iç içe ikinci bir kutu üretiyor");
+requireRule(css, ".login-input:focus-within", ["outline:2px solid var(--color-focus)", "outline-offset:-2px"], "Giriş alanının ortak odak çerçevesi eksik");
+requireText(css, "--notebook-nav-track:#dbe3e4", "Defter gündüz navigasyon şeridi referans renkten sapıyor");
+requireText(css, "--notebook-nav-track:color-mix(in srgb,var(--color-text) 16%,var(--color-surface))", "Defter gece navigasyon şeridi tanımlı değil");
+for (const icon of ["notebook-icon-192.png", "notebook-icon-512.png", "notebook-icon-maskable-512.png"]) {
+  requireText(manifest, icon, "PWA manifestinde yeni Defter ikonu eksik: " + icon);
+}
+const iconContracts = [
+  ["public/icons/notebook-apple-touch-icon.png", 180],
+  ["public/icons/notebook-icon-192.png", 192],
+  ["public/icons/notebook-icon-512.png", 512],
+  ["public/icons/notebook-icon-maskable-512.png", 512],
+];
+for (const [path, size] of iconContracts) {
+  if (!fs.existsSync(path)) {
+    failures.push("Üretilmiş PWA ikonu eksik: " + path);
+    continue;
+  }
+  const png = fs.readFileSync(path);
+  if (png.readUInt32BE(16) !== size || png.readUInt32BE(20) !== size) failures.push("PWA ikonu yanlış ölçüde: " + path);
+}
+requireText(layout, "/icons/notebook-apple-touch-icon.png", "Apple Touch ikonu yeni Defter görselini kullanmıyor");
+requireText(notifications, "/icons/notebook-icon-192.png", "Bildirim ikonu yeni Defter görselini kullanmıyor");
 
 const sourceContracts = [
   [page, 'const heroEyebrow = isAdminRole(member.role) ? "YENİ BULUŞMA" : featuredEyebrow;', "Ana sayfa yönetici hero etiketi oluşturma eylemiyle uyuşmuyor"],

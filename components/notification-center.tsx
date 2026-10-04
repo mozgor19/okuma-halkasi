@@ -48,8 +48,8 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
     void navigator.serviceWorker.ready.then((registration) =>
       registration.showNotification("Yaklaşan kitap buluşması", {
         body: `${upcoming.title} için buluşma yaklaşıyor.`,
-        icon: "/icons/icon-192.png",
-        badge: "/icons/icon-192.png",
+        icon: "/icons/notebook-icon-192.png",
+        badge: "/icons/notebook-icon-192.png",
         data: { url: "/" },
       }),
     );
