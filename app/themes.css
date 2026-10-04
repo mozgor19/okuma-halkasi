@@ -287,6 +287,7 @@ html[data-scheme="minimal"] .side-nav button.active{background:var(--app-surface
 .dark :is(.book-progress.continuing,.continuing-badge,.continuation-band,.favorite.active,.favorite-row.is-favorite,.favorite-row.is-favorite .favorite-toggle){
   background:var(--color-highlight-soft);border-color:var(--color-highlight);color:var(--color-text)
 }
+.dark .continuation-band strong{color:var(--color-text)}
 .dark .participation-card{background:var(--color-inverse-surface);border-color:var(--color-border);color:var(--color-inverse-text)}
 .dark .participation-card :is(h2,.field-label){color:var(--color-inverse-text)}
 .dark .participation-card :is(p,.field-label span){color:var(--color-inverse-text-muted)}
@@ -1248,6 +1249,8 @@ html.dark .favorite{
   background:var(--color-surface-subtle);
   color:var(--color-text);
 }
+.dark .management-row button{color:var(--color-text)}
+.dark .profile-password-form label{color:var(--color-text)}
 .dark :where(.face-reference-upload,.face-bulk-upload,.profile-photo-button,.upload-button,.management-row button,.roadmap-admin button):hover{
   background:color-mix(in srgb,var(--color-surface-subtle) 86%,var(--color-text));
   color:var(--color-action-hover);

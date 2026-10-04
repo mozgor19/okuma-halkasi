@@ -48,6 +48,8 @@ const componentSelectors = [
   ".roadmap-item .plan-voting", ".meeting-main", ".meeting-side",
   ".dark .create-dialog .create-form label", ".dark .face-reference-person strong",
   ".dark .management-person strong", ".dark .create-dialog .lookup-row button",
+  ".dark .continuation-band strong", ".dark .management-row button",
+  ".dark .profile-password-form label",
 ];
 for (const selector of componentSelectors) requireText(css, selector, `Tema sözleşmesi kapsamıyor: ${selector}`);
 
@@ -72,6 +74,9 @@ const contrastChecks = [
   ["gövde / yüzey 1", "#e9e5de", "#211e18", 4.5],
   ["soluk metin / zemin", "#b8b0a5", "#15130f", 4.5],
   ["soluk metin / yüzey 1", "#b8b0a5", "#211e18", 4.5],
+  ["gövde / yüzey 2", "#e9e5de", "#2d2922", 4.5],
+  ["gövde / dergi vurgu yüzeyi", "#e9e5de", "#362f23", 4.5],
+  ["gövde / katalog vurgu yüzeyi", "#e9e5de", "#2f3023", 4.5],
 ];
 for (const [label, foreground, background, minimum] of contrastChecks) {
   const ratio = contrast(foreground, background);
