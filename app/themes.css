@@ -302,7 +302,7 @@ html[data-scheme="minimal"] .side-nav button.active{background:var(--app-surface
 .dark .book-cover{box-shadow:none}
 .dark .cover-placeholder{background:var(--color-surface-subtle);border-color:var(--color-highlight);color:var(--color-text);box-shadow:none}
 .dark .mobile-nav{box-shadow:none}
-.dark :is(button,a,input,textarea,select,[tabindex]):focus-visible{outline:2px solid var(--color-focus);outline-offset:2px;box-shadow:none!important}
+.dark :where(button,a,input,textarea,select,[tabindex]):focus-visible{outline:2px solid var(--color-focus);outline-offset:2px;box-shadow:none!important}
 .dark :is(button,input,textarea,select):disabled,.dark .disabled{background:var(--color-surface-subtle)!important;color:var(--color-text-muted)!important;border-color:var(--color-border)!important;opacity:1!important}
 
 /* Shared dark component contract: every scheme inherits the same readable roles. */
@@ -1176,8 +1176,8 @@ html.dark .favorite{
 .create-form :is(input,textarea,select):hover,.lookup-row input:hover,.admin-add :is(input,select):hover{border-color:var(--color-action)!important}
 .create-form :is(input,textarea,select):focus-visible,.lookup-row input:focus-visible,.admin-add :is(input,select):focus-visible{
   border-color:var(--color-focus)!important;
-  outline:2px solid color-mix(in srgb,var(--color-focus) 35%,transparent);
-  outline-offset:1px;
+  outline:2px solid var(--color-focus);
+  outline-offset:-2px;
 }
 .create-form :is(input,textarea)::placeholder,.lookup-row input::placeholder,.admin-add input::placeholder{color:var(--color-text-muted);opacity:1}
 .create-form option,.admin-add option{background:var(--color-surface);color:var(--color-text)}
