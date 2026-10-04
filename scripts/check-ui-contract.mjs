@@ -51,7 +51,7 @@ for (const scheme of ["editorial", "catalogue", "notebook", "minimal"]) {
 
 const componentSelectors = [
   ".face-reference-person strong", ".management-person strong", ".create-dialog",
-  ".create-form :is(input,textarea,select)", ".admin-add :is(input,select)",
+  ".create-form :is(input,textarea,select)", ".admin-add>div>:is(select,input)",
   ".gallery-actions", ".roadmap-admin", ".roadmap-admin-actions",
   ".roadmap-item .plan-voting", ".meeting-main", ".meeting-side",
   ".dark .create-dialog .create-form label", ".dark .face-reference-person strong",
@@ -63,6 +63,11 @@ for (const selector of componentSelectors) requireText(css, selector, `Tema söz
 
 requireRule(css, ".vote-reset-button", ["min-height:36px", "padding:7px 12px"], "Oy sıfırlama düğmesinin güvenli iç boşluğu eksik");
 requireRule(css, '.create-form input[type="file"]::file-selector-button', ["min-height:32px", "padding:4px 12px"], "Dosya seçme düğmesinin güvenli iç boşluğu eksik");
+requireRule(css, ".admin-add>div", ["border:1px solid var(--control-border)", "border-radius:var(--app-radius)", "overflow:hidden"], "Katılımcı ve misafir alanlarının kesintisiz dış çerçevesi eksik");
+requireRule(css, ".admin-add>div:focus-within", ["outline:2px solid var(--color-focus)", "outline-offset:-2px"], "Birleşik alanların ortak odak çerçevesi eksik");
+requireRule(css, ".admin-add>div>:is(select,input)", ["border:0!important", "border-radius:0!important"], "Birleşik alanın iç kontrolü çift çerçeve üretiyor");
+requireRule(css, ".admin-add>div>button", ["border:0!important", "border-left:1px solid var(--control-border)!important"], "Birleşik alan düğmesinin iç ayırıcısı eksik");
+requireRule(css, ".dark .admin-add>div>button:disabled", ["border:0!important", "border-left:1px solid var(--color-border)!important"], "Koyu modda devre dışı birleşik alan çerçevesi bozuluyor");
 
 const sourceContracts = [
   [page, 'className="roadmap-admin"', "Canlı yol haritasında yönetici araçları yok"],

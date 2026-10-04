@@ -1169,13 +1169,13 @@ html.dark .favorite{
 .create-dialog [data-slot="dialog-description"]{color:var(--color-text-muted)}
 .create-dialog [data-slot="dialog-close"]{color:var(--color-text-muted)}
 .create-dialog [data-slot="dialog-close"]:hover{background:var(--color-surface-subtle);color:var(--color-text)}
-.create-form :is(input,textarea,select),.lookup-row input,.admin-add :is(input,select){
+.create-form :is(input,textarea,select),.lookup-row input{
   border:1px solid var(--control-border)!important;
   background:var(--control-bg-active);
   color:var(--control-text);
 }
-.create-form :is(input,textarea,select):hover,.lookup-row input:hover,.admin-add :is(input,select):hover{border-color:var(--color-action)!important}
-.create-form :is(input,textarea,select):focus-visible,.lookup-row input:focus-visible,.admin-add :is(input,select):focus-visible{
+.create-form :is(input,textarea,select):hover,.lookup-row input:hover{border-color:var(--color-action)!important}
+.create-form :is(input,textarea,select):focus-visible,.lookup-row input:focus-visible{
   border-color:var(--color-focus)!important;
   outline:2px solid var(--color-focus);
   outline-offset:-2px;
@@ -1198,17 +1198,41 @@ html.dark .favorite{
 .lookup-results button:hover{background:var(--color-surface-subtle)}
 .admin-add{border-color:var(--color-border)}
 .admin-add label{color:var(--color-text)}
-.admin-add>div{display:grid;grid-template-columns:minmax(0,1fr) 42px;width:100%}
-.admin-add :is(select,input){width:100%;height:42px;border-radius:var(--app-radius) 0 0 var(--app-radius)}
-.admin-add button{
+.admin-add>div{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 42px;
+  width:100%;
+  min-height:42px;
+  border:1px solid var(--control-border);
+  border-radius:var(--app-radius);
+  background:var(--control-bg-active);
+  overflow:hidden;
+}
+.admin-add>div:hover{border-color:var(--color-action)}
+.admin-add>div:focus-within{
+  border-color:var(--color-focus);
+  outline:2px solid var(--color-focus);
+  outline-offset:-2px;
+}
+.admin-add>div>:is(select,input){
+  width:100%;
+  height:40px;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent;
+  color:var(--control-text);
+}
+.admin-add>div>:is(select,input):focus-visible{outline:0;box-shadow:none!important}
+.admin-add>div>button{
   width:42px;
-  height:42px;
-  border:1px solid var(--color-action);
-  border-radius:0 var(--app-radius) var(--app-radius) 0;
+  height:40px;
+  border:0!important;
+  border-left:1px solid var(--control-border)!important;
+  border-radius:0;
   background:var(--color-action);
   color:var(--color-on-action);
 }
-.admin-add button:hover{background:var(--color-action-hover)}
+.admin-add>div>button:hover{background:var(--color-action-hover)}
 .gallery-actions{max-width:100%}
 .gallery-actions .upload-button{min-height:42px;border:1px solid var(--color-border)!important}
 .section-row>div:first-child{min-width:0}
@@ -1275,7 +1299,7 @@ html.dark .favorite{
 .dark .role-badge.admin{color:#72b999}
 .dark .local-processing{border-color:var(--color-border);background:var(--color-surface-subtle);color:var(--color-text)}
 .dark .create-dialog{border-color:var(--color-border);background:var(--color-surface);color:var(--color-text)}
-.dark .create-form :is(input,textarea,select),.dark .lookup-row input,.dark .admin-add :is(input,select){
+.dark .create-form :is(input,textarea,select),.dark .lookup-row input{
   border-color:var(--color-border)!important;
   background:var(--color-surface-subtle);
   color:var(--color-text);
@@ -1283,7 +1307,14 @@ html.dark .favorite{
 .dark .create-form :is(input,textarea)::placeholder,.dark .lookup-row input::placeholder,.dark .admin-add input::placeholder{color:var(--color-text-muted);opacity:1}
 .dark .create-form input[type="file"]::file-selector-button{border-color:var(--color-border);background:var(--color-surface);color:var(--color-text)}
 .dark :where(.review-count,.participant-list small,.participants-card h2 small){color:var(--color-text-muted)}
-.dark .admin-add button{border-color:var(--color-action);background:var(--color-action);color:var(--color-on-action)}
+.dark .admin-add>div{border-color:var(--color-border);background:var(--color-surface-subtle)}
+.dark .admin-add>div>button,
+.dark .admin-add>div>button:disabled{
+  border:0!important;
+  border-left:1px solid var(--color-border)!important;
+  background:var(--color-action)!important;
+  color:var(--color-on-action)!important;
+}
 .dark .roadmap-admin{border-color:var(--color-text-muted);background:transparent;color:var(--color-text)}
 .dark .roadmap-admin p{color:var(--color-text-muted)}
 
