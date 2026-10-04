@@ -46,7 +46,7 @@ export default function LoginPage() {
           <div className="login-field">
             <label htmlFor="username">Kullanıcı adı</label>
             <div className="login-input">
-              <UserRound size={18} />
+              <span className="login-input-icon" aria-hidden="true"><UserRound size={20} /></span>
               <Input
                 id="username"
                 type="text"
@@ -63,7 +63,7 @@ export default function LoginPage() {
           <div className="login-field">
             <label htmlFor="password">Şifre</label>
             <div className="login-input">
-              <LockKeyhole size={18} />
+              <span className="login-input-icon" aria-hidden="true"><LockKeyhole size={20} /></span>
               <Input
                 id="password"
                 type="password"

@@ -212,15 +212,23 @@ html[data-scheme="catalogue"] .login-brand>span,html[data-scheme="notebook"] .lo
   background:var(--control-border);
   pointer-events:none
 }
-.login-input>svg{
+.login-input-icon{
   position:absolute;
   z-index:2;
   top:50%;
-  left:12px;
-  width:18px;
-  height:18px;
-  padding:0;
-  transform:translateY(-50%)
+  left:1px;
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  color:var(--control-text-muted);
+  transform:translateY(-50%);
+  pointer-events:none
+}
+.login-input-icon>[data-icon]{
+  width:20px!important;
+  height:20px!important;
+  display:block
 }
 .login-input input{
   width:100%;
