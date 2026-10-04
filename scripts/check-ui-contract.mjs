@@ -72,9 +72,9 @@ requireRule(css, ".admin-add>div>:is(select,input)", ["border:0!important", "bor
 requireRule(css, ".admin-add>div>button", ["border:0!important", "border-left:1px solid var(--control-border)!important"], "Birleşik alan düğmesinin iç ayırıcısı eksik");
 requireRule(css, ".dark .admin-add>div>button:disabled", ["border:0!important", "border-left:1px solid var(--color-border)!important"], "Koyu modda devre dışı birleşik alan çerçevesi bozuluyor");
 requireRule(css, 'html[data-scheme="notebook"] .side-nav button:after', ["background:var(--notebook-nav-track)"], "Defter navigasyonu Design Lab sekme şeridini kullanmıyor");
-requireRule(css, ".login-input input", ["border:0!important", "background:transparent!important", "outline:0!important"], "Giriş alanı iç içe ikinci bir kutu üretiyor");
 requireRule(css, ".login-input:before", ["left:41px", "width:1px", "background:var(--control-border)"], "Giriş alanı ikon ayırıcısı bağımsız değil");
-requireRule(css, ".login-input-icon", ["left:1px", "width:40px", "height:40px", "place-items:center", "transform:translateY(-50%)"], "Giriş alanı ikon hücresi ortalanmıyor");
+requireRule(css, ".login-input-icon", ["grid-column:1", "grid-row:1", "width:41px", "height:42px", "place-items:center"], "Giriş alanı ikon hücresi ilk sütunda ortalanmıyor");
+requireRule(css, ".login-input input", ["grid-column:2", "grid-row:1", "min-width:0", "border:0!important", "background:transparent!important", "outline:0!important"], "Giriş metni ikon hücresinin üzerine taşıyor");
 requireRule(css, ".login-input-icon>[data-icon]", ["width:20px!important", "height:20px!important"], "Giriş alanı ikonları ortak ölçüyü kullanmıyor");
 requireRule(css, ".login-input input:is(:-webkit-autofill,:-webkit-autofill:hover,:-webkit-autofill:focus)", ["-webkit-text-fill-color:var(--control-text)!important", "-webkit-box-shadow:0 0 0 1000px var(--control-bg-active) inset!important", "transition:none!important"], "Tarayıcı otomatik doldurma rengi giriş alanını bölüyor");
 requireRule(css, ".login-input:focus-within", ["outline:2px solid var(--color-focus)", "outline-offset:-2px"], "Giriş alanının ortak odak çerçevesi eksik");
