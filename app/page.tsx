@@ -175,6 +175,7 @@ export default function Home() {
   const sessionNumber = selectedMeeting ? selectedBookSessions.findIndex((meeting) => meeting.id === selectedMeeting.id) + 1 : 0;
   const featuredHeading = featuredChoice.kind === "week" ? "Bu haftanın kitabı" : featuredChoice.kind === "upcoming" ? "Sıradaki buluşma" : "Son buluşma";
   const featuredEyebrow = featuredChoice.kind === "week" ? "BU HAFTA" : featuredChoice.kind === "upcoming" ? "YAKLAŞAN BULUŞMA" : "ARŞİVDEN";
+  const heroEyebrow = isAdminRole(member.role) ? "YENİ BULUŞMA" : featuredEyebrow;
 
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
@@ -396,7 +397,7 @@ export default function Home() {
       <main className="content">
         {view === "home" && <>
           <section className="hero" style={{ backgroundImage: "linear-gradient(90deg, #101f28 1%, #101f28ee 34%, #101f2866 67%, #101f2808 100%), url('/reading-room.png')" }}>
-            <div className="hero-copy"><span className="eyebrow light">{featuredEyebrow}</span><h1><span className="theme-copy-default">Kitap Tahlil &amp; İstişare</span><span className="theme-copy-notebook">{featuredBook?.title ?? "Kitap Tahlil & İstişare"}</span></h1><p className="theme-copy-default">Buluşma, katılım, puan, yorum ve fotoğraflar tek yerde.</p><p className="theme-copy-notebook">{featured?.note || (featuredBook ? `${featuredBook.author} ile aynı masada buluşuyoruz.` : "Yeni okuma kaydını birlikte oluşturalım.")}</p>{isAdminRole(member.role) ? <button className="hero-link" onClick={() => setCreateMode("meeting")}><Plus size={18} /> Yeni buluşma oluştur</button> : featured && <button className="hero-link" onClick={() => openMeeting(featured.id)}>Buluşma kaydını aç <ArrowRight size={18} /></button>}</div>
+            <div className="hero-copy"><span className="eyebrow light">{heroEyebrow}</span><h1><span className="theme-copy-default">Kitap Tahlil &amp; İstişare</span><span className="theme-copy-notebook">{featuredBook?.title ?? "Kitap Tahlil & İstişare"}</span></h1><p className="theme-copy-default">Buluşma, katılım, puan, yorum ve fotoğraflar tek yerde.</p><p className="theme-copy-notebook">{featured?.note || (featuredBook ? `${featuredBook.author} ile aynı masada buluşuyoruz.` : "Yeni okuma kaydını birlikte oluşturalım.")}</p>{isAdminRole(member.role) ? <button className="hero-link" onClick={() => setCreateMode("meeting")}><Plus size={18} /> Yeni buluşma oluştur</button> : featured && <button className="hero-link" onClick={() => openMeeting(featured.id)}>Buluşma kaydını aç <ArrowRight size={18} /></button>}</div>
             <figure className="notebook-hero-media"><img src="/reading-room.png" alt="Kitaplarla çevrili okuma odası" /><figcaption><span>{featured ? String(new Date(featured.date).getDate()).padStart(2, "0") : "--"}</span><strong>{featured ? dayFormat.format(new Date(featured.date)) : "Yeni buluşma"}</strong><small>{featured?.location ?? "Kitap kulübü"}</small></figcaption></figure>
             <div className="hero-counter"><span>{String(data.members.filter((person) => !person.isGuest).length).padStart(2, "0")}</span><small>aktif üye</small></div>
           </section>

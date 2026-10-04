@@ -70,6 +70,8 @@ requireRule(css, ".admin-add>div>button", ["border:0!important", "border-left:1p
 requireRule(css, ".dark .admin-add>div>button:disabled", ["border:0!important", "border-left:1px solid var(--color-border)!important"], "Koyu modda devre dışı birleşik alan çerçevesi bozuluyor");
 
 const sourceContracts = [
+  [page, 'const heroEyebrow = isAdminRole(member.role) ? "YENİ BULUŞMA" : featuredEyebrow;', "Ana sayfa yönetici hero etiketi oluşturma eylemiyle uyuşmuyor"],
+  [page, '<span className="eyebrow light">{heroEyebrow}</span>', "Ana sayfa hero etiketi rol bazlı kaynağı kullanmıyor"],
   [page, 'className="roadmap-admin"', "Canlı yol haritasında yönetici araçları yok"],
   [page, 'className="roadmap-admin-actions"', "Yol haritası eylem grubu yok"],
   [page, 'className="create-dialog"', "Canlı formlar ortak modal sınıfını kullanmıyor"],
