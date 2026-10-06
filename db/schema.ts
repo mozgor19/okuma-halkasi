@@ -53,6 +53,13 @@ export const attendance = sqliteTable("attendance", {
   readingStatus: text("reading_status").notNull().default("unselected"),
   currentPage: integer("current_page"),
 }, (table) => [primaryKey({ columns: [table.meetingId, table.memberId] })]);
+export const meetingRsvps = sqliteTable("meeting_rsvps", {
+  meetingId: integer("meeting_id").notNull().references(() => meetings.id),
+  memberId: integer("member_id").notNull().references(() => members.id),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [primaryKey({ columns: [table.meetingId, table.memberId] })]);
+
 export const reviews = sqliteTable("reviews", {
   meetingId: integer("meeting_id").notNull().references(() => meetings.id),
   memberId: integer("member_id").notNull().references(() => members.id),

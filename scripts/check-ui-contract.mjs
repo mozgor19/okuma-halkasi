@@ -78,6 +78,10 @@ requireRule(css, ".login-input input", ["grid-column:2", "grid-row:1", "min-widt
 requireRule(css, ".login-input-icon>[data-icon]", ["width:20px!important", "height:20px!important"], "Giriş alanı ikonları ortak ölçüyü kullanmıyor");
 requireRule(css, ".login-input input:is(:-webkit-autofill,:-webkit-autofill:hover,:-webkit-autofill:focus)", ["-webkit-text-fill-color:var(--control-text)!important", "-webkit-box-shadow:0 0 0 1000px var(--control-bg-active) inset!important", "transition:none!important"], "Tarayıcı otomatik doldurma rengi giriş alanını bölüyor");
 requireRule(css, ".login-input:focus-within", ["outline:2px solid var(--color-focus)", "outline-offset:-2px"], "Giriş alanının ortak odak çerçevesi eksik");
+requireRule(css, ".meeting-rsvp", ["grid-template-columns:42px minmax(0,1fr) auto", "background:var(--app-surface-alt)", "color:var(--app-text)"], "Buluşma RSVP alanı ortak tema tokenlarını kullanmıyor");
+requireRule(css, ".meeting-share", ["min-height:34px", "border:1px solid var(--app-border)", "color:var(--app-primary)"], "Buluşma paylaş düğmesi ortak temaya uymuyor");
+requireRule(css, ".rsvp-toggle", ["min-width:116px", "height:38px", "border:1px solid var(--app-primary)"], "Geliyorum düğmesinin güvenli ölçüleri eksik");
+requireRule(css, 'html[data-scheme="notebook"] .meeting-rsvp', ["border:2px solid var(--color-text)", "background:var(--notebook-highlight)", "color:var(--color-on-highlight)"], "Defter RSVP alanı referans şablonuna uymuyor");
 requireText(css, "--notebook-nav-track:#dbe3e4", "Defter gündüz navigasyon şeridi referans renkten sapıyor");
 requireText(css, "--notebook-nav-track:color-mix(in srgb,var(--color-text) 16%,var(--color-surface))", "Defter gece navigasyon şeridi tanımlı değil");
 for (const icon of ["notebook-icon-192.png", "notebook-icon-512.png", "notebook-icon-maskable-512.png"]) {
@@ -106,6 +110,9 @@ const sourceContracts = [
   [page, 'className="roadmap-admin"', "Canlı yol haritasında yönetici araçları yok"],
   [page, 'className="roadmap-admin-actions"', "Yol haritası eylem grubu yok"],
   [page, 'className="create-dialog"', "Canlı formlar ortak modal sınıfını kullanmıyor"],
+  [page, 'className="meeting-share"', "Buluşma paylaş düğmesi canlı ekranda yok"],
+  [page, 'className="meeting-rsvp"', "Geliyorum özeti canlı ekranda yok"],
+  [page, 'perform("setMeetingRsvp"', "Geliyorum eylemi API akışına bağlı değil"],
   [profile, 'className="face-reference-row"', "Yüz referansı ortak satır sınıfını kullanmıyor"],
   [profile, 'className="management-row"', "Yönetim ortak satır sınıfını kullanmıyor"],
 ];

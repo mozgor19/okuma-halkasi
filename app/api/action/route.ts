@@ -1,4 +1,5 @@
-import { clubSchemaMissing, database, faceSchemaMissing, getAuthenticatedMember, getMember, profileSchemaMissing } from "@/db/store";
+import { clubSchemaMissing, database, faceSchemaMissing, getAuthenticatedMember, getMember, profileSchemaMissing, rsvpSchemaMissing } from "@/db/store";
+import { meetingRsvpIsOpen } from "@/lib/meeting-time";
 import { isAdminRole, isSuperAdminRole } from "@/lib/types";
 
 export const runtime = "edge";
@@ -255,6 +256,41 @@ export async function POST(request: Request) {
       return Response.json({ ok: true });
     }
 
+    if (input.action === "setMeetingRsvp") {
+      const meetingId = Number(input.meetingId);
+      let meeting: { id: number; date: string } | null = null;
+      if (Number.isInteger(meetingId)) {
+        try {
+          meeting = await database()
+            .prepare("SELECT id, date FROM meetings WHERE id = ? AND deleted_at IS NULL")
+            .bind(meetingId)
+            .first<{ id: number; date: string }>();
+        } catch (error) {
+          if (!clubSchemaMissing(error)) throw error;
+          meeting = await database()
+            .prepare("SELECT id, date FROM meetings WHERE id = ?")
+            .bind(meetingId)
+            .first<{ id: number; date: string }>();
+        }
+      }
+      if (!meeting) return fail("Buluşma bulunamadı.", 404);
+      if (!meetingRsvpIsOpen(meeting, new Date())) {
+        return fail("Geçmiş buluşmalar için geliş durumu değiştirilemez.", 409);
+      }
+      if (input.active) {
+        await database()
+          .prepare("INSERT INTO meeting_rsvps (meeting_id, member_id) VALUES (?, ?) ON CONFLICT(meeting_id, member_id) DO UPDATE SET updated_at = CURRENT_TIMESTAMP")
+          .bind(meeting.id, actor.id)
+          .run();
+      } else {
+        await database()
+          .prepare("DELETE FROM meeting_rsvps WHERE meeting_id = ? AND member_id = ?")
+          .bind(meeting.id, actor.id)
+          .run();
+      }
+      return Response.json({ ok: true });
+    }
+
     if (input.action === "toggleFavorite") {
       const book = await existingBook(input.bookId);
       if (!book) return fail("Kitap bulunamadı.", 404);
@@ -408,6 +444,7 @@ export async function POST(request: Request) {
       const statements = [
         database().prepare("DELETE FROM reviews WHERE meeting_id = ?").bind(id),
         database().prepare("DELETE FROM attendance WHERE meeting_id = ?").bind(id),
+        database().prepare("DELETE FROM meeting_rsvps WHERE meeting_id = ?").bind(id),
         database().prepare("DELETE FROM photos WHERE meeting_id = ?").bind(id),
         ...photoRows.map((photo) =>
           database().prepare("DELETE FROM media WHERE media_key = ?").bind(photo.mediaKey)
@@ -603,6 +640,9 @@ export async function POST(request: Request) {
     return fail("Bilinmeyen işlem.");
   } catch (error) {
     console.error("Reading circle action failed", error);
+    if (rsvpSchemaMissing(error)) {
+      return fail("Buluşma paylaşımı ve geliş bildirimi için önce 0007 migration'ını D1 veritabanına uygula.", 503);
+    }
     if (clubSchemaMissing(error)) {
       return fail("Oylama, çöp kutusu, misafir ve okuma ilerlemesi için önce 0005 migration'ını D1 veritabanına uygula.", 503);
     }

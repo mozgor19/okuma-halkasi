@@ -14,6 +14,10 @@ function enforceLocalBrowserRequests(response: NextResponse) {
   return response;
 }
 
+function safeNextPath(value: string | null) {
+  return value && value.startsWith("/") && !value.startsWith("//") ? value : "/";
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (publicAsset.test(pathname)) return NextResponse.next();
@@ -31,7 +35,7 @@ export async function proxy(request: NextRequest) {
   if (pathname === "/login") {
     return enforceLocalBrowserRequests(
       authenticated
-        ? NextResponse.redirect(new URL("/", request.url))
+        ? NextResponse.redirect(new URL(safeNextPath(request.nextUrl.searchParams.get("next")), request.url))
         : NextResponse.next(),
     );
   }
@@ -42,9 +46,10 @@ export async function proxy(request: NextRequest) {
         NextResponse.json({ error: "Oturum gerekli." }, { status: 401 }),
       );
     }
-    return enforceLocalBrowserRequests(
-      NextResponse.redirect(new URL("/login", request.url)),
-    );
+    const loginUrl = new URL("/login", request.url);
+    const returnTo = pathname + request.nextUrl.search;
+    if (returnTo !== "/") loginUrl.searchParams.set("next", returnTo);
+    return enforceLocalBrowserRequests(NextResponse.redirect(loginUrl));
   }
 
   return enforceLocalBrowserRequests(NextResponse.next());

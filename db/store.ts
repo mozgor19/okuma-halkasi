@@ -20,6 +20,10 @@ export function clubSchemaMissing(error: unknown): boolean {
     .test(error instanceof Error ? error.message : String(error));
 }
 
+export function rsvpSchemaMissing(error: unknown): boolean {
+  return String(error instanceof Error ? error.message : error).toLowerCase().includes("no such table: meeting_rsvps");
+}
+
 export async function getMember(id: unknown): Promise<Member | null> {
   if (!Number.isInteger(id) || Number(id) < 1) return null;
   const member = await database()
@@ -44,7 +48,7 @@ export async function getAuthenticatedMember(request: Request): Promise<Member |
   return getMember(identity.memberId);
 }
 
-async function runStateQueries(extended: boolean, faceRecognition: boolean, clubFeatures: boolean) {
+async function runStateQueries(extended: boolean, faceRecognition: boolean, clubFeatures: boolean, rsvpFeatures: boolean) {
   const memberColumns = extended
     ? faceRecognition
       ? "avatar_media_key AS avatarMediaKey, face_reference_media_key AS faceReferenceMediaKey, face_recognition_consent AS faceRecognitionConsent"
@@ -59,9 +63,9 @@ async function runStateQueries(extended: boolean, faceRecognition: boolean, club
     "SELECT id, title, author, publisher, pages, isbn, cover_url AS coverUrl, source_url AS sourceUrl FROM books ORDER BY id",
     extended
       ? clubFeatures
-        ? "SELECT id, book_id AS bookId, date, location, map_url AS mapUrl, note, reading_scope AS readingScope, book_status AS bookStatus, created_by AS createdBy, deleted_at AS deletedAt FROM meetings WHERE deleted_at IS NULL ORDER BY date DESC"
-        : "SELECT id, book_id AS bookId, date, location, map_url AS mapUrl, note, reading_scope AS readingScope, book_status AS bookStatus, created_by AS createdBy, NULL AS deletedAt FROM meetings ORDER BY date DESC"
-      : "SELECT id, book_id AS bookId, date, location, map_url AS mapUrl, note, NULL AS readingScope, 'completed' AS bookStatus, created_by AS createdBy, NULL AS deletedAt FROM meetings ORDER BY date DESC",
+        ? "SELECT id, book_id AS bookId, date, location, map_url AS mapUrl, note, reading_scope AS readingScope, book_status AS bookStatus, created_by AS createdBy, created_at AS createdAt, deleted_at AS deletedAt FROM meetings WHERE deleted_at IS NULL ORDER BY date DESC"
+        : "SELECT id, book_id AS bookId, date, location, map_url AS mapUrl, note, reading_scope AS readingScope, book_status AS bookStatus, created_by AS createdBy, created_at AS createdAt, NULL AS deletedAt FROM meetings ORDER BY date DESC"
+      : "SELECT id, book_id AS bookId, date, location, map_url AS mapUrl, note, NULL AS readingScope, 'completed' AS bookStatus, created_by AS createdBy, created_at AS createdAt, NULL AS deletedAt FROM meetings ORDER BY date DESC",
     clubFeatures
       ? "SELECT a.meeting_id AS meetingId, a.member_id AS memberId, a.reading_status AS readingStatus, a.current_page AS currentPage FROM attendance a JOIN meetings m ON m.id = a.meeting_id WHERE m.deleted_at IS NULL"
       : "SELECT meeting_id AS meetingId, member_id AS memberId, reading_status AS readingStatus, NULL AS currentPage FROM attendance",
@@ -89,6 +93,14 @@ async function runStateQueries(extended: boolean, faceRecognition: boolean, club
     );
   }
 
+  let rsvpIndex = -1;
+  if (rsvpFeatures) {
+    rsvpIndex = queries.length;
+    queries.push(
+      "SELECT meeting_id AS meetingId, member_id AS memberId, created_at AS createdAt, updated_at AS updatedAt FROM meeting_rsvps ORDER BY created_at",
+    );
+  }
+
   const results = await Promise.all(
     queries.map(async (query) => (await database().prepare(query).all()).results),
   );
@@ -108,6 +120,7 @@ async function runStateQueries(extended: boolean, faceRecognition: boolean, club
     books,
     meetings,
     attendance,
+    meetingRsvps: rsvpFeatures ? results[rsvpIndex] : [],
     reviews,
     photos,
     roadmap,
@@ -116,25 +129,30 @@ async function runStateQueries(extended: boolean, faceRecognition: boolean, club
     voteVisibility: visibility === "secret" ? "secret" : "open",
     trash: clubFeatures ? results[votesIndex + 2] : [],
     clubFeaturesReady: clubFeatures,
+    rsvpFeaturesReady: rsvpFeatures,
   } as unknown as AppData;
 }
 
 export async function getState(): Promise<AppData> {
-  const attempts: Array<[boolean, boolean, boolean]> = [
-    [true, true, true],
-    [true, true, false],
-    [true, false, true],
-    [true, false, false],
-    [false, false, false],
+  const attempts: Array<[boolean, boolean, boolean, boolean]> = [
+    [true, true, true, true],
+    [true, true, true, false],
+    [true, false, true, true],
+    [true, false, true, false],
+    [true, true, false, true],
+    [true, true, false, false],
+    [true, false, false, true],
+    [true, false, false, false],
+    [false, false, false, false],
   ];
   let lastError: unknown;
 
-  for (const [extended, faceRecognition, clubFeatures] of attempts) {
+  for (const [extended, faceRecognition, clubFeatures, rsvpFeatures] of attempts) {
     try {
-      return await runStateQueries(extended, faceRecognition, clubFeatures);
+      return await runStateQueries(extended, faceRecognition, clubFeatures, rsvpFeatures);
     } catch (error) {
       lastError = error;
-      if (!profileSchemaMissing(error) && !faceSchemaMissing(error) && !clubSchemaMissing(error)) throw error;
+      if (!profileSchemaMissing(error) && !faceSchemaMissing(error) && !clubSchemaMissing(error) && !rsvpSchemaMissing(error)) throw error;
     }
   }
 

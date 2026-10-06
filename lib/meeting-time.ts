@@ -37,6 +37,12 @@ export function chooseFeatured(meetings: Meeting[], now: Date) {
   };
 }
 
+export function meetingRsvpIsOpen(meeting: Pick<Meeting, "date">, now: Date) {
+  const meetingDay = meeting.date.slice(0, 10);
+  const closesAt = new Date(meetingDay + "T23:59:59+03:00");
+  return now <= closesAt;
+}
+
 export function meetingTimingLabel(meeting: Meeting, now: Date) {
   const { start, end } = weekBounds(now);
   const date = new Date(meeting.date);

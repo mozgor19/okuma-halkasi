@@ -15,6 +15,7 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
   const notifications = useMemo(() => {
     const week = 7 * 24 * 60 * 60 * 1000;
     const fortnight = 14 * 24 * 60 * 60 * 1000;
+    const recentMeetingWindow = 14 * 24 * 60 * 60 * 1000;
     const items: Array<{ id: string; meetingId: number; title: string; detail: string; time: number }> = [];
 
     for (const meeting of data.meetings) {
@@ -23,8 +24,13 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
       if (!book) continue;
       const attendance = data.attendance.find((item) => item.meetingId === meeting.id && item.memberId === memberId);
       const review = data.reviews.find((item) => item.meetingId === meeting.id && item.memberId === memberId);
-      if (time >= now && time - now <= week) {
-        items.push({ id: `upcoming-${meeting.id}`, meetingId: meeting.id, title: book.title, detail: attendance ? "Yaklaşan buluşma" : "Yaklaşan buluşma · katılımını belirt", time });
+      const rsvp = data.meetingRsvps.some((item) => item.meetingId === meeting.id && item.memberId === memberId);
+      const createdAt = Date.parse((meeting.createdAt || "").replace(" ", "T") + "Z");
+      const meetingDayEnds = new Date(meeting.date.slice(0, 10) + "T23:59:59+03:00").getTime();
+      if (meeting.createdBy !== memberId && meetingDayEnds >= now && Number.isFinite(createdAt) && now - createdAt <= recentMeetingWindow) {
+        items.push({ id: `new-${meeting.id}`, meetingId: meeting.id, title: book.title, detail: rsvp ? "Yeni buluşma oluşturuldu · geliyorsun" : "Yeni buluşma oluşturuldu · geliyor musun?", time: createdAt });
+      } else if (time >= now && time - now <= week) {
+        items.push({ id: `upcoming-${meeting.id}`, meetingId: meeting.id, title: book.title, detail: rsvp ? "Yaklaşan buluşma · geliyorsun" : "Yaklaşan buluşma · geliyor musun?", time });
       } else if (time < now && now - time <= fortnight && attendance && attendance.readingStatus !== "unread" && !review) {
         items.push({ id: `review-${meeting.id}`, meetingId: meeting.id, title: book.title, detail: "Puanın ve yorumun bekleniyor", time });
       }
@@ -39,18 +45,19 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
 
   useEffect(() => {
     if (permission !== "granted") return;
-    const upcoming = notifications.find((item) => item.id.startsWith("upcoming-"));
-    if (!upcoming) return;
+    const notification = notifications.find((item) => item.id.startsWith("new-"))
+      ?? notifications.find((item) => item.id.startsWith("upcoming-"));
+    if (!notification) return;
     const today = new Date().toISOString().slice(0, 10);
-    const key = `book-club-notified-${today}-${upcoming.id}`;
+    const key = `book-club-notified-${today}-${notification.id}`;
     if (localStorage.getItem(key)) return;
     localStorage.setItem(key, "1");
     void navigator.serviceWorker.ready.then((registration) =>
-      registration.showNotification("Yaklaşan kitap buluşması", {
-        body: `${upcoming.title} için buluşma yaklaşıyor.`,
+      registration.showNotification(notification.id.startsWith("new-") ? "Yeni kitap buluşması" : "Yaklaşan kitap buluşması", {
+        body: notification.id.startsWith("new-") ? `${notification.title} için yeni buluşma oluşturuldu.` : `${notification.title} için buluşma yaklaşıyor.`,
         icon: "/icons/notebook-icon-192.png",
         badge: "/icons/notebook-icon-192.png",
-        data: { url: "/" },
+        data: { url: `/?meeting=${notification.meetingId}` },
       }),
     );
   }, [notifications, permission]);

@@ -29,6 +29,7 @@ import {
   PanelLeftIcon as PanelLeftSourceIcon,
   PencilEdit01Icon,
   ScanFaceIcon as ScanFaceSourceIcon,
+  Share01Icon as ShareSourceIcon,
   ShieldCheckIcon as ShieldCheckSourceIcon,
   StarIcon as StarSourceIcon,
   Sun03Icon as SunSourceIcon,
@@ -153,6 +154,7 @@ export const MapPin = createStaticIcon(Location01Icon, "MapPin");
 export const Moon = createStaticIcon(MoonSourceIcon, "Moon");
 export const Pencil = createStaticIcon(PencilEdit01Icon, "Pencil");
 export const ScanFace = createStaticIcon(ScanFaceSourceIcon, "ScanFace");
+export const Share = createStaticIcon(ShareSourceIcon, "Share");
 export const ShieldCheck = createStaticIcon(ShieldCheckSourceIcon, "ShieldCheck");
 export const Star = createStaticIcon(StarSourceIcon, "Star");
 export const Sun = createStaticIcon(SunSourceIcon, "Sun");

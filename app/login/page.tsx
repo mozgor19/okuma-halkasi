@@ -23,7 +23,8 @@ export default function LoginPage() {
       });
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error ?? "Giriş yapılamadı.");
-      window.location.replace("/");
+      const next = new URLSearchParams(window.location.search).get("next");
+      window.location.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Giriş yapılamadı.");
     } finally {

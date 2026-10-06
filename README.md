@@ -58,8 +58,10 @@ Yeni bir veritabanında SQL dosyalarını sırayla uygulayın:
 4. `drizzle/0003_member_profiles_and_reading_progress.sql`
 5. `drizzle/0004_face_recognition.sql`
 6. `drizzle/0005_club_tools.sql`
+7. `drizzle/0006_super_admin_roles.sql`
+8. `drizzle/0007_meeting_rsvps.sql`
 
-Mevcut üretim veritabanında migration dosyalarını numara sırasıyla ve yalnızca birer kez çalıştırın. Hesap migration'ı uygulanmadıysa önce `0002_member_accounts.sql`, ardından profil, favori ve devam eden okuma alanları için `0003_member_profiles_and_reading_progress.sql` çalıştırılmalıdır. Yüz referansları ve katılımcı önerileri için `0004_face_recognition.sql`; kitap oylaması, okuma sayfası, misafirler ve çöp kutusu için son olarak `0005_club_tools.sql` uygulanmalıdır.
+Mevcut üretim veritabanında migration dosyalarını numara sırasıyla ve yalnızca birer kez çalıştırın. Hesap migration'ı uygulanmadıysa önce `0002_member_accounts.sql`, ardından profil, favori ve devam eden okuma alanları için `0003_member_profiles_and_reading_progress.sql` çalıştırılmalıdır. Yüz referansları ve katılımcı önerileri için `0004_face_recognition.sql`; kitap oylaması, okuma sayfası, misafirler ve çöp kutusu için `0005_club_tools.sql`; ana yönetici rolleri için `0006_super_admin_roles.sql`; buluşma paylaşımı ve "Geliyorum" kayıtları için son olarak `0007_meeting_rsvps.sql` uygulanmalıdır.
 
 ## Yüz eşleştirme gizliliği
 
