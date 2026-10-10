@@ -2,6 +2,14 @@
 
 Altı kişilik haftalık okuma grubu için Türkçe, tam yığın bir web uygulaması.
 
+## Mobil dönüşüm
+
+iOS ve Android çalışmasına yeni bir oturumda başlarken önce
+[mobil devir belgesini](docs/MOBILE_HANDOFF.md) ve
+[özellik/kabul listesini](docs/MOBILE_ACCEPTANCE.md) okuyun. Bu belgeler mevcut
+özellikleri, API'leri, tasarım referanslarını ve doğrulanması gereken mobil işleri
+kaydeder; henüz geliştirilmiş bir native uygulama yoktur.
+
 ## Özellikler
 
 - Tarihe göre bu hafta, sıradaki veya son buluşmayı gösteren ana ekran

@@ -26,3 +26,10 @@
 - Do not reduce notebook to decorative colors or shadows on the default card layout. Adapt every live feature into the notebook grammar without removing functionality.
 - Keep notebook-only structure behind scheme-scoped classes so editorial, catalogue, and minimal remain independent.
 - Before shipping notebook changes, verify light and dark modes at 1440px desktop and 390px mobile widths, including Home, Plan, Meeting, and every Profile tab.
+
+## Mobile Work
+
+- Before planning or implementing iOS/Android work, read `docs/MOBILE_HANDOFF.md` and `docs/MOBILE_ACCEPTANCE.md`, then verify their inventory against the current code.
+- Preserve the existing web app, accounts, backend data, all four schemes, and feature parity. Document the mobile architecture decision before introducing a framework.
+- Track iOS and Android verification separately in the acceptance checklist. Do not equate web/PWA checks with native validation or claim untested features are complete.
+- Keep server secrets out of mobile bundles and documentation. Verify production migration state before applying SQL; local success does not establish production readiness.
