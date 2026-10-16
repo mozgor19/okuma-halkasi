@@ -27,7 +27,7 @@ const schemes: Array<{
 ];
 
 export function AppearanceSettings() {
-  const { scheme, setScheme } = useAppearance();
+  const { scheme, setScheme, saving, groupPreferences } = useAppearance();
   const [pendingScheme, setPendingScheme] = useState<AppearanceScheme | null>(null);
   const pending = schemes.find((item) => item.id === pendingScheme);
 
@@ -45,6 +45,7 @@ export function AppearanceSettings() {
             type="button"
             className={`scheme-option scheme-${item.id} ${scheme === item.id ? "selected" : ""}`}
             aria-pressed={scheme === item.id}
+            disabled={saving}
             key={item.id}
             onClick={() => {
               if (scheme !== item.id) setPendingScheme(item.id);
@@ -68,7 +69,7 @@ export function AppearanceSettings() {
             <AlertDialogMedia><Colors size={30} /></AlertDialogMedia>
             <AlertDialogTitle>Şema değiştirilsin mi?</AlertDialogTitle>
             <AlertDialogDescription>
-              Uygulama {pending?.name ?? "seçilen"} şemasına geçirilecek. Bu tercih yalnızca bu tarayıcıda saklanır ve istediğin zaman değiştirilebilir.
+              Uygulama {pending?.name ?? "seçilen"} şemasına geçirilecek. {groupPreferences ? "Bu tercih hesabın için bu okuma grubunda saklanır." : "Bu tercih yalnızca bu tarayıcıda saklanır."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

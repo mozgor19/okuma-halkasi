@@ -1,0 +1,37 @@
+{
+  "name": "@okuma-halkasi/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types tests/shell-policy.test.mjs"
+  },
+  "dependencies": {
+    "@react-native-community/netinfo": "12.0.1",
+    "expo": "56.0.23",
+    "expo-constants": "56.0.27",
+    "expo-file-system": "56.0.11",
+    "expo-linking": "56.0.18",
+    "expo-notifications": "56.0.26",
+    "expo-router": "56.2.21",
+    "expo-sharing": "56.0.26",
+    "expo-system-ui": "56.0.5",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.85.3",
+    "react-native-reanimated": "4.3.1",
+    "react-native-safe-area-context": "5.10.1",
+    "react-native-web": "0.21.3",
+    "react-native-webview": "13.16.1",
+    "react-native-worklets": "0.8.3"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "babel-preset-expo": "56.0.20",
+    "typescript": "5.9.3"
+  }
+}

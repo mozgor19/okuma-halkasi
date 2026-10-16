@@ -17,6 +17,8 @@ import {
 } from "@/components/icons";
 import { PhotoLightbox } from "@/components/photo-lightbox";
 import { AppearanceSettings } from "@/components/appearance-settings";
+import { ReadingGroupSwitcher } from "@/components/reading-group-switcher";
+import { groupFetch, groupUrl } from "@/lib/group-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -73,7 +75,7 @@ function ProfileAvatar({ member }: { member: Member }) {
       aria-label={member.name}
     >
       {member.avatarMediaKey ? (
-        <img src={`/api/media/${member.avatarMediaKey}`} alt="" />
+        <img src={groupUrl(`/api/media/${member.avatarMediaKey}`)} alt="" />
       ) : (
         initials(member.name)
       )}
@@ -171,7 +173,7 @@ function PasswordForm({ onChanged }: { onChanged: () => void }) {
 
     setBusy(true);
     try {
-      const response = await fetch("/api/auth/change-password", {
+      const response = await groupFetch("/api/auth/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
@@ -332,7 +334,7 @@ function FaceReferencePanel({
             <div className="face-reference-row" key={person.id}>
               <span className="face-reference-preview" style={{ backgroundColor: person.color }}>
                 {person.faceReferenceMediaKey
-                  ? <img src={`/api/media/${person.faceReferenceMediaKey}`} alt="" />
+                  ? <img src={groupUrl(`/api/media/${person.faceReferenceMediaKey}`)} alt="" />
                   : <ScanFace size={25} />}
               </span>
               <span className="face-reference-person">
@@ -497,6 +499,7 @@ export function ProfileView({
         </label>
       </section>
 
+      <ReadingGroupSwitcher disabled={busy || avatarBusy} />
       <Tabs defaultValue="overview" className="profile-tabs">
         <TabsList variant="line" aria-label="Profil bölümleri">
           <TabsTrigger value="overview">Özet</TabsTrigger>
@@ -566,7 +569,7 @@ export function ProfileView({
                   return (
                     <PhotoLightbox
                       key={photo.id}
-                      src={`/api/media/${photo.mediaKey}`}
+                      src={groupUrl(`/api/media/${photo.mediaKey}`)}
                       alt={book ? `${book.title} buluşmasından fotoğraf` : "Buluşma fotoğrafı"}
                       caption={book?.title ?? "Buluşma"}
                       detail={meeting ? dateFormat.format(new Date(meeting.date)) : undefined}
@@ -718,7 +721,7 @@ export function ProfileView({
                   return (
                     <div className="management-row" key={person.id}>
                       <span className="management-avatar" style={{ backgroundColor: person.color }}>
-                        {person.avatarMediaKey ? <img src={"/api/media/" + person.avatarMediaKey} alt="" /> : initials(person.name)}
+                        {person.avatarMediaKey ? <img src={groupUrl("/api/media/" + person.avatarMediaKey)} alt="" /> : initials(person.name)}
                       </span>
                       <span className="management-person">
                         <strong>{person.name}</strong>

@@ -8,7 +8,14 @@ iOS ve Android çalışmasına yeni bir oturumda başlarken önce
 [mobil devir belgesini](docs/MOBILE_HANDOFF.md) ve
 [özellik/kabul listesini](docs/MOBILE_ACCEPTANCE.md) okuyun. Bu belgeler mevcut
 özellikleri, API'leri, tasarım referanslarını ve doğrulanması gereken mobil işleri
-kaydeder; henüz geliştirilmiş bir native uygulama yoktur.
+kaydeder. `mobile/` altındaki Expo uygulaması mevcut web arayüzünü WebView
+içinde kullanır; dört şablon ve özellikler aynı kaynaktan sunulur. Platformlara
+özel doğrulama ve yayın durumu kabul listesinde ayrı takip edilir.
+
+Tek hesap, çoklu okuma grubu ve izole geliştirme ortamı için
+[okuma grupları rehberine](docs/READING_GROUPS.md), Android için
+[çalıştırma rehberine](docs/MOBILE_ANDROID.md) bakın. Yeni grup davranışı
+`READING_GROUPS_ENABLED=true` ayarlanmadan mevcut webde etkinleşmez.
 
 ## Özellikler
 
@@ -68,6 +75,10 @@ Yeni bir veritabanında SQL dosyalarını sırayla uygulayın:
 6. `drizzle/0005_club_tools.sql`
 7. `drizzle/0006_super_admin_roles.sql`
 8. `drizzle/0007_meeting_rsvps.sql`
+
+`0008_reading_groups.sql` isteğe bağlı çoklu grup altyapısı içindir; yalnız
+kanonik hesap DB'sine, [grup geçiş rehberi](docs/READING_GROUPS.md) ve hedef şema
+denetimiyle uygulanır. Bu dosyanın eklenmiş olması üretimde uygulandığı anlamına gelmez.
 
 Mevcut üretim veritabanında migration dosyalarını numara sırasıyla ve yalnızca birer kez çalıştırın. Hesap migration'ı uygulanmadıysa önce `0002_member_accounts.sql`, ardından profil, favori ve devam eden okuma alanları için `0003_member_profiles_and_reading_progress.sql` çalıştırılmalıdır. Yüz referansları ve katılımcı önerileri için `0004_face_recognition.sql`; kitap oylaması, okuma sayfası, misafirler ve çöp kutusu için `0005_club_tools.sql`; ana yönetici rolleri için `0006_super_admin_roles.sql`; buluşma paylaşımı ve "Geliyorum" kayıtları için son olarak `0007_meeting_rsvps.sql` uygulanmalıdır.
 

@@ -3,6 +3,24 @@ import { env } from "cloudflare:workers";
 export const SESSION_COOKIE = "okuma_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
+export function safeNextPath(value: unknown): string {
+  if (typeof value !== "string") return "/";
+  let decoded = value;
+  try {
+    for (let round = 0; round < 3; round++) {
+      if (!decoded.startsWith("/") || decoded.startsWith("//") || /[\\\u0000-\u0020\u007f]/.test(decoded)) return "/";
+      const next = decodeURIComponent(decoded);
+      if (next === decoded) break;
+      decoded = next;
+    }
+    const parsed = new URL(decoded, "https://local.invalid");
+    if (parsed.origin !== "https://local.invalid" || parsed.pathname.startsWith("//") || decoded.includes("\\")) return "/";
+    return value;
+  } catch {
+    return "/";
+  }
+}
+
 type MemberCredential = { memberId: number; password: string };
 export type SessionIdentity = { memberId: number; sessionVersion: number };
 

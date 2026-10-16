@@ -1,6 +1,10 @@
+import { withReadingGroup } from "@/lib/groups";
+
 export const runtime = "edge";
 type OpenBook = { title?: string; author_name?: string[]; publisher?: string[]; number_of_pages_median?: number; isbn?: string[]; cover_i?: number; key?: string };
-export async function GET(request: Request) {
+export const GET = withReadingGroup(handleGET);
+
+async function handleGET(request: Request) {
   const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
   if (query.length < 3 || query.length > 100) return Response.json({ error: "En az üç karakter yaz." }, { status: 400 });
   try {

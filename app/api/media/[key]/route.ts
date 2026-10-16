@@ -1,11 +1,14 @@
 import { database, faceSchemaMissing, getAuthenticatedMember } from "@/db/store";
 import { isAdminRole } from "@/lib/types";
+import { withReadingGroup } from "@/lib/groups";
 export const runtime = "edge";
 
 type MediaRow = { data: number[]; contentType: string };
 type ReferenceOwner = { id: number };
 
-export async function GET(request: Request, context: { params: Promise<{ key: string }> }) {
+export const GET = withReadingGroup(handleGET);
+
+async function handleGET(request: Request, context: { params: Promise<{ key: string }> }) {
   const actor = await getAuthenticatedMember(request);
   if (!actor) return new Response("Unauthorized", { status: 401 });
 

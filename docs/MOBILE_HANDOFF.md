@@ -4,6 +4,11 @@ Hazırlanma tarihi: 10 Ekim 2026. İncelenen web sürümü: `7ee2fa0`.
 Bu belge mevcut kodun envanteridir; mobil uygulamanın hazır olduğu anlamına gelmez.
 Kod değiştikçe belgeyi ve [kabul listesini](MOBILE_ACCEPTANCE.md) birlikte güncelle.
 
+16 Ekim 2026 notu: Aşağıdaki envanter ilk devir anının kaydıdır. Güncel mobil
+yaklaşım ortak web arayüzünü kullanan Expo/WebView kabuğudur; tek hesap ve çoklu
+grup geliştirme desteği eklendi. Güncel karar ve kanıtlar
+[mimari belgede](MOBILE_ARCHITECTURE.md) ve kabul listesindedir.
+
 ## Hedef ve çalışma anlaşması
 
 - Kitap Tahlil & İstişare uygulamasını aynı özelliklerle iOS ve Android'e taşı.

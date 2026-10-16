@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { acceptReadingGroup, getReadingGroup, groupFetch, subscribeReadingGroup, type ReadingGroup } from "@/lib/group-client";
+import { X } from "@/components/icons";
 
 export type AppearanceScheme = "editorial" | "catalogue" | "notebook" | "minimal";
 export type ColorMode = "light" | "dark" | "system";
@@ -12,6 +14,8 @@ type AppearanceContextValue = {
   resolvedMode: ResolvedMode;
   setScheme: (scheme: AppearanceScheme) => void;
   setMode: (mode: ColorMode) => void;
+  saving: boolean;
+  groupPreferences: boolean;
 };
 
 const schemeKey = "kitapTahlilScheme";
@@ -20,6 +24,9 @@ const schemes: AppearanceScheme[] = ["editorial", "catalogue", "notebook", "mini
 const modes: ColorMode[] = ["light", "dark", "system"];
 
 const AppearanceContext = createContext<AppearanceContextValue | null>(null);
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
 
 function initialScheme(): AppearanceScheme {
   if (typeof document === "undefined") return "notebook";
@@ -52,9 +59,31 @@ function applyAppearance(scheme: AppearanceScheme, mode: ColorMode, resolvedMode
 }
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
+  const hydrated = useSyncExternalStore(subscribeHydration, clientHydrated, serverHydrated);
   const [scheme, setSchemeState] = useState<AppearanceScheme>(initialScheme);
   const [mode, setModeState] = useState<ColorMode>(initialMode);
   const [resolvedMode, setResolvedMode] = useState<ResolvedMode>(initialResolvedMode);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [groupPreferences, setGroupPreferences] = useState(false);
+  const savingRef = useRef(false);
+  const committed = useRef({ scheme, mode });
+
+  useEffect(() => {
+    const sync = () => {
+      const group = getReadingGroup();
+      setGroupPreferences(Boolean(group));
+      if (!group || savingRef.current) return;
+      const nextScheme = schemes.includes(group.scheme) ? group.scheme : "notebook";
+      const nextMode = modes.includes(group.mode) ? group.mode : "system";
+      committed.current = { scheme: nextScheme, mode: nextMode };
+      setSchemeState(nextScheme);
+      setModeState(nextMode);
+      setResolvedMode(nextMode === "system" ? systemMode() : nextMode);
+    };
+    sync();
+    return subscribeReadingGroup(sync);
+  }, []);
 
   useEffect(() => {
     applyAppearance(scheme, mode, resolvedMode);
@@ -68,22 +97,63 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     return () => media.removeEventListener("change", update);
   }, [mode]);
 
-  const value = useMemo<AppearanceContextValue>(() => ({
-    scheme,
-    mode,
-    resolvedMode,
-    setScheme: (nextScheme) => {
-      window.localStorage.setItem(schemeKey, nextScheme);
-      setSchemeState(nextScheme);
-    },
-    setMode: (nextMode) => {
-      window.localStorage.setItem(modeKey, nextMode);
-      setModeState(nextMode);
-      setResolvedMode(nextMode === "system" ? systemMode() : nextMode);
-    },
-  }), [mode, resolvedMode, scheme]);
+  async function persist(change: { scheme?: AppearanceScheme; mode?: ColorMode }) {
+    if (savingRef.current) return;
+    const group = getReadingGroup();
+    if (group === undefined && window.location.pathname === "/") {
+      setError("Görünümü değiştirmeden önce kayıtların yüklenmesini bekle.");
+      return;
+    }
+    const previous = committed.current;
+    const next = { ...previous, ...change };
+    setError("");
+    setSchemeState(next.scheme);
+    setModeState(next.mode);
+    setResolvedMode(next.mode === "system" ? systemMode() : next.mode);
+    if (group) {
+      savingRef.current = true;
+      setSaving(true);
+      try {
+        const response = await groupFetch("/api/groups/appearance", {
+          method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(change),
+        });
+        const result = await response.json() as { group?: ReadingGroup; error?: string };
+        if (!response.ok || !result.group) throw new Error(result.error || "Görünüm tercihi kaydedilemedi.");
+        savingRef.current = false;
+        acceptReadingGroup(result.group);
+      } catch (cause) {
+        setSchemeState(previous.scheme);
+        setModeState(previous.mode);
+        setResolvedMode(previous.mode === "system" ? systemMode() : previous.mode);
+        setError(cause instanceof Error ? cause.message : "Görünüm tercihi kaydedilemedi.");
+      } finally {
+        savingRef.current = false;
+        setSaving(false);
+      }
+      return;
+    }
+    committed.current = next;
+    try {
+      window.localStorage.setItem(schemeKey, next.scheme);
+      window.localStorage.setItem(modeKey, next.mode);
+    } catch { /* Browser storage is optional; group preferences use the server. */ }
+  }
 
-  return <AppearanceContext.Provider value={value}>{children}</AppearanceContext.Provider>;
+  const value: AppearanceContextValue = {
+    // The head script paints the saved palette; markup stays stable until hydration.
+    scheme: hydrated ? scheme : "notebook",
+    mode: hydrated ? mode : "system",
+    resolvedMode: hydrated ? resolvedMode : "light",
+    saving,
+    groupPreferences,
+    setScheme: (nextScheme) => { void persist({ scheme: nextScheme }); },
+    setMode: (nextMode) => { void persist({ mode: nextMode }); },
+  };
+
+  return <AppearanceContext.Provider value={value}>
+    {error && <div className="error-banner" role="alert">{error}<button type="button" aria-label="Uyarıyı kapat" onClick={() => setError("")}><X size={16} /></button></div>}
+    {children}
+  </AppearanceContext.Provider>;
 }
 
 export function useAppearance() {

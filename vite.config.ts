@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { readExecutionProfile } from "./scripts/execution-profile.mjs";
 import { sites } from "./build/sites-vite-plugin";
+import { groupsBindings, groupsStatePath, readGroupsDevelopmentSettings } from "./scripts/groups-development.mjs";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "bbb0e55c-a354-4983-89e5-59b62eb3276a";
@@ -27,7 +28,11 @@ const localBindingConfig = {
     : [],
 };
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ command }) => {
+  const legacyDevelopment = process.env.OKUMA_GROUPS_DEVELOPMENT === "legacy";
+  const groupsDevelopment = process.env.OKUMA_GROUPS_DEVELOPMENT === "1" || legacyDevelopment;
+  if (groupsDevelopment && command !== "serve") throw new Error("Yerel grup profili build/deploy icin kullanilamaz.");
+  const groupSettings = groupsDevelopment ? readGroupsDevelopmentSettings() : null;
   // Use Miniflare's local Request.cf placeholder unless fetching is requested.
   process.env.CLOUDFLARE_CF_FETCH_ENABLED ??= "false";
   process.env.WRANGLER_SEND_METRICS ??= "false";
@@ -43,9 +48,14 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
+    ...(groupsDevelopment ? { cacheDir: `node_modules/.vite-${legacyDevelopment ? "legacy" : "groups"}` } : {}),
     server: {
       ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),
-      ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),
+      watch: {
+        ...(isCodexSeatbeltSandbox ? { useFsEvents: false, usePolling: true } : {}),
+        ignored: ["**/mobile/android/**", "**/mobile/ios/**", "**/.sites-runtime/**", "**/.wrangler/**", "**/outputs/**"],
+      },
+      ...(groupsDevelopment ? { host: "127.0.0.1", port: legacyDevelopment ? 5175 : 5174, strictPort: true } : {}),
     },
     plugins: [
       vinext(),
@@ -53,7 +63,17 @@ export default defineConfig(async () => {
       cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         inspectorPort: false,
-        config: localBindingConfig,
+        ...(groupsDevelopment ? { persistState: { path: groupsStatePath }, remoteBindings: false } : {}),
+        config: groupSettings ? {
+          ...localBindingConfig,
+          d1_databases: groupsBindings,
+          vars: {
+            READING_GROUPS_ENABLED: legacyDevelopment ? "false" : "true",
+            READING_GROUP_DB_BINDINGS: JSON.stringify(["GROUP_SECOND"]),
+            SESSION_SECRET: groupSettings.sessionSecret,
+            MEMBER_CREDENTIALS: JSON.stringify(Object.fromEntries(["demo.multi", "demo.single", "demo.none"].map((name, index) => [name, { memberId: index + 1, password: groupSettings.password }]))),
+          },
+        } : localBindingConfig,
       }),
     ],
   };

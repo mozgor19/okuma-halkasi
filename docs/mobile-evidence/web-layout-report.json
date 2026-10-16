@@ -1,0 +1,971 @@
+{
+  "date": "2026-10-16T16:09:16.377Z",
+  "results": [
+    {
+      "name": "single-notebook-home",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-home",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-archive",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-plan",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-meeting",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-profile-_zet",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-profile-Kitaplar_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-profile-Galerim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-profile-G_r_n_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-profile-G_venlik",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-profile-Y_z_verisi",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-profile-__p_kutusu",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-light-profile-Y_netim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-home",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-archive",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-plan",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-meeting",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-profile-_zet",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-profile-Kitaplar_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-profile-Galerim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-profile-G_r_n_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-profile-G_venlik",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-profile-Y_z_verisi",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-profile-__p_kutusu",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-editorial-dark-profile-Y_netim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-home",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-archive",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-plan",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-meeting",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-profile-_zet",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-profile-Kitaplar_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-profile-Galerim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-profile-G_r_n_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-profile-G_venlik",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-profile-Y_z_verisi",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-profile-__p_kutusu",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-light-profile-Y_netim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-home",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-archive",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-plan",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-meeting",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-profile-_zet",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-profile-Kitaplar_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-profile-Galerim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-profile-G_r_n_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-profile-G_venlik",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-profile-Y_z_verisi",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-profile-__p_kutusu",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-catalogue-dark-profile-Y_netim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-home",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-archive",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-plan",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-meeting",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-profile-_zet",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-profile-Kitaplar_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-profile-Galerim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-profile-G_r_n_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-profile-G_venlik",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-profile-Y_z_verisi",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-profile-__p_kutusu",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-light-profile-Y_netim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-home",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-archive",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-plan",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-meeting",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-profile-_zet",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-profile-Kitaplar_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-profile-Galerim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-profile-G_r_n_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-profile-G_venlik",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-profile-Y_z_verisi",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-profile-__p_kutusu",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-notebook-dark-profile-Y_netim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-home",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-archive",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-plan",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-meeting",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-profile-_zet",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-profile-Kitaplar_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-profile-Galerim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-profile-G_r_n_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-profile-G_venlik",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-profile-Y_z_verisi",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-profile-__p_kutusu",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-light-profile-Y_netim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-home",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-archive",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-plan",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-meeting",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-profile-_zet",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-profile-Kitaplar_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-profile-Galerim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-profile-G_r_n_m",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-profile-G_venlik",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-profile-Y_z_verisi",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-profile-__p_kutusu",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "390-minimal-dark-profile-Y_netim",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "name": "1440-editorial-light-home",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-archive",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-plan",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-meeting",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-profile-_zet",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-profile-Kitaplar_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-profile-Galerim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-profile-G_r_n_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-profile-G_venlik",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-profile-Y_z_verisi",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-profile-__p_kutusu",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-light-profile-Y_netim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-home",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-archive",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-plan",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-meeting",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-profile-_zet",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-profile-Kitaplar_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-profile-Galerim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-profile-G_r_n_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-profile-G_venlik",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-profile-Y_z_verisi",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-profile-__p_kutusu",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-editorial-dark-profile-Y_netim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-home",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-archive",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-plan",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-meeting",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-profile-_zet",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-profile-Kitaplar_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-profile-Galerim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-profile-G_r_n_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-profile-G_venlik",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-profile-Y_z_verisi",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-profile-__p_kutusu",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-light-profile-Y_netim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-home",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-archive",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-plan",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-meeting",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-profile-_zet",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-profile-Kitaplar_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-profile-Galerim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-profile-G_r_n_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-profile-G_venlik",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-profile-Y_z_verisi",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-profile-__p_kutusu",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-catalogue-dark-profile-Y_netim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-home",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-archive",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-plan",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-meeting",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-profile-_zet",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-profile-Kitaplar_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-profile-Galerim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-profile-G_r_n_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-profile-G_venlik",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-profile-Y_z_verisi",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-profile-__p_kutusu",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-light-profile-Y_netim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-home",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-archive",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-plan",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-meeting",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-profile-_zet",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-profile-Kitaplar_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-profile-Galerim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-profile-G_r_n_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-profile-G_venlik",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-profile-Y_z_verisi",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-profile-__p_kutusu",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-notebook-dark-profile-Y_netim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-home",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-archive",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-plan",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-meeting",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-profile-_zet",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-profile-Kitaplar_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-profile-Galerim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-profile-G_r_n_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-profile-G_venlik",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-profile-Y_z_verisi",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-profile-__p_kutusu",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-light-profile-Y_netim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-home",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-archive",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-plan",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-meeting",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-profile-_zet",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-profile-Kitaplar_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-profile-Galerim",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-profile-G_r_n_m",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-profile-G_venlik",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-profile-Y_z_verisi",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-profile-__p_kutusu",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "name": "1440-minimal-dark-profile-Y_netim",
+      "width": 1440,
+      "scroll": 1440
+    }
+  ],
+  "errors": []
+}

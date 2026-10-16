@@ -19,7 +19,12 @@ export type Plan = { id: number; bookId: number; plannedDate: string | null; not
 export type Favorite = { memberId: number; bookId: number; createdAt: string };
 export type BookVote = { memberId: number; roadmapId: number; createdAt: string };
 export type TrashItem = { type: "meeting" | "plan"; id: number; bookId: number; deletedAt: string; date: string | null };
-export type AppData = { currentMemberId?: number; members: Member[]; books: Book[]; meetings: Meeting[]; attendance: Attendance[]; meetingRsvps: MeetingRsvp[]; reviews: Review[]; photos: Photo[]; roadmap: Plan[]; favorites: Favorite[]; bookVotes: BookVote[]; voteVisibility: "open" | "secret"; trash: TrashItem[]; clubFeaturesReady: boolean; rsvpFeaturesReady: boolean };
+export type ReadingGroupScheme = "editorial" | "catalogue" | "notebook" | "minimal";
+export type ReadingGroupMode = "light" | "dark" | "system";
+export type ReadingGroup = { id: string; name: string; scheme: ReadingGroupScheme; mode: ReadingGroupMode };
+export type ReadingGroupMembership = ReadingGroup & { role: Member["role"] };
+export type ReadingGroupsResponse = { enabled: boolean; groups: ReadingGroupMembership[]; selectedGroupId: string | null };
+export type AppData = { currentMemberId?: number; readingGroup?: ReadingGroup; members: Member[]; books: Book[]; meetings: Meeting[]; attendance: Attendance[]; meetingRsvps: MeetingRsvp[]; reviews: Review[]; photos: Photo[]; roadmap: Plan[]; favorites: Favorite[]; bookVotes: BookVote[]; voteVisibility: "open" | "secret"; trash: TrashItem[]; clubFeaturesReady: boolean; rsvpFeaturesReady: boolean };
 export const readingLabels: Record<Attendance["readingStatus"], string> = { read: "Okudum", partial: "Kısmen okudum", unread: "Okumadım", unselected: "Henüz belirtmedi" };
 export const isAdminRole = (role: Member["role"]) => role === "super_admin" || role === "admin";
 export const isSuperAdminRole = (role: Member["role"]) => role === "super_admin";

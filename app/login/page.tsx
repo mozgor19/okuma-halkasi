@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { BookOpen, LockKeyhole, UserRound } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { groupsPath, safeReturnPath } from "@/lib/group-client";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -21,10 +22,10 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      const result = await response.json() as { error?: string };
+      const result = await response.json() as { error?: string; next?: string };
       if (!response.ok) throw new Error(result.error ?? "Giriş yapılamadı.");
-      const next = new URLSearchParams(window.location.search).get("next");
-      window.location.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
+      const next = safeReturnPath(new URLSearchParams(window.location.search).get("next"));
+      window.location.replace(result.next === "/groups" ? groupsPath(next) : next);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Giriş yapılamadı.");
     } finally {

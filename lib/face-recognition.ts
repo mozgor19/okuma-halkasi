@@ -2,6 +2,7 @@
 
 import type { Human as HumanInstance } from "@vladmandic/human";
 import type { Member } from "@/lib/types";
+import { groupFetch, groupUrl } from "@/lib/group-client";
 
 export type FaceMatchCandidate = {
   memberId: number;
@@ -93,10 +94,11 @@ async function detectEmbeddings(human: HumanInstance, blob: Blob) {
 }
 
 async function referenceEmbedding(human: HumanInstance, mediaKey: string) {
-  const cached = referenceEmbeddings.get(mediaKey);
+  const url = groupUrl(`/api/media/${mediaKey}`);
+  const cached = referenceEmbeddings.get(url);
   if (cached) return cached;
 
-  const response = await fetch(`/api/media/${mediaKey}`, {
+  const response = await groupFetch(url, {
     cache: "no-store",
     credentials: "same-origin",
   });
@@ -104,7 +106,7 @@ async function referenceEmbedding(human: HumanInstance, mediaKey: string) {
 
   const embeddings = await detectEmbeddings(human, await response.blob());
   if (embeddings.length !== 1) return null;
-  referenceEmbeddings.set(mediaKey, embeddings[0]);
+  referenceEmbeddings.set(url, embeddings[0]);
   return embeddings[0];
 }
 

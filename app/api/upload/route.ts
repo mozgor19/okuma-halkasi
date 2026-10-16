@@ -1,5 +1,7 @@
 import { database, faceSchemaMissing, getAuthenticatedMember, profileSchemaMissing } from "@/db/store";
 import { isSuperAdminRole } from "@/lib/types";
+import { readingGroupContext } from "@/db/database";
+import { withReadingGroup } from "@/lib/groups";
 
 export const runtime = "edge";
 
@@ -25,7 +27,9 @@ function imageType(bytes: Uint8Array): string | null {
   return null;
 }
 
-export async function POST(request: Request) {
+export const POST = withReadingGroup(handlePOST);
+
+async function handlePOST(request: Request) {
   try {
     const actor = await getAuthenticatedMember(request);
     if (!actor) return Response.json({ error: "Oturum gerekli." }, { status: 401 });
@@ -122,7 +126,8 @@ export async function POST(request: Request) {
       await mediaInsert.run();
     }
 
-    return Response.json({ url: `/api/media/${key}`, mediaKey: key });
+    const group = readingGroupContext()?.group;
+    return Response.json({ url: `/api/media/${key}${group ? `?group=${encodeURIComponent(group.id)}` : ""}`, mediaKey: key });
   } catch (error) {
     console.error("Image upload failed", error);
     if (faceSchemaMissing(error)) {

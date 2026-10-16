@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import { authenticateAccount, passwordRehashRequired } from "@/db/accounts";
 import { getMember } from "@/db/store";
+import { identityDatabase } from "@/db/database";
+import {
+  accountReadingGroups,
+  groupCookieOptions,
+  legacyAccountReadingGroup,
+  noStore,
+  READING_GROUP_COOKIE,
+  ReadingGroupError,
+  readingGroupErrorResponse,
+  readingGroupsEnabled,
+} from "@/lib/groups";
 import {
   authConfigurationIssue,
   createSessionToken,
@@ -11,6 +22,11 @@ import {
 export const runtime = "edge";
 
 export async function POST(request: Request) {
+  const response = await handlePOST(request);
+  return readingGroupsEnabled() ? noStore(response) : response;
+}
+
+async function handlePOST(request: Request) {
   const configurationIssue = authConfigurationIssue();
   if (configurationIssue) {
     return NextResponse.json({ error: configurationIssue }, { status: 503 });
@@ -25,12 +41,20 @@ export async function POST(request: Request) {
 
   try {
     const account = await authenticateAccount(username, password);
-    const member = account ? await getMember(account.memberId) : null;
+    const member = account ? await getMember(account.memberId, identityDatabase()) : null;
     if (!account || !member) {
       return NextResponse.json({ error: "Kullanıcı adı veya şifre yanlış." }, { status: 401 });
     }
 
-    const response = NextResponse.json({ ok: true });
+    const groups = readingGroupsEnabled() ? await accountReadingGroups(account.memberId) : null;
+    if (!groups) await legacyAccountReadingGroup(account.memberId);
+    const response = NextResponse.json(groups
+      ? { ok: true, next: groups.length === 1 ? "/" : "/groups" }
+      : { ok: true });
+    if (groups) {
+      const groupId = groups.length === 1 ? groups[0].id : null;
+      response.cookies.set(READING_GROUP_COOKIE, groupId ?? "", groupCookieOptions(request, groupId === null));
+    }
     response.cookies.set(
       SESSION_COOKIE,
       await createSessionToken(member.id, account.sessionVersion),
@@ -44,6 +68,7 @@ export async function POST(request: Request) {
     );
     return response;
   } catch (error) {
+    if (error instanceof ReadingGroupError) return readingGroupErrorResponse(error);
     console.error("Login failed", error);
     if (passwordRehashRequired(error)) {
       return NextResponse.json(

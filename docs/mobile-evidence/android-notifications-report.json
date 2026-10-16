@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-16T16:18:08.505Z",
+  "checks": [
+    "permission denial",
+    "denial feedback",
+    "permission grant",
+    "notification center delivery",
+    "notification retained with process stopped",
+    "notification tap",
+    "cold start group/meeting navigation"
+  ]
+}

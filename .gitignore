@@ -45,6 +45,10 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+/mobile/.expo/
+/mobile/node_modules/
+/mobile/android/
+/mobile/ios/
 
 # Biometric reference photos stay local and are never published.
 /humans/

@@ -1,105 +1,127 @@
 # Mobil Özellik ve Kabul Listesi
 
-[Devir belgesi](MOBILE_HANDOFF.md) ile birlikte kullan.
-10 Ekim 2026 itibarıyla mobil uygulama henüz geliştirilmedi; aşağıdaki bütün
-native sonuçlar bekliyor. Webdeki özellik varlığı native doğrulama anlamına gelmez.
+16 Ekim 2026. [Devir belgesi](MOBILE_HANDOFF.md), [mimari karar](MOBILE_ARCHITECTURE.md)
+ve [grup geliştirme/üretim rehberi](READING_GROUPS.md) ile birlikte kullan.
 
-## Sonuçların kaydı
+## Güncel Yaklaşım
 
-Her özellik iki OS'de ayrı test edilmeli. Durumları `Bekliyor`, `Geliştiriliyor`,
-`Engelli` veya `Doğrulandı` olarak güncelle. Doğrulanan satıra commit, test adı,
-OS/cihaz sürümü ve kanıt yolu ekle. Kanıtları repo içinde veya ekipçe erişilebilir
-test raporlarında tut; şifre, oturum değeri, rızasız kişisel fotoğraf ekleme.
-Simülatör testini gerçek cihaz testi diye kaydetme. Bütün gereken satırlar
-doğrulanmadan özellik eşitliği sağlandı deme.
+Expo uygulaması, mevcut web arayüzünü aynı origin'den React Native WebView içinde
+açar. Dört şablon, ekranlar ve iş kuralları ikinci kez yazılmaz. Eski native ekran
+iskeleti kaldırıldı; `mobile/src/web-shell.tsx` güncel giriş noktasıdır. Web ve mobil
+aynı hesapları ve API'yi kullanır. Grup desteği varsayılan kapalıdır; yalnız izole
+yerel geliştirme ortamında açıldı. Üretim SQL'i veya deploy yapılmadı.
 
-| Özellik / kabul ölçütü | iOS | Android | Kanıt / engel |
+Doğrulama ortamı: Ubuntu/WSL2, Node 24, JDK 17; Pixel 7 emülatörü, Android 16/API 36,
+x86_64. WebView mantıksal alanı 412x839, cihaz görüntüsü 1080x2400'dür. Bunlar
+fiziksel telefon sonuçları değildir. Android APK derleme/kurulum başarılıdır.
+iOS JS/Hermes export kontrolü, Xcode derlemesi veya iPhone testi değildir.
+
+`Doğrulandı` yalnız belirtilen kapsamı ifade eder. `Kısmi`, çalışan ortak özellik
+ve test edilen alt akışlar yanında açık cihaz/kenar durumları olduğunu belirtir.
+`Engelli`, gereken platform/erişim bulunmadığını; `Bekliyor`, test yapılmadığını
+belirtir. API testi tek başına native etkileşim kanıtı sayılmaz.
+
+## Tek Hesap ve Gruplar
+
+| Kabul ölçütü | Web / backend | Android | iOS |
 | --- | --- | --- | --- |
-| Giriş, hatalı parola, kilitlenme, kalıcı oturum ve çıkış | Bekliyor | Bekliyor | |
-| Parola değişimi ve başka cihazdaki eski oturumun iptali | Bekliyor | Bekliyor | |
-| Normal üye, yönetici, ana yönetici ekranları ve sunucu yetkileri | Bekliyor | Bekliyor | |
-| Ana sayfa haftalık/sıradaki/son kayıt seçimi ve doğru oluşturma etiketi | Bekliyor | Bekliyor | |
-| Navigasyon, Android geri, iOS geri hareketi ve modal kapanışı | Bekliyor | Bekliyor | |
-| Arşiv, kayıt açma, boş/yükleniyor/hata durumları | Bekliyor | Bekliyor | |
-| Buluşma oluşturma/düzenleme, tarih-saat, harita, not ve bölüm | Bekliyor | Bekliyor | |
-| Open Library başlık/ISBN arama, hata/zaman aşımı ve elle künye | Bekliyor | Bekliyor | |
-| Kapak yükleme ve kayıtlı kitap künyesi düzenleme | Bekliyor | Bekliyor | |
-| Devam buluşması: aynı kitap, farklı bölüm ve oturum sırası | Bekliyor | Bekliyor | |
-| Okuma durumu, 1-10 puan, yorum, sayfa ve kayıt güncelleme | Bekliyor | Bekliyor | |
-| Puan ortalaması, yorum listesi ve katılımcı okuma durumu | Bekliyor | Bekliyor | |
-| Yönetici üye ekleme ve yalnız buluşmaya bağlı misafir | Bekliyor | Bekliyor | |
-| Paylaşım, web linki, giriş sonrası dönüş ve native deep link | Bekliyor | Bekliyor | |
-| Geliyorum ekle/kaldır, tek kayıt, sayı/isimler ve tarih sınırı | Bekliyor | Bekliyor | |
-| Fotoğraf yükleme, biçim/boyut dönüşümü, hata ve korumalı resim | Bekliyor | Bekliyor | |
-| Galeri, büyütme, fotoğraf silme ve albümü ZIP dışa aktarma | Bekliyor | Bekliyor | |
-| Yüz rızası, tek yüz doğrulaması, yerel eşleştirme ve yönetici onayı | Bekliyor | Bekliyor | |
-| Kendi yüz verisini kaldırma; ana yöneticinin toplu referans işlemleri | Bekliyor | Bekliyor | |
-| Kitap önerme, plan tarihi ve planı aynı kitapla buluşmaya taşıma | Bekliyor | Bekliyor | |
-| Tek oy, değiştirme/geri alma, gizli/açık oy ve yönetici sıfırlaması | Bekliyor | Bekliyor | |
-| Türkçe normalize edilmiş genel arama ve sonuç navigasyonu | Bekliyor | Bekliyor | |
-| Bildirim merkezi, izin reddi ve bildirimin doğru kaydı açması | Bekliyor | Bekliyor | |
-| Uygulama kapalıyken yeni buluşma push'u | Bekliyor | Bekliyor | Webde gerçek push yok; yeni altyapı gerekli |
-| ICS dışa aktarımı, harita ve kitap kaynak linki | Bekliyor | Bekliyor | |
-| Profil özeti, istatistikler, avatar ve Galerim | Bekliyor | Bekliyor | |
-| Kitaplarım: favoriler, okuma listesi ve ilerleme | Bekliyor | Bekliyor | |
-| Görünüm: dört şablon, açık/koyu/sistem ve tercih kalıcılığı | Bekliyor | Bekliyor | |
-| Çöp kutusu: soft delete, geri yükleme ve kalıcı silme yetkileri | Bekliyor | Bekliyor | |
-| Ana yönetici rol atama/kaldırma, korunan ana yönetici hesabı | Bekliyor | Bekliyor | |
-| Bağlantı kesilmesi, tekrar deneme ve sahte başarı göstermeme | Bekliyor | Bekliyor | |
-| Yeni kimliğe uygun uygulama ikonu, splash ve açılış | Bekliyor | Bekliyor | |
-| İmzalı release derlemeleri ve dağıtım hazırlığı | Bekliyor | Bekliyor | Hesaplar/imzalama/test ortamı doğrulanacak |
+| Tek üyelikte girişten doğrudan uygulamaya geçiş | Doğrulandı | Doğrulandı | Engelli |
+| Çoklu üyelikte her yeni girişte grup seçimi | Doğrulandı | Doğrulandı | Engelli |
+| Profil üzerinden grup değiştirme | Doğrulandı | Doğrulandı | Engelli |
+| Grup verisi, yerel üye kimliği ve rol ayrımı | Doğrulandı | Doğrulandı | Engelli |
+| Hesap+grup görünümü, web/mobil eşitleme ve kalıcılık | Doğrulandı | Doğrulandı | Engelli |
+| Grup değişiminde ilk HTML'de doğru şablon | Doğrulandı | Ortak HTML; matris kontrolü | Engelli |
+| Eski sekmenin başka grubun kaydına yazamaması | Doğrulandı | Ortak API; rol/grup geçişi kontrolü | Engelli |
+| Başka istemcideki favori/RSVP değişikliğinin yenilenince görülmesi | Doğrulandı | Favori ve uygulamaya dönüş kontrolü | Engelli |
+| Parola değişikliğinin bütün eski oturumları iptal etmesi | Doğrulandı | Ortak oturum API'si; native UI bekliyor | Engelli |
+| Bayrak kapalıyken eski web ve cihaz görünümü | Doğrulandı | Aynı web kaynağı; ayrı native koşum bekliyor | Engelli |
 
-## Görsel test matrisi
+Sunucu kanıtları: `scripts/test-reading-groups-unit.mjs` (88 kontrol),
+`scripts/test-reading-groups.mjs` (20 yerel D1 senaryosu),
+`scripts/test-legacy-web.mjs` (bayrak kapalı akışlar ve sekiz görünüm).
+Eşzamanlı istek bağlamı, farklı yerel üye numarası, izinli binding listesi,
+eksik registry, yetki reddi, gizli oylar, medya ve eski grup yazmaları kapsanır.
+`scripts/test-reading-group-memberships.mjs`, yalnız ek gruba ait hesap, anında
+üyelik iptali, geçmiş üye kaydının korunması ve geri almada yetki reddini gerçek
+yerel D1 üzerinde ayrıca denetler.
 
-Her platformda `editorial`, `catalogue`, `notebook`, `minimal` için açık ve koyu
-mod: sekiz kombinasyon. Sistem modu için OS temasını değiştirip canlı güncellemeyi
-ve yeniden açılışta doğru görünümü ayrıca test et.
+## Özellikler
 
-- Giriş, Ana sayfa, Arşiv, Plan, Buluşma ve Profilin erişilebilir bütün sekmeleri.
-- Profil: Özet, Kitaplarım/favoriler/okuma, Galerim, Görünüm, Güvenlik, Yüz verisi,
-  yönetici Çöp kutusu ve ana yönetici Yönetim.
-- Oluşturma, kitap arama, künye düzenleme, devam buluşması, genel arama,
-  katılımcı/misafir ve yüz önerisi form/modal ekranları.
-- Küçük ekran, 390px referans genişliği, büyük ekran; safe area ve klavye açık hali.
-  Native mantıksal ölçüler ile screenshot piksel ölçülerini karıştırma.
-- Uzun kitap/üye adları, büyük sistem yazısı; metin kesilmesi ve yatay taşma yok.
-- Input/select odak çerçevesi dört yönde kesintisiz; birleşik alan tek dış çerçeveli.
-- Giriş kullanıcı/şifre ikonları ortalı, metin ayrı; password manager/autofill,
-  boş/dolu/odak/hata/devre dışı durumları tutarlı.
-- Buton/dosya seçici metinleri sınıra yapışmaz; sekmeler ve eylemler örtüşmez.
-- Koyu modda devam bandı, rol düğmeleri, yüz referans adları, form etiketleri okunur.
-- Metin kontrastı 4.5:1, kontrol ve odak 3:1; erişilebilir adlar, ekran okuyucu
-  odağı ve hareket azaltma. Kayıt işlemi hata verdiğinde açıklama görünür.
-- Defter tasarımını `/design-lab` ile yan yana karşılaştır; yalnız renk benzerliği yeterli değil.
-- Backend veya ortak web kodu değişirse webde 1440px/390px regresyon matrisi de çalıştır.
+Bütün iOS native satırları macOS/Xcode ve simülatör/fiziksel cihaz erişimi
+olmadığından **Engelli**. Ortak kodun veya JS export'un geçmesi bunları değiştirmez.
 
-## Kritik uçtan uca senaryolar
+| Özellik / kabul ölçütü | Android | Kanıt / açık kapsam |
+| --- | --- | --- |
+| Giriş, kalıcı oturum ve çıkış | Doğrulandı | Native giriş, grup seçimi, süreç kapatıp yeniden açma; kilitlenme/hatalı parola UI sınırları ayrıca bekliyor |
+| Normal üye ve ana yönetici görünümü, sunucu yetkileri | Kısmi | Native iki grup/iki rol; API yetki testleri. Ayrı admin hesabı native matrisi bekliyor |
+| Ana sayfa, arşiv, Plan, Buluşma ve bütün Profil sekmeleri | Doğrulandı | Native dört şablon x iki mod görüntü/geometri matrisi |
+| Android geri, klavye ve modal kapanışı | Doğrulandı | Önce IME, sonra arama modalı; lightbox geri testi |
+| Buluşma/künye/devam, katılımcı ve misafir yönetimi | Kısmi | Aynı web formları; gerçek D1 API senaryoları geçiyor. Bütün native form etkileşimleri bekliyor |
+| Katalog araması, hata/zaman aşımı ve elle künye | Kısmi | Web özelliği korunuyor; dış Open Library bağlantısı ve native hata UI'si ayrıca bekliyor |
+| Okuma durumu, puan, yorum, sayfa, ortalama | Kısmi | API sınırları; native form ve kaydedilmemiş yorumun resume sırasında korunması |
+| Favoriler ve cihazlar arası veri eşitleme | Doğrulandı | Native değişiklik bağımsız web oturumunda okunuyor |
+| RSVP ve tarih sınırı | Kısmi | API tekrar/idempotency ve iki oturum; native uçtan uca etkileşim ayrıca bekliyor |
+| Paylaşım ve grup kimlikli bağlantı | Doğrulandı | Gerçek Android sistem paylaşımı ve native deep link ile doğru grup/buluşma |
+| Fotoğraf yükleme ve korumalı görsel | Kısmi | Native DOM dosya girdisinden sentetik PNG yükleme başarılı. Fiziksel kamera, izin reddi, HEIC/EXIF ve bozuk/aşırı dosya durumları bekliyor |
+| Galeri, lightbox, silme, albüm ZIP | Doğrulandı | Native upload, lightbox/geri, gerçek ZIP paylaşımı, ZIP içeriği ve silme |
+| Büyük albüm aktarımı | Doğrulandı | 21 MiB parça aktarımı ve cihaz önbelleğinde SHA256 eşitliği; alıcı uygulamaların ayrı fiziksel testi bekliyor |
+| Yüz rızası, eşleştirme ve yönetici onayı | Kısmi | Yerel Human/WebGL modellerinin soğuk yüklenmesi ve boş görüntü reddi geçiyor. Rızalı gerçek yüz ile pozitif eşleştirme ve onay zinciri bekliyor |
+| Yüz referansını kaldırma ve rol sınırları | Kısmi | Ortak web UI/API korunuyor; gerçek biyometrik veriyle native test yapılmadı |
+| Plan, tek oy, gizli/açık oy, sıfırlama ve buluşmaya taşıma | Kısmi | D1 API senaryoları ve native Plan görünümü; bütün native komutlar ayrıca bekliyor |
+| Genel arama | Kısmi | Native arama açılışı/klavye/geri; bütün Türkçe sonuç eşleşmeleri ayrıca bekliyor |
+| Bildirim merkezi ve cihaz izni | Doğrulandı | Native ilk ret/tekrar isteme/kalıcı ret/onay; bildirim üretimi; süreç kapalıyken mevcut bildirime dokunarak doğru grup ve buluşmayı açma |
+| Uygulama kapalıyken sunucudan yeni olay push'u | Bekliyor | Eski webde de APNs/FCM olay altyapısı yok. Yerel bildirim veya mevcut bildirime dokunma bunun kanıtı değildir |
+| Takvim ICS ve dış bağlantılar | Kısmi | Gerçek ICS sistem paylaşımı; URL politikası testleri. Fiziksel harita/takvim alıcısı bekliyor |
+| Profil, istatistikler, Kitaplarım, Galerim ve avatar | Kısmi | Sekiz native sekme; avatar API/korumalı medya. Kamera ve tüm düzenleme etkileşimleri bekliyor |
+| Dört şablon, açık/koyu/sistem, kalıcılık | Doğrulandı | Native sekiz görünüm, Android OS temasını canlı değiştirme, grup değiştirip yeniden açma |
+| Çöp kutusu, restore, purge ve rol atama sınırları | Kısmi | D1 API senaryoları ve native yönetim sekmeleri; bütün native komutlar ayrıca bekliyor |
+| Ağ hatası/tekrar deneme ve gerçek başarı durumu | Kısmi | Kabuk hata/bağlantı durumları ve API fail-closed testleri; fiziksel ağ kopması henüz bekliyor |
+| İkon, splash ve kurulu uygulama açılışı | Doğrulandı | Mevcut ürün ikonları, API36 debug APK kurulumu ve açılışı |
+| İmzalı release ve mağaza dağıtımı | Bekliyor | Staging HTTPS origin, imzalama, hesaplar ve fiziksel cihaz onayı gerekli |
 
-1. Oturumsuz paylaşım linki: giriş, doğru buluşmaya dönüş, Geliyorum, sayı artışı;
-   ikinci istemcide state yenilenince aynı sonucu görme; iptal ve tekrar tıklamada tek kayıt.
-2. Bugünkü buluşma saatinden sonra RSVP açık; +03:00 gün sınırından sonra kapalı.
-   Geçmiş buluşmaya doğrudan API isteği `409`; gelecekteki farklı kayıtlar bağımsız.
-3. Yeni buluşma: diğer üyenin kapalı uygulamasına push; bildirime tıklayınca doğru
-   kayıt. İzin reddi, çıkış yapan cihaz, tekrar eden olay ve eski oturum senaryoları.
-4. Normal üye yönetici action'ını doğrudan çağıramaz (`403`). Admin rol atayamaz,
-   purge yapamaz, başkasının yüz referansını değiştiremez. Gizli oy kimlikleri maskeli.
-5. Korumalı medya oturumla yüklenir, oturumsuz reddedilir; parola değişince eski
-   oturum state/media/action kullanamaz. Sırlar binary, log veya test kanıtında bulunmaz.
-6. Fotoğraf izin reddi, aşırı büyük dosya, bozuk görsel, mobil biçimler, yön bilgisi,
-   upload sırasında bağlantı kopması ve yüz modeli hatası. Fotoğraf başarıyla
-   yüklendi ama eşleştirme başarısızsa yüklemeyi başarısız diye gösterme.
-7. Yüz vektörü cihaz dışına çıkmaz ve kalıcı saklanmaz; rıza yoksa eşleştirme yapılmaz.
-   Öneri reddedilirse katılım yaratılmaz; onay tekrarında çift katılım oluşmaz.
-8. Puansız read/partial reddedilir; puansız unread kaydedilir; önceki puanı kaldırır.
-   Yorum/sayfa sınırları; favori ve oy tekrarları; plan taşıma sonrası oyların temizlenmesi.
-9. Soft delete aktif listelerden kaldırır; restore ilişkileri korur; purge ilgili
-   katılım/RSVP/yorum/fotoğraf/misafirleri temizler. Testleri üretim kaydıyla yapma.
-10. Eksik migration veya `503`: kontrollü hata/özellik kapalı durumu; sahte başarı yok.
-    Offline ve yeniden bağlantı; uygulama yeniden açılışında state ve tercihler tutarlı.
+Native kanıt üreten komutlar:
 
-## Teslim sınırı
+```bash
+corepack pnpm mobile:test:android
+corepack pnpm mobile:test:android:media
+corepack pnpm mobile:test:android:notifications
+```
 
-Tek bir platformun derlenmesi, webin telefonda açılması veya PWA kurulması
-iOS/Android uygulamasının tamamlanması değildir. Test edilemeyen cihaz/OS,
-imzalama ve mağaza aşamalarını engel ve gereken erişimle birlikte raporla.
-Mağazaya yayın için ayrıca kullanıcı onayı ve hedef hesap bilgisi gerekir.
+Yalnız izole yerel sunucu ve sentetik hesaplar üzerinde çalıştır.
+Bildirim izin testi yalnız emülatörde çalışır; test uygulamasının izin geçmişini
+sıfırlar. Fotoğraf testi sentetik, yüz içermeyen PNG kullanır. Kişisel fotoğraf,
+parola, çerez ve sunucu sırlarını kanıtlara ekleme. Çalıştırma ayrıntıları
+[Android rehberinde](MOBILE_ANDROID.md).
+
+## Görsel ve Güvenlik Kapıları
+
+- Web matrisi 390px ve 1440px: dört şablon, iki mod; Ana sayfa, Arşiv, Plan,
+  Buluşma ve sekiz Profil sekmesi. Native Android matrisi ayrıca çalıştırılır.
+  Webde 193, Android WebView'de 101 görüntü/geometri kontrolü başarılıdır.
+  [Web raporu](mobile-evidence/web-layout-report.json),
+  [Android raporu](mobile-evidence/android-layout-report.json),
+  [medya raporu](mobile-evidence/android-media-report.json),
+  [bildirim raporu](mobile-evidence/android-notifications-report.json).
+- Görsellerin yüklenmesi, yatay taşma ve tarayıcı hataları otomatik denetlenir.
+  `check:ui` ortak semantik token, mod ve kontrast sözleşmelerini denetler.
+- Büyük sistem yazısı, ekran okuyucu, bütün modal/form durumları, fiziksel küçük
+  ekran ve iOS geri/safe-area/klavye akışları ayrıca manuel kabul gerektirir.
+- Korumalı medya grup ve oturum denetimine tabidir. Sunucu sırları mobil pakete
+  taşınmaz. Native köprü yalnız tanımlı origin, komutlar, ZIP/ICS ve geçerli
+  uygulama bağlantılarını kabul eder; release için açık HTTPS adresi zorunludur.
+  Özellik kapalıyken ek grup kimlikli URL ve API istekleri `503 GROUP_DISABLED`
+  alır; ana grubun aynı numaralı kaydına düşmez.
+- Dosyalar 64 KiB parçalarla aktarılır; disk alanı kontrol edilir. Eksik/başarısız
+  aktarım temizlenir. Paylaşılan geçici dosya alıcıya zaman tanımak için beş dakika
+  korunur; sonraki açılışta eski önbellek de temizlenir.
+- RSC peer notu: Expo Router'ın isteğe bağlı `react-server-dom-webpack@19.2.6`
+  paketi React `^19.2.6` ister; native renderer React 19.2.3 gerektirir. Native
+  RSC sunucusu kullanılmıyor. Kök web React 19.2.6 olarak korundu; SDK/RSC
+  değişikliğinde uyumluluğu yeniden incele.
+
+## Teslim Sınırı
+
+Bu çalışma geliştirme/test teslimidir, mağaza veya üretim onayı değildir.
+Yerel D1 başarısı üretim migration durumunu kanıtlamaz. Üretim DB yedeği,
+şema/binding/üyelik denetimi, ayrı staging koşumu, fiziksel iOS/Android kabulü,
+imzalı release ve mağaza incelemesi tamamlanmadan canlıya çıkarma.

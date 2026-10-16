@@ -1,4 +1,6 @@
 import { database, getAuthenticatedMember } from "@/db/store";
+import { readingGroupContext } from "@/db/database";
+import { withReadingGroup } from "@/lib/groups";
 
 export const runtime = "edge";
 
@@ -8,7 +10,9 @@ const escapeIcs = (value: string) =>
 const utcStamp = (date: Date) =>
   date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 
-export async function GET(
+export const GET = withReadingGroup(handleGET);
+
+async function handleGET(
   request: Request,
   context: { params: Promise<{ meetingId: string }> },
 ) {
@@ -39,6 +43,7 @@ export async function GET(
   const endsAt = new Date(startsAt.getTime() + 2 * 60 * 60 * 1000);
   const description = [meeting.author, meeting.readingScope, meeting.note].filter(Boolean).join("\n");
   const origin = new URL(request.url).origin;
+  const group = readingGroupContext()?.group;
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -46,7 +51,7 @@ export async function GET(
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:meeting-${meeting.id}@${new URL(request.url).hostname}`,
+    `UID:meeting-${group ? `${group.id}-` : ""}${meeting.id}@${new URL(request.url).hostname}`,
     `DTSTAMP:${utcStamp(new Date())}`,
     `DTSTART:${utcStamp(startsAt)}`,
     `DTEND:${utcStamp(endsAt)}`,

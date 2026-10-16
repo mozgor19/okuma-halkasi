@@ -1,4 +1,4 @@
-import { database } from "@/db/database";
+import { identityDatabase, readingGroupsEnabled } from "@/db/database";
 import {
   authenticateLegacyMember,
   legacyUsernameForMember,
@@ -51,16 +51,16 @@ function accountTableMissing(error: unknown): boolean {
 }
 
 async function accountByUsername(username: string): Promise<AccountRow | null> {
-  return database().prepare(accountSelect + " WHERE username = ?").bind(username).first<AccountRow>();
+  return identityDatabase().prepare(accountSelect + " WHERE username = ?").bind(username).first<AccountRow>();
 }
 
 async function accountByMemberId(memberId: number): Promise<AccountRow | null> {
-  return database().prepare(accountSelect + " WHERE member_id = ?").bind(memberId).first<AccountRow>();
+  return identityDatabase().prepare(accountSelect + " WHERE member_id = ?").bind(memberId).first<AccountRow>();
 }
 
 async function replaceAccountPassword(account: AccountRow, password: string): Promise<AccountSession> {
   const passwordRecord = await hashPassword(password);
-  await database().prepare(
+  await identityDatabase().prepare(
     "UPDATE member_accounts SET password_hash = ?, password_salt = ?, password_iterations = ?, failed_attempts = 0, locked_until = NULL, password_changed_at = CURRENT_TIMESTAMP WHERE member_id = ?",
   ).bind(
     passwordRecord.hash,
@@ -73,7 +73,7 @@ async function replaceAccountPassword(account: AccountRow, password: string): Pr
 
 async function migrateLegacyAccount(username: string, password: string, memberId: number): Promise<AccountSession> {
   const passwordRecord = await hashPassword(password);
-  await database().prepare(`
+  await identityDatabase().prepare(`
     INSERT INTO member_accounts (
       member_id, username, password_hash, password_salt, password_iterations
     ) VALUES (?, ?, ?, ?, ?)
@@ -99,7 +99,7 @@ export async function authenticateAccount(usernameInput: string, password: strin
   try {
     account = await accountByUsername(username);
   } catch (error) {
-    if (!accountTableMissing(error)) throw error;
+    if (!accountTableMissing(error) || readingGroupsEnabled()) throw error;
     account = null;
     tableAvailable = false;
   }
@@ -122,14 +122,14 @@ export async function authenticateAccount(usernameInput: string, password: strin
       const lockedUntil = failedAttempts >= 5
         ? new Date(Date.now() + 15 * 60 * 1000).toISOString()
         : null;
-      await database().prepare(
+      await identityDatabase().prepare(
         "UPDATE member_accounts SET failed_attempts = ?, locked_until = ? WHERE member_id = ?",
       ).bind(failedAttempts, lockedUntil, account.memberId).run();
       return null;
     }
 
     if (account.failedAttempts || account.lockedUntil) {
-      await database().prepare(
+      await identityDatabase().prepare(
         "UPDATE member_accounts SET failed_attempts = 0, locked_until = NULL WHERE member_id = ?",
       ).bind(account.memberId).run();
     }
@@ -149,7 +149,7 @@ export async function sessionAccountIsCurrent(identity: SessionIdentity): Promis
       ? account.sessionVersion === identity.sessionVersion
       : identity.sessionVersion === 0;
   } catch (error) {
-    if (accountTableMissing(error)) return identity.sessionVersion === 0;
+    if (accountTableMissing(error) && !readingGroupsEnabled()) return identity.sessionVersion === 0;
     throw error;
   }
 }
@@ -216,7 +216,7 @@ export async function changeMemberPassword(
   }
 
   const passwordRecord = await hashPassword(newPassword);
-  await database().prepare(`
+  await identityDatabase().prepare(`
     INSERT INTO member_accounts (
       member_id, username, password_hash, password_salt, password_iterations,
       session_version, failed_attempts, locked_until, password_changed_at

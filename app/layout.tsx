@@ -1,14 +1,17 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { AppearanceProvider } from "@/components/appearance-provider";
+import { readingGroupsEnabled, resolveReadingGroup } from "@/lib/groups";
 import "./globals.css";
 import "./themes.css";
 
-const appearanceScript = `
+function appearanceScript(preset: { scheme: string; mode: string } | null) { return `
 try {
+  const serverAppearance = ${JSON.stringify(preset)};
   const schemes = ["editorial", "catalogue", "notebook", "minimal"];
   const modes = ["light", "dark", "system"];
-  const savedScheme = localStorage.getItem("kitapTahlilScheme");
-  const savedMode = localStorage.getItem("kitapTahlilColorMode");
+  const savedScheme = serverAppearance?.scheme ?? localStorage.getItem("kitapTahlilScheme");
+  const savedMode = serverAppearance?.mode ?? localStorage.getItem("kitapTahlilColorMode");
   const scheme = schemes.includes(savedScheme) ? savedScheme : "notebook";
   const mode = modes.includes(savedMode) ? savedMode : "system";
   const resolved = mode === "system"
@@ -21,7 +24,20 @@ try {
   root.classList.toggle("dark", resolved === "dark");
   root.style.colorScheme = resolved;
 } catch {}
-`;
+`; }
+
+async function groupAppearance() {
+  if (!readingGroupsEnabled()) return null;
+  try {
+    const cookie = (await headers()).get("cookie");
+    if (!cookie) return null;
+    const { group } = await resolveReadingGroup(new Request("https://appearance.invalid/", { headers: { cookie } }));
+    return { scheme: group.scheme, mode: group.mode };
+  } catch {
+    // Auth and configuration errors are handled by the proxy and protected APIs.
+    return null;
+  }
+}
 
 export const metadata: Metadata = {
   title: "Kitap Tahlil & İstişare",
@@ -54,14 +70,15 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const appearance = await groupAppearance();
   return (
-    <html lang="tr" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: appearanceScript }} /></head>
+    <html lang="tr" data-scheme={appearance?.scheme} data-mode={appearance?.mode} suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: appearanceScript(appearance) }} /></head>
       <body><AppearanceProvider>{children}</AppearanceProvider></body>
     </html>
   );

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell, BellRing, CalendarClock } from "@/components/icons";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { AppData } from "@/lib/types";
+import { groupUrl, useReadingGroup } from "@/lib/group-client";
+import { isNativeApp, nativeNotificationPermission, nativeNotificationsSupported, showNativeNotification } from "@/lib/native-bridge";
 
 export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
   data: AppData;
@@ -12,6 +14,11 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
   onOpenMeeting: (meetingId: number) => void;
 }) {
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("unsupported");
+  const [native, setNative] = useState(false);
+  const [error, setError] = useState("");
+  const group = useReadingGroup();
+  const delivered = useRef(new Set<string>());
+  const pending = useRef(new Set<string>());
   const notifications = useMemo(() => {
     const week = 7 * 24 * 60 * 60 * 1000;
     const fortnight = 14 * 24 * 60 * 60 * 1000;
@@ -39,33 +46,75 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
   }, [data, memberId, now]);
 
   useEffect(() => {
-    if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
-    void navigator.serviceWorker.register("/sw.js").then(() => setPermission(Notification.permission));
+    let active = true;
+    let revision = 0;
+    const update = () => {
+      if (!isNativeApp()) return;
+      setNative(true);
+      if (!nativeNotificationsSupported()) return;
+      const current = ++revision;
+      void nativeNotificationPermission().then((value) => { if (active && current === revision) { setPermission(value); if (value === "granted") setError(""); } })
+        .catch(() => { if (active && current === revision) setError("Cihaz bildirim izni okunamadı."); });
+    };
+    // Native injection may finish after the React effect has mounted.
+    window.addEventListener("okuma:native-ready", update);
+    window.addEventListener("okuma:resume", update);
+    if (isNativeApp()) update();
+    else if ("Notification" in window && "serviceWorker" in navigator) {
+      void navigator.serviceWorker.register("/sw.js")
+        .then(() => { if (active && !isNativeApp()) setPermission(Notification.permission); })
+        .catch(() => { if (active && !isNativeApp()) setError("Cihaz bildirimleri başlatılamadı."); });
+    }
+    return () => {
+      active = false;
+      window.removeEventListener("okuma:native-ready", update);
+      window.removeEventListener("okuma:resume", update);
+    };
   }, []);
 
   useEffect(() => {
-    if (permission !== "granted") return;
+    if (permission !== "granted" || !memberId || group === undefined) return;
     const notification = notifications.find((item) => item.id.startsWith("new-"))
       ?? notifications.find((item) => item.id.startsWith("upcoming-"));
     if (!notification) return;
     const today = new Date().toISOString().slice(0, 10);
-    const key = `book-club-notified-${today}-${notification.id}`;
-    if (localStorage.getItem(key)) return;
-    localStorage.setItem(key, "1");
-    void navigator.serviceWorker.ready.then((registration) =>
-      registration.showNotification(notification.id.startsWith("new-") ? "Yeni kitap buluşması" : "Yaklaşan kitap buluşması", {
-        body: notification.id.startsWith("new-") ? `${notification.title} için yeni buluşma oluşturuldu.` : `${notification.title} için buluşma yaklaşıyor.`,
-        icon: "/icons/notebook-icon-192.png",
-        badge: "/icons/notebook-icon-192.png",
-        data: { url: `/?meeting=${notification.meetingId}` },
-      }),
-    );
-  }, [notifications, permission]);
+    const key = `book-club-notified-${group?.id ?? "legacy"}-${memberId}-${today}-${notification.id}`;
+    if (delivered.current.has(key) || pending.current.has(key)) return;
+    try { if (localStorage.getItem(key)) return; } catch { /* Memory deduplication remains available. */ }
+    pending.current.add(key);
+    let active = true;
+    const title = notification.id.startsWith("new-") ? "Yeni kitap buluşması" : "Yaklaşan kitap buluşması";
+    const body = notification.id.startsWith("new-") ? `${notification.title} için yeni buluşma oluşturuldu.` : `${notification.title} için buluşma yaklaşıyor.`;
+    const url = groupUrl(`/?meeting=${notification.meetingId}`, group?.id);
+    void (async () => {
+      if (!active) return;
+      if (isNativeApp()) {
+        await showNativeNotification({ key, title, body, url: new URL(url, window.location.origin).toString() });
+      } else {
+        const registration = await navigator.serviceWorker.ready;
+        if (!active) return;
+        await registration.showNotification(title, {
+          body,
+          icon: "/icons/notebook-icon-192.png",
+          badge: "/icons/notebook-icon-192.png",
+          tag: key,
+          data: { url },
+        });
+      }
+      delivered.current.add(key);
+      try { localStorage.setItem(key, "1"); } catch { /* Notification delivery does not depend on storage. */ }
+    })().catch(() => { if (active) setError("Cihaz bildirimi gösterilemedi."); })
+      .finally(() => { pending.current.delete(key); });
+    return () => { active = false; };
+  }, [group, memberId, notifications, permission]);
 
   async function enableNotifications() {
-    if (!("Notification" in window)) return;
-    const result = await Notification.requestPermission();
-    setPermission(result);
+    try {
+      if (!isNativeApp() && !("Notification" in window)) return;
+      const result = isNativeApp() ? await nativeNotificationPermission(true) : await Notification.requestPermission();
+      setPermission(result);
+      setError(isNativeApp() && result !== "granted" ? "Bildirim izni verilmedi." : "");
+    } catch { setError("Bildirim izni alınamadı."); }
   }
 
   return (
@@ -93,7 +142,8 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
             <BellRing size={16} /> Cihaz bildirimlerini aç
           </button>
         )}
-        {permission === "denied" && <p className="notification-denied">Bildirim izni tarayıcı ayarlarından kapalı.</p>}
+        {permission === "denied" && <p className="notification-denied">Bildirim izni {native ? "cihaz" : "tarayıcı"} ayarlarından kapalı.</p>}
+        {error && <p className="notification-denied" role="alert">{error}</p>}
       </DropdownMenuContent>
     </DropdownMenu>
   );

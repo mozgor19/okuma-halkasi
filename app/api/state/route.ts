@@ -1,9 +1,13 @@
 import { getAuthenticatedMember, getState } from "@/db/store";
+import { readingGroupContext } from "@/db/database";
+import { readingGroupsEnabled, withReadingGroup } from "@/lib/groups";
 import { isAdminRole } from "@/lib/types";
 
 export const runtime = "edge";
 
-export async function GET(request: Request) {
+export const GET = withReadingGroup(handleGET);
+
+async function handleGET(request: Request) {
   const member = await getAuthenticatedMember(request);
   if (!member) return Response.json({ error: "Oturum gerekli." }, { status: 401 });
 
@@ -17,8 +21,11 @@ export async function GET(request: Request) {
     const bookVotes = state.voteVisibility === "secret" && !isAdminRole(member.role)
       ? state.bookVotes.map((vote) => vote.memberId === member.id ? vote : { ...vote, memberId: 0 })
       : state.bookVotes;
+    const group = readingGroupContext()?.group;
     return Response.json(
-      { ...state, members, bookVotes, currentMemberId: member.id },
+      { ...state, members, bookVotes, currentMemberId: member.id,
+        ...(group && readingGroupsEnabled() ? { readingGroup: group } : {}),
+      },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {

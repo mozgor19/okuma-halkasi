@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { LoaderCircle, ScanFace, UserCheck } from "@/components/icons";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { groupUrl } from "@/lib/group-client";
 import {
   Dialog,
   DialogContent,
@@ -91,7 +92,7 @@ export function AttendanceSuggestionDialog({
                 />
                 <span className="face-candidate-avatar" style={{ backgroundColor: person.color }}>
                   {person.avatarMediaKey
-                    ? <img src={`/api/media/${person.avatarMediaKey}`} alt="" />
+                    ? <img src={groupUrl(`/api/media/${person.avatarMediaKey}`)} alt="" />
                     : initials(person.name)}
                 </span>
                 <span className="face-candidate-name">

@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Okuma Halkasi",
+    "slug": "okuma-halkasi",
+    "scheme": "okumahalkasi",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "icon": "../public/icons/notebook-icon-512.png",
+    "splash": {
+      "image": "../public/icons/notebook-icon-512.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f9f7f0"
+    },
+    "newArchEnabled": true,
+    "web": {
+      "bundler": "metro"
+    },
+    "ios": {
+      "bundleIdentifier": "com.okumahalkasi.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.okumahalkasi.app",
+      "permissions": ["android.permission.CAMERA"],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO", "android.permission.USE_BIOMETRIC", "android.permission.USE_FINGERPRINT"],
+      "allowBackup": false,
+      "adaptiveIcon": {
+        "foregroundImage": "../public/icons/notebook-icon-maskable-512.png",
+        "backgroundColor": "#f9f7f0"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-notifications"
+    ],
+    "extra": {}
+  }
+}

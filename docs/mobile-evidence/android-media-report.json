@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-16T16:16:01.733Z",
+  "checks": [
+    "native photo upload",
+    "persisted group media",
+    "lightbox back",
+    "native ZIP export",
+    "ZIP contents",
+    "photo deletion",
+    "local face model loading",
+    "blank face rejection"
+  ],
+  "archiveBytes": 193,
+  "faceCount": 0,
+  "modelRequests": [
+    "/face-models/blazeface.json",
+    "/face-models/faceres.json",
+    "/face-models/facemesh.json",
+    "/face-models/blazeface.bin",
+    "/face-models/faceres.bin",
+    "/face-models/facemesh.bin"
+  ]
+}

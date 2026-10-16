@@ -1,5 +1,7 @@
 import { clubSchemaMissing, database, faceSchemaMissing, getAuthenticatedMember, getMember, profileSchemaMissing, rsvpSchemaMissing } from "@/db/store";
 import { meetingRsvpIsOpen } from "@/lib/meeting-time";
+import { readingGroupContext } from "@/db/database";
+import { ReadingGroupError, readingGroupErrorResponse, readingGroupsEnabled, withReadingGroup } from "@/lib/groups";
 import { isAdminRole, isSuperAdminRole } from "@/lib/types";
 
 export const runtime = "edge";
@@ -48,6 +50,15 @@ const fail = (message: string, status = 400) =>
 
 function safeCover(value: unknown) {
   const url = clean(value, 500);
+  const group = readingGroupContext()?.group;
+  if (group && /^\/api\/media\/[a-f0-9-]{36}(?:\?group=[a-zA-Z0-9_-]+)?$/.test(url)) {
+    const parsed = new URL(url, "https://local.invalid");
+    const requestedGroup = parsed.searchParams.get("group");
+    if (requestedGroup !== null && requestedGroup !== group.id) {
+      throw new ReadingGroupError("INVALID_COVER", 400, "Kapak görseli başka bir okuma grubuna ait.");
+    }
+    return parsed.pathname;
+  }
   if (
     /^\/api\/media\/[a-f0-9-]{36}$/.test(url)
     || /^https:\/\/covers\.openlibrary\.org\/b\/id\/\d+-[SML]\.jpg$/.test(url)
@@ -111,7 +122,9 @@ function meetingBookStatus(value: unknown): "continuing" | "completed" {
   return value === "continuing" ? "continuing" : "completed";
 }
 
-export async function POST(request: Request) {
+export const POST = withReadingGroup(handlePOST);
+
+async function handlePOST(request: Request) {
   const actor = await getAuthenticatedMember(request);
   if (!actor) return fail("Oturum gerekli.", 401);
 
@@ -453,7 +466,9 @@ export async function POST(request: Request) {
         ...guestRows.flatMap((guest) => [
           database().prepare("DELETE FROM favorite_books WHERE member_id = ?").bind(guest.id),
           database().prepare("DELETE FROM book_votes WHERE member_id = ?").bind(guest.id),
-          database().prepare("DELETE FROM member_accounts WHERE member_id = ?").bind(guest.id),
+          ...(!readingGroupsEnabled()
+            ? [database().prepare("DELETE FROM member_accounts WHERE member_id = ?").bind(guest.id)]
+            : []),
           database().prepare("DELETE FROM members WHERE id = ?").bind(guest.id),
         ]),
       ];
@@ -639,6 +654,7 @@ export async function POST(request: Request) {
 
     return fail("Bilinmeyen işlem.");
   } catch (error) {
+    if (error instanceof ReadingGroupError) return readingGroupErrorResponse(error);
     console.error("Reading circle action failed", error);
     if (rsvpSchemaMissing(error)) {
       return fail("Buluşma paylaşımı ve geliş bildirimi için önce 0007 migration'ını D1 veritabanına uygula.", 503);

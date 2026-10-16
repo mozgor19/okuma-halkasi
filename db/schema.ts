@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { blob, integer, sqliteTable, text, primaryKey } from "drizzle-orm/sqlite-core";
+import { blob, check, integer, sqliteTable, text, primaryKey, unique } from "drizzle-orm/sqlite-core";
 
 export const members = sqliteTable("members", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -24,6 +24,30 @@ export const memberAccounts = sqliteTable("member_accounts", {
   passwordChangedAt: text("password_changed_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+export const readingGroups = sqliteTable("reading_groups", {
+  id: text("id").primaryKey().notNull(),
+  name: text("name").notNull(),
+  bindingName: text("binding_name").notNull().unique(),
+}, (table) => [
+  check("reading_groups_default_binding", sql`(${table.id} = 'default' AND ${table.bindingName} = 'DB') OR (${table.id} <> 'default' AND ${table.bindingName} <> 'DB')`),
+]);
+
+export const readingGroupMemberships = sqliteTable("reading_group_memberships", {
+  accountMemberId: integer("account_member_id").notNull().references(() => members.id),
+  groupId: text("group_id").notNull().references(() => readingGroups.id),
+  memberId: integer("member_id").notNull(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  scheme: text("scheme", { enum: ["editorial", "catalogue", "notebook", "minimal"] }).notNull().default("notebook"),
+  colorMode: text("color_mode", { enum: ["light", "dark", "system"] }).notNull().default("system"),
+}, (table) => [
+  primaryKey({ columns: [table.accountMemberId, table.groupId] }),
+  unique().on(table.groupId, table.memberId),
+  check("reading_group_memberships_member_id", sql`${table.memberId} > 0`),
+  check("reading_group_memberships_is_active", sql`${table.isActive} IN (0, 1)`),
+  check("reading_group_memberships_scheme", sql`${table.scheme} IN ('editorial', 'catalogue', 'notebook', 'minimal')`),
+  check("reading_group_memberships_color_mode", sql`${table.colorMode} IN ('light', 'dark', 'system')`),
+]);
+
 export const books = sqliteTable("books", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),

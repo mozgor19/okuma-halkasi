@@ -1,5 +1,5 @@
 import { sessionAccountIsCurrent } from "@/db/accounts";
-import { database } from "@/db/database";
+import { database, identityDatabase, readingGroupContext, readingGroupsEnabled } from "@/db/database";
 import { sessionIdentity, sessionTokenFromRequest } from "@/lib/auth";
 import type { AppData, Member } from "@/lib/types";
 
@@ -24,19 +24,24 @@ export function rsvpSchemaMissing(error: unknown): boolean {
   return String(error instanceof Error ? error.message : error).toLowerCase().includes("no such table: meeting_rsvps");
 }
 
-export async function getMember(id: unknown): Promise<Member | null> {
+export async function getMember(id: unknown, db?: D1Database): Promise<Member | null> {
   if (!Number.isInteger(id) || Number(id) < 1) return null;
-  const member = await database()
-    .prepare("SELECT id, name, role, color FROM members WHERE id = ?")
+  const context = readingGroupContext();
+  const domainFilter = !db && context?.group.id === "default"
+    ? " AND (is_guest = 1 OR id IN (SELECT member_id FROM reading_group_memberships WHERE group_id = 'default'))" : "";
+  const member = await (db ?? database())
+    .prepare((readingGroupsEnabled() || context
+      ? "SELECT id, name, role, color, is_guest AS isGuest FROM members WHERE id = ?"
+      : "SELECT id, name, role, color FROM members WHERE id = ?") + domainFilter)
     .bind(id)
-    .first<Omit<Member, "avatarMediaKey" | "faceReferenceMediaKey" | "faceRecognitionConsent" | "isGuest" | "guestMeetingId">>();
+    .first<Omit<Member, "avatarMediaKey" | "faceReferenceMediaKey" | "faceRecognitionConsent" | "isGuest" | "guestMeetingId"> & { isGuest?: number }>();
   return member
     ? {
         ...member,
         avatarMediaKey: null,
         faceReferenceMediaKey: null,
         faceRecognitionConsent: false,
-        isGuest: false,
+        isGuest: Boolean(member.isGuest),
         guestMeetingId: null,
       }
     : null;
@@ -45,7 +50,14 @@ export async function getMember(id: unknown): Promise<Member | null> {
 export async function getAuthenticatedMember(request: Request): Promise<Member | null> {
   const identity = await sessionIdentity(sessionTokenFromRequest(request));
   if (!identity || !(await sessionAccountIsCurrent(identity))) return null;
-  return getMember(identity.memberId);
+  const context = readingGroupContext();
+  if (context) {
+    if (context.accountMemberId !== identity.memberId) return null;
+    const member = await getMember(context.memberId);
+    return member && !member.isGuest ? member : null;
+  }
+  const member = await getMember(identity.memberId, identityDatabase());
+  return member && !member.isGuest ? member : null;
 }
 
 async function runStateQueries(extended: boolean, faceRecognition: boolean, clubFeatures: boolean, rsvpFeatures: boolean) {
@@ -57,9 +69,12 @@ async function runStateQueries(extended: boolean, faceRecognition: boolean, club
   const guestColumns = clubFeatures
     ? "is_guest AS isGuest, guest_meeting_id AS guestMeetingId"
     : "0 AS isGuest, NULL AS guestMeetingId";
+  // Inactive memberships retain historical names; identity-only accounts stay out of this roster.
+  const memberFilter = readingGroupContext()?.group.id === "default"
+    ? " WHERE is_guest = 1 OR id IN (SELECT member_id FROM reading_group_memberships WHERE group_id = 'default')" : "";
 
   const queries = [
-    `SELECT id, name, role, color, ${memberColumns}, ${guestColumns} FROM members ORDER BY id`,
+    `SELECT id, name, role, color, ${memberColumns}, ${guestColumns} FROM members${memberFilter} ORDER BY id`,
     "SELECT id, title, author, publisher, pages, isbn, cover_url AS coverUrl, source_url AS sourceUrl FROM books ORDER BY id",
     extended
       ? clubFeatures
