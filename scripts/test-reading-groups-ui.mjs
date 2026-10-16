@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
+import { groupsSettingsPath, testOrigin, testOutputPath } from "./test-environment.mjs";
 
-const origin = new URL(process.env.OKUMA_TEST_ORIGIN || "http://127.0.0.1:5174").origin;
+const origin = testOrigin;
 if (!["127.0.0.1", "localhost", "[::1]"].includes(new URL(origin).hostname)) throw new Error("Only loopback development environments may be tested.");
-const { password } = JSON.parse(readFileSync(".sites-runtime/groups-development.json", "utf8"));
-const output = "outputs/groups-ui";
+const { password } = JSON.parse(readFileSync(groupsSettingsPath, "utf8"));
+const output = testOutputPath("groups-ui");
 mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
 const results = [];
@@ -113,6 +114,7 @@ try {
         await account.locator(".participation-card").waitFor();
         await capture(account, `${prefix}-meeting`);
         // Background synchronization must not replace an unsaved review.
+        await account.locator(".rating-grid").getByRole("button", { name: "8", exact: true }).click();
         await account.locator("#comment").fill("Unsaved synthetic comment");
         await account.evaluate(() => window.dispatchEvent(new Event("okuma:resume")));
         assert.equal(await account.locator("#comment").inputValue(), "Unsaved synthetic comment");

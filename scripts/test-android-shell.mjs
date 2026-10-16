@@ -5,13 +5,14 @@ import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { chromium, request } from "playwright";
+import { groupsSettingsPath, testOrigin, testOutputPath, testAndroidPackage } from "./test-environment.mjs";
 
 const serial = process.env.OKUMA_ANDROID_SERIAL || "emulator-5554";
 const binary = join(process.env.ANDROID_HOME || join(homedir(), "Android/Sdk"), "platform-tools/adb");
-const origin = "http://127.0.0.1:5174";
-const packageName = "com.okumahalkasi.app";
-const { password } = JSON.parse(readFileSync(".sites-runtime/groups-development.json", "utf8"));
-const output = "outputs/android-shell";
+const origin = testOrigin;
+const packageName = testAndroidPackage;
+const { password } = JSON.parse(readFileSync(groupsSettingsPath, "utf8"));
+const output = testOutputPath("android-shell");
 mkdirSync(output, { recursive: true });
 const adb = (...args) => execFileSync(binary, ["-s", serial, ...args], { encoding: "utf8", timeout: 30_000 });
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -91,10 +92,13 @@ async function chooser(name) {
 
 try {
   assert.equal(adb("shell", "getprop", "sys.boot_completed").trim(), "1");
-  adb("reverse", "tcp:5174", "tcp:5174");
-  adb("reverse", "tcp:8081", "tcp:8081");
+  const webPort = new URL(origin).port;
+  const metroPort = process.env.OKUMA_METRO_PORT || "8081";
+  adb("reverse", `tcp:${webPort}`, `tcp:${webPort}`);
+  adb("reverse", `tcp:${metroPort}`, `tcp:${metroPort}`);
   adb("shell", "am", "start", "-n", `${packageName}/.MainActivity`);
   let page = await attach();
+  await page.waitForURL((url) => url.origin === origin);
   assert.equal(new URL(page.url()).origin, origin, "Native tests require the isolated local development origin.");
   await page.goto(origin + "/login");
   if (new URL(page.url()).pathname !== "/login") {
@@ -176,6 +180,7 @@ try {
   const state = await (await web.get("/api/state", { headers: { "X-Reading-Group": "default" } })).json();
   assert.equal(state.favorites.some((item) => item.memberId === 1 && item.bookId === 1), !previousFavorite);
 
+  await click(page.locator(".rating-grid").getByRole("button", { name: "8", exact: true }));
   await page.locator("#comment").fill("Unsaved Android comment");
   adb("shell", "input", "keyevent", "3");
   adb("shell", "am", "start", "-n", `${packageName}/.MainActivity`);

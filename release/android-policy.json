@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-17",
+  "reviewBy": "2027-01-15",
+  "applicationId": "com.okumahalkasi.app",
+  "minimumTargetSdk": 36,
+  "nativeTemplate": "expo-template-bare-minimum@56.0.37",
+  "maximumEvidenceAgeDays": 14,
+  "webSteps": ["fixtures", "release-unit", "backend-unit", "mobile-policy", "web-types", "mobile-types", "ui-contract", "lint", "web-build", "api", "web-ui", "branding", "legacy", "memberships"],
+  "androidSteps": ["fixtures", "android-device", "android-prebuild", "android-build", "android-install", "android-open", "android-shell", "android-media", "android-notifications"],
+  "forbiddenPermissions": ["android.permission.SYSTEM_ALERT_WINDOW", "android.permission.RECORD_AUDIO", "android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.READ_MEDIA_IMAGES", "android.permission.READ_MEDIA_VIDEO", "android.permission.MANAGE_EXTERNAL_STORAGE", "android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION", "android.permission.QUERY_ALL_PACKAGES", "com.google.android.gms.permission.AD_ID"],
+  "manualChecks": [
+    { "id": "play-account", "label": "Play Console hesabi, kimlik dogrulamasi ve paket sahipligi" },
+    { "id": "staging", "label": "Ayri HTTPS staging, sentetik hesaplar ve yayin adayi kabul testi" },
+    { "id": "production-schema", "label": "Canli D1 semasi, binding/uyelik kontrolu; kor SQL uygulanmadi" },
+    { "id": "backup-restore", "label": "Butun grup DB yedekleri, geri yukleme provasi ve geri alma plani" },
+    { "id": "physical-android", "label": "Imzali aday: ARM64 telefon, kamera/galeri, tum roller/formlar, ag/izin kenarlari" },
+    { "id": "upgrade-accessibility", "label": "Onceki surumden guncelleme, oturum, TalkBack ve buyuk yazi" },
+    { "id": "page-size-runtime", "label": "AAB'den uretilen APK zip alignment ve gercek 16 KB ortam testi" },
+    { "id": "privacy-policy", "label": "Herkese acik HTTPS gizlilik metni ve uygulama icinden baglanti" },
+    { "id": "data-rights", "label": "Hesap/veri silme talebi, gruplar arasi silme ve saklama sureleri" },
+    { "id": "biometric-consent", "label": "Yuz verisi acik riza/geri cekme, pozitif eslestirme, KVKK incelemesi" },
+    { "id": "ugc-moderation", "label": "Kullanim kosullari, icerik/kullanici sikayeti ve moderator sureci" },
+    { "id": "data-safety", "label": "SDK ve WebView dahil Play Data safety beyani" },
+    { "id": "store-content", "label": "Magaza metin/gorselleri, yas/icerik derecesi, hedef kitle ve destek" },
+    { "id": "reviewer-access", "label": "Inceleyici icin kalici sentetik giris ve butun rollere erisim talimati" },
+    { "id": "play-testing", "label": "Internal/closed test, gerekiyorsa 12 kisi/14 gun, production erisimi" },
+    { "id": "prelaunch-report", "label": "Ayni versionCode icin Play pre-launch raporu ve kritik bulgu kalmamasi" },
+    { "id": "security-operations", "label": "Yetki, sirlar, HTTPS, log saklama, alarm ve olay mudahale incelemesi" }
+  ],
+  "sources": [
+    "https://developer.android.com/google/play/requirements/target-sdk",
+    "https://developer.android.com/guide/practices/page-sizes",
+    "https://support.google.com/googleplay/android-developer/answer/14151465",
+    "https://support.google.com/googleplay/android-developer/answer/13327111",
+    "https://support.google.com/googleplay/android-developer/answer/9876937"
+  ]
+}

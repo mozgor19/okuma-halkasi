@@ -75,6 +75,16 @@ mikrofon/biyometri izinleri kaldirildi ve Android uygulama yedegi kapatildi.
 
 ## Yayin Kapilari
 
+17 Ekim 2026: [Google Play test/yayin duzeni](GOOGLE_PLAY_RELEASE.md) kuruldu.
+Yeni yerel kosumlar gunluk fixture'lardan farkli D1/portlar, rastgele sirlar ve
+Android'de `.test` paketi kullanir. Native 101 ekran/akis, medya ve bildirim
+testleri bu ayri pakette yeniden gecti. Yayin kapisinin negatif birim testleri
+eski/eksik kanit, farkli kaynak, debug/imzasiz paket ve guvensiz yapilandirmayi
+reddeder. Gercek JDK ile sentetik imzali JAR ve sonradan eklenen imzasiz girdi
+kontrolu de yapildi; bu bir production AAB veya Play incelemesi degildir.
+Guncel kosum raporlari `outputs/release-tests/<run>/suite-report.json` icindedir;
+commit/kaynak ozeti olmadan eski kanitlar yeniden yayin onayi olarak kullanilmaz.
+
 macOS/Xcode ve iOS simuletoru/fiziksel cihaz; fiziksel Android kamera ve izin
 kenar durumlari; rizali yuzlerle pozitif eslestirme; ekran okuyucu/buyuk yazi;
 staging HTTPS, gercek D1 semasi/uyelik/binding denetimi, yedek ve geri alma;

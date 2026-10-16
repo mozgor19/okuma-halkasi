@@ -122,6 +122,13 @@ parola, çerez ve sunucu sırlarını kanıtlara ekleme. Çalıştırma ayrınt�
 
 ## Teslim Sınırı
 
+17 Ekim 2026: [Google Play yayın kapısı](GOOGLE_PLAY_RELEASE.md) ve
+[veri envanteri](USER_DATA.md) eklendi. İzole otomatik koşumlar ve CI,
+mağaza onayı değildir. `release:check`, imzalı AAB, aynı temiz kaynak sürümüne
+ait güncel web/Android raporları ve manuel kanıtlar tamamlanmadan yayını reddeder.
+Play Console ve staging/canlı HTTPS ortamları henüz kurulmadı. Gizlilik/veri
+hakları, UGC raporlama, fiziksel cihaz ve release kabulü açık yayın engelleridir.
+
 Bu çalışma geliştirme/test teslimidir, mağaza veya üretim onayı değildir.
 Yerel D1 başarısı üretim migration durumunu kanıtlamaz. Üretim DB yedeği,
 şema/binding/üyelik denetimi, ayrı staging koşumu, fiziksel iOS/Android kabulü,

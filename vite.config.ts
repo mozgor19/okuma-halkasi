@@ -4,6 +4,7 @@ import hostingConfig from "./.openai/hosting.json";
 import { readExecutionProfile } from "./scripts/execution-profile.mjs";
 import { sites } from "./build/sites-vite-plugin";
 import { groupsBindings, groupsStatePath, readGroupsDevelopmentSettings } from "./scripts/groups-development.mjs";
+import { testRunId, testOrigin, legacyOrigin } from "./scripts/test-environment.mjs";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "bbb0e55c-a354-4983-89e5-59b62eb3276a";
@@ -48,14 +49,14 @@ export default defineConfig(async ({ command }) => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
-    ...(groupsDevelopment ? { cacheDir: `node_modules/.vite-${legacyDevelopment ? "legacy" : "groups"}` } : {}),
+    ...(groupsDevelopment ? { cacheDir: `node_modules/.vite-${legacyDevelopment ? "legacy" : "groups"}${testRunId ? "-" + testRunId : ""}` } : {}),
     server: {
       ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),
       watch: {
         ...(isCodexSeatbeltSandbox ? { useFsEvents: false, usePolling: true } : {}),
         ignored: ["**/mobile/android/**", "**/mobile/ios/**", "**/.sites-runtime/**", "**/.wrangler/**", "**/outputs/**"],
       },
-      ...(groupsDevelopment ? { host: "127.0.0.1", port: legacyDevelopment ? 5175 : 5174, strictPort: true } : {}),
+      ...(groupsDevelopment ? { host: "127.0.0.1", port: Number(new URL(legacyDevelopment ? legacyOrigin : testOrigin).port), strictPort: true } : {}),
     },
     plugins: [
       vinext(),

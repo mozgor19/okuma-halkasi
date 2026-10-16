@@ -4,16 +4,18 @@ import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
+import { groupsSettingsPath, testOrigin, testOutputPath, testAndroidPackage } from "./test-environment.mjs";
 
 const serial = process.env.OKUMA_ANDROID_SERIAL || "emulator-5554";
 assert.match(serial, /^emulator-\d+$/, "Permission-state tests are restricted to emulators.");
 const binary = join(process.env.ANDROID_HOME || join(homedir(), "Android/Sdk"), "platform-tools/adb");
-const packageName = "com.okumahalkasi.app";
-const origin = "http://127.0.0.1:5174";
-const { password } = JSON.parse(readFileSync(".sites-runtime/groups-development.json", "utf8"));
+const packageName = testAndroidPackage;
+const origin = testOrigin;
+const { password } = JSON.parse(readFileSync(groupsSettingsPath, "utf8"));
 const adb = (...args) => execFileSync(binary, ["-s", serial, ...args], { encoding: "utf8", timeout: 10_000 });
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-mkdirSync("outputs/android-notifications", { recursive: true });
+const output = testOutputPath("android-notifications");
+mkdirSync(output, { recursive: true });
 let browser;
 async function attach() {
   for (let attempt = 0; attempt < 40; attempt++) {
@@ -51,7 +53,7 @@ async function tapNode(page, selector) {
   throw new Error("Native control not found: " + selector);
 }
 async function screenshot(name) {
-  writeFileSync(`outputs/android-notifications/${name}.png`, execFileSync(binary, ["-s", serial, "exec-out", "screencap", "-p"], { maxBuffer: 10 * 1024 * 1024 }));
+  writeFileSync(`${output}/${name}.png`, execFileSync(binary, ["-s", serial, "exec-out", "screencap", "-p"], { maxBuffer: 10 * 1024 * 1024 }));
 }
 async function permission(page) {
   return page.evaluate(async () => {
@@ -159,6 +161,6 @@ try {
   assert.equal(new URL(page.url()).searchParams.get("group"), "default");
   await screenshot("notification-cold-start-meeting");
   await login(page, "demo.multi");
-  writeFileSync("outputs/android-notifications/report.json", JSON.stringify({ date: new Date().toISOString(), checks: ["permission denial", "denial feedback", "permission grant", "notification center delivery", "notification retained with process stopped", "notification tap", "cold start group/meeting navigation"] }, null, 2));
+  writeFileSync(`${output}/report.json`, JSON.stringify({ date: new Date().toISOString(), checks: ["permission denial", "denial feedback", "permission grant", "notification center delivery", "notification retained with process stopped", "notification tap", "cold start group/meeting navigation"] }, null, 2));
   console.log("Android notification permission, delivery and cold-start meeting navigation passed.");
 } finally { if (browser) await browser.close(); }

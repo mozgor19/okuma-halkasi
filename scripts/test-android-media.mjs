@@ -5,12 +5,14 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 import { unzipSync } from "fflate";
+import { groupsSettingsPath, testOrigin, testOutputPath, testAndroidPackage } from "./test-environment.mjs";
 
 const serial = process.env.OKUMA_ANDROID_SERIAL || "emulator-5554";
 const binary = join(process.env.ANDROID_HOME || join(homedir(), "Android/Sdk"), "platform-tools/adb");
-const packageName = "com.okumahalkasi.app";
-const origin = "http://127.0.0.1:5174";
-const { password } = JSON.parse(readFileSync(".sites-runtime/groups-development.json", "utf8"));
+const packageName = testAndroidPackage;
+const origin = testOrigin;
+const { password } = JSON.parse(readFileSync(groupsSettingsPath, "utf8"));
+const output = testOutputPath("android-media");
 const adb = (...args) => execFileSync(binary, ["-s", serial, ...args], { encoding: "utf8", timeout: 30_000 });
 const pid = adb("shell", "pidof", packageName).trim().split(/\s+/)[0];
 assert.match(pid, /^\d+$/);
@@ -19,7 +21,7 @@ const browser = await chromium.connectOverCDP("http://127.0.0.1:9222", { noDefau
 const page = browser.contexts()[0].pages()[0];
 assert.equal(new URL(page.url()).origin, origin);
 page.setDefaultTimeout(30_000);
-mkdirSync("outputs/android-media", { recursive: true });
+mkdirSync(output, { recursive: true });
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 let photoId;
 const modelRequests = [];
@@ -67,7 +69,7 @@ try {
   await image.waitFor();
   await image.click({ noWaitAfter: true });
   await page.getByRole("dialog").waitFor();
-  await page.screenshot({ path: "outputs/android-media/lightbox.png", animations: "disabled" });
+  await page.screenshot({ path: `${output}/lightbox.png`, animations: "disabled" });
   adb("shell", "input", "keyevent", "4");
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "Albümü indir", exact: true }).click({ noWaitAfter: true });
@@ -78,7 +80,7 @@ try {
   }
   assert.ok(opened, "Native album sharing must open");
   await pause(1000);
-  writeFileSync("outputs/android-media/album-share.png", execFileSync(binary, ["-s", serial, "exec-out", "screencap", "-p"], { maxBuffer: 10 * 1024 * 1024 }));
+  writeFileSync(`${output}/album-share.png`, execFileSync(binary, ["-s", serial, "exec-out", "screencap", "-p"], { maxBuffer: 10 * 1024 * 1024 }));
   const archivePath = adb("shell", "run-as", packageName, "find", "cache/okuma-exports", "-name", "*albumu.zip").trim().split("\n").filter(Boolean).at(-1);
   assert.ok(archivePath);
   const archive = execFileSync(binary, ["-s", serial, "exec-out", "run-as", packageName, "cat", archivePath]);
@@ -96,7 +98,7 @@ try {
   assert.equal(faceCount, 0, "A synthetic blank image must not become a face reference");
   assert.ok(modelRequests.length > 0);
   assert.ok(modelRequests.every((url) => new URL(url).origin === origin));
-  writeFileSync("outputs/android-media/report.json", JSON.stringify({ date: new Date().toISOString(), checks: ["native photo upload", "persisted group media", "lightbox back", "native ZIP export", "ZIP contents", "photo deletion", "local face model loading", "blank face rejection"], archiveBytes: archive.length, faceCount, modelRequests: modelRequests.map((url) => new URL(url).pathname) }, null, 2));
+  writeFileSync(`${output}/report.json`, JSON.stringify({ date: new Date().toISOString(), checks: ["native photo upload", "persisted group media", "lightbox back", "native ZIP export", "ZIP contents", "photo deletion", "local face model loading", "blank face rejection"], archiveBytes: archive.length, faceCount, modelRequests: modelRequests.map((url) => new URL(url).pathname) }, null, 2));
   console.log("Android photo, gallery, ZIP export and local face-model negative test passed.");
 } finally {
   if (photoId) await api("/api/action", { action: "deletePhoto", photoId }).catch(() => {});

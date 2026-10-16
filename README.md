@@ -17,6 +17,13 @@ Tek hesap, çoklu okuma grubu ve izole geliştirme ortamı için
 [çalıştırma rehberine](docs/MOBILE_ANDROID.md) bakın. Yeni grup davranışı
 `READING_GROUPS_ENABLED=true` ayarlanmadan mevcut webde etkinleşmez.
 
+Google Play için [yayın ve test rehberini](docs/GOOGLE_PLAY_RELEASE.md),
+kullanıcı verilerinin konumu ve saklama/silme işlerini öğrenmek için
+[veri rehberini](docs/USER_DATA.md) kullanın. Otomatik kapılar:
+`corepack pnpm test:release`, `corepack pnpm test:release:android` ve
+`corepack pnpm release:check`. Son komut eksik yayın kanıtlarında başarısız
+olur; mevcut ürünün mağazaya hazır olduğu anlamına gelmez.
+
 ## Özellikler
 
 - Tarihe göre bu hafta, sıradaki veya son buluşmayı gösteren ana ekran

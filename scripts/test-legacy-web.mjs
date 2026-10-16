@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import { readFileSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright";
+import { groupsSettingsPath, legacyOrigin, testOutputPath } from "./test-environment.mjs";
 
-const origin = "http://127.0.0.1:5175";
-const { password } = JSON.parse(readFileSync(".sites-runtime/groups-development.json", "utf8"));
+const origin = legacyOrigin;
+const { password } = JSON.parse(readFileSync(groupsSettingsPath, "utf8"));
+const output = testOutputPath("legacy-web");
 const browser = await chromium.launch({ args: ["--no-sandbox"] });
-mkdirSync("outputs/legacy-web", { recursive: true });
+mkdirSync(output, { recursive: true });
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   context.setDefaultTimeout(20_000);
@@ -54,7 +56,7 @@ try {
       await page.locator(".mobile-nav").getByRole("button", { name: "Profil", exact: true }).click();
       assert.equal(await page.getByRole("button", { name: "Grup değiştir" }).count(), 0);
       await page.getByRole("tab", { name: "Görünüm", exact: true }).click();
-      await page.screenshot({ path: `outputs/legacy-web/${scheme}-${mode}.png`, animations: "disabled" });
+      await page.screenshot({ path: `${output}/${scheme}-${mode}.png`, animations: "disabled" });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     }
   }

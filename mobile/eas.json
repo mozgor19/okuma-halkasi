@@ -1,0 +1,25 @@
+{
+  "cli": { "appVersionSource": "remote" },
+  "build": {
+    "staging": {
+      "node": "24.14.1",
+      "pnpm": "11.25.0",
+      "corepack": true,
+      "prebuildCommand": "prebuild --template expo-template-bare-minimum@56.0.37",
+      "distribution": "internal",
+      "environment": "preview",
+      "env": { "OKUMA_MOBILE_CHANNEL": "staging" },
+      "android": { "buildType": "apk" }
+    },
+    "production": {
+      "node": "24.14.1",
+      "pnpm": "11.25.0",
+      "corepack": true,
+      "prebuildCommand": "prebuild --template expo-template-bare-minimum@56.0.37",
+      "environment": "production",
+      "autoIncrement": true,
+      "env": { "OKUMA_MOBILE_CHANNEL": "production" },
+      "android": { "buildType": "app-bundle" }
+    }
+  }
+}

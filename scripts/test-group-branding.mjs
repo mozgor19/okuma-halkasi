@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
+import { groupsSettingsPath, testOrigin, testOutputPath } from "./test-environment.mjs";
 
-const origin = new URL(process.env.OKUMA_TEST_ORIGIN || "http://127.0.0.1:5174").origin;
+const origin = testOrigin;
 if (!["127.0.0.1", "localhost", "[::1]"].includes(new URL(origin).hostname)) throw new Error("Only loopback development environments may be tested.");
-const { password } = JSON.parse(readFileSync(".sites-runtime/groups-development.json", "utf8"));
-const output = "outputs/group-branding";
+const { password } = JSON.parse(readFileSync(groupsSettingsPath, "utf8"));
+const output = testOutputPath("group-branding");
 mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ args: ["--no-sandbox"] });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });

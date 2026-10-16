@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { groupsSettingsPath, groupsSeedPath, testOrigin } from "./test-environment.mjs";
 
-const origin = new URL(process.env.OKUMA_TEST_ORIGIN || "http://127.0.0.1:5174").origin;
+const origin = testOrigin;
 if (!["127.0.0.1", "localhost", "[::1]"].includes(new URL(origin).hostname)
-  || !existsSync(resolve(".sites-runtime/groups-development/seeded"))) {
+  || !existsSync(groupsSeedPath)) {
   throw new Error("Tests require the isolated loopback groups development profile.");
 }
-const { password } = JSON.parse(readFileSync(resolve(".sites-runtime/groups-development.json"), "utf8"));
+const { password } = JSON.parse(readFileSync(groupsSettingsPath, "utf8"));
 let checks = 0;
 async function check(name, run) { await run(); checks += 1; console.log(`ok ${checks} - ${name}`); }
 
