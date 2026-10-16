@@ -11,6 +11,15 @@
   yuklemesiyle acilir; onceki grubun form, gezinme ve biyometrik model bellegi tasinmaz.
 - Grup ici rol, kitaplar, bulusmalar, katilimlar, oylar, fotograflar, favoriler,
   cop kutusu ve kisiye ait gorunum tercihi secilen gruptan gelir.
+- Uygulama adi secili grubun `reading_groups.name` kaydidir: masaustu/mobil
+  baslik, gezinme izi, ana sayfa ve alt bilgi ayni adi kullanir. Ilk HTML,
+  tarayici sekmesi, Apple web uygulamasi metaverisi, kurulum manifesti ve
+  takvim adi da bu kaynaktan gelir. Yenilemeler grup adi degisikliklerini getirir.
+- Grup secilmeden once tarafsiz uygulama adi kullanilir; yalniz grup cerezi
+  bulunan bir istege grup adi aciklanmaz. Ozellik kapaliyken eski web adi korunur.
+  Kurulu PWA kisayolunun adi isletim sistemi/tarayici tarafindan onbelleklenebilir;
+  aninda yeniden adlandirilmasi garanti edilmez. Native baslatici adi uygulama
+  kimligidir, grup degistirildiginde degismez.
 - Web ve mobil ayni sunucuya baglanir. Islemler ayni kalici kayitlara yazilir;
   odak/uygulamaya donus ve 30 saniyelik bos zaman yenilemesi diger cihazdaki
   degisiklikleri getirir. Kaydedilmemis formlar otomatik yenilemeyle ezilmez.
@@ -67,6 +76,7 @@ Iki mevcut hesabı ada veya parola benzerligine gore otomatik birlestirme.
 | `GET /api/groups` | Etkinlik, aktif uyelikler ve secili grup; binding veya parola dondurmez |
 | `POST /api/groups` | `{ groupId }`, ayni origin ve eslesen `X-Reading-Group`; HttpOnly secim cerezi |
 | `PATCH /api/groups/appearance` | `{ scheme?, mode? }`; secili aktif uyeligin gorunumunu kaydeder |
+| `GET /api/manifest` | Dogrulanmis secili grubun adi veya tarafsiz uygulama adi; `private, no-store` |
 
 Auth ve parola degisimi kanonik hesaba aittir. Diger domain API'leri dogrulanmis
 yerel uye/DB baglaminda calisir. Uyelik pasiflestirme bu surumde kontrollu
@@ -110,6 +120,7 @@ corepack pnpm groups:test:unit
 corepack pnpm groups:test
 corepack pnpm exec playwright install chromium
 corepack pnpm groups:test:ui
+corepack pnpm groups:test:branding
 corepack pnpm --dir mobile test
 corepack pnpm mobile:typecheck
 corepack pnpm exec tsc --noEmit
@@ -124,6 +135,9 @@ API senaryosu parola degistirme testinin sonunda ornek parolayi geri getirir;
 test sirasinda ayni hesapla manuel calisma yapma. Goruntuler ve raporlar
 Git disindaki `outputs/groups-ui/` altindadir. Native sonuclar
 [mobil kabul listesinde](MOBILE_ACCEPTANCE.md) ayrica izlenir.
+Grup adi testleri gercek grup gecisini, ilk HTML/metaveriyi, anonim ad gizliligini
+ve dort semanin acik/koyu, 390/1440px gorunumlerinde uzun ve HTML benzeri adlari
+kontrol eder. Bu testlerin ciktilari `outputs/group-branding/` altindadir.
 
 ## Canliya gecis
 

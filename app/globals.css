@@ -185,3 +185,13 @@
 @media(max-width:480px){.mobile-brand{max-width:175px}.person-picker{width:34px;height:34px;padding:1px;justify-content:center}.person-picker .avatar{display:grid}.person-picker strong,.person-picker>[data-icon]{display:none}.info-lines>span{flex-wrap:wrap}}
 
 .participation-card textarea:disabled{opacity:.62;cursor:not-allowed;background:#dfe5df;color:#61716f}
+
+.brand,.brand>span:last-child,.mobile-brand,.breadcrumb{min-width:0}
+.brand .group-brand-name,.mobile-brand .group-brand-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;overflow-wrap:anywhere}
+.mobile-brand .group-brand-name{-webkit-line-clamp:2}
+.mobile-brand>svg,.topbar-actions,.breadcrumb>svg,.breadcrumb>strong,.login-brand>span{flex-shrink:0}
+.breadcrumb{flex:1}
+.breadcrumb-group{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0}
+.hero h1,.footer>span,.login-brand strong,.login-copy h1{overflow-wrap:anywhere}
+.login-brand strong{min-width:0}
+.footer>span:first-child{min-width:0}

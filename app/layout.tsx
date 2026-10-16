@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { AppearanceProvider } from "@/components/appearance-provider";
-import { readingGroupsEnabled, resolveReadingGroup } from "@/lib/groups";
+import { GroupBrandingProvider } from "@/components/group-branding";
+import { LEGACY_APPLICATION_NAME } from "@/lib/branding";
+import { groupPresentation } from "@/lib/group-presentation";
 import "./globals.css";
 import "./themes.css";
 
@@ -26,41 +28,35 @@ try {
 } catch {}
 `; }
 
-async function groupAppearance() {
-  if (!readingGroupsEnabled()) return null;
-  try {
-    const cookie = (await headers()).get("cookie");
-    if (!cookie) return null;
-    const { group } = await resolveReadingGroup(new Request("https://appearance.invalid/", { headers: { cookie } }));
-    return { scheme: group.scheme, mode: group.mode };
-  } catch {
-    // Auth and configuration errors are handled by the proxy and protected APIs.
-    return null;
-  }
+async function presentation() {
+  const cookie = (await headers()).get("cookie");
+  return groupPresentation(new Request("https://presentation.invalid/", { headers: cookie ? { cookie } : {} }));
 }
 
-export const metadata: Metadata = {
-  title: "Kitap Tahlil & İstişare",
-  applicationName: "Kitap Tahlil ve İstişare",
-  description: "Okuma grubunun buluşma, kitap, katılım, yorum ve fotoğraf kayıtları.",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Kitap Tahlil ve İstişare",
-  },
-  formatDetection: { telephone: false },
-  icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/icons/notebook-icon-192.png", sizes: "192x192", type: "image/png" },
-    ],
-    apple: [
-      { url: "/icons/notebook-apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    shortcut: "/favicon.svg",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { name, legacy } = await presentation();
+  return {
+    title: name,
+    applicationName: legacy ? LEGACY_APPLICATION_NAME : name,
+    description: "Okuma grubunun buluşma, kitap, katılım, yorum ve fotoğraf kayıtları.",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title: legacy ? LEGACY_APPLICATION_NAME : name,
+    },
+    formatDetection: { telephone: false },
+    icons: {
+      icon: [
+        { url: "/favicon.svg", type: "image/svg+xml" },
+        { url: "/icons/notebook-icon-192.png", sizes: "192x192", type: "image/png" },
+      ],
+      apple: [
+        { url: "/icons/notebook-apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      ],
+      shortcut: "/favicon.svg",
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [
@@ -75,11 +71,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const appearance = await groupAppearance();
+  const { name, legacy, group } = await presentation();
+  const appearance = group ? { scheme: group.scheme, mode: group.mode } : null;
   return (
     <html lang="tr" data-scheme={appearance?.scheme} data-mode={appearance?.mode} suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: appearanceScript(appearance) }} /></head>
-      <body><AppearanceProvider>{children}</AppearanceProvider></body>
+      <head><link rel="manifest" href={legacy ? "/manifest.webmanifest" : "/api/manifest"} crossOrigin="use-credentials" /><script dangerouslySetInnerHTML={{ __html: appearanceScript(appearance) }} /></head>
+      <body><GroupBrandingProvider name={name} legacy={legacy}><AppearanceProvider>{children}</AppearanceProvider></GroupBrandingProvider></body>
     </html>
   );
 }

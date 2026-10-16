@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, Check, LogOut } from "@/components/icons";
 import { AppearanceModeMenu } from "@/components/appearance-mode-menu";
+import { GroupName } from "@/components/group-branding";
 import { Button } from "@/components/ui/button";
 import { currentReturnPath, finishGroupSelection, groupFetch, type GroupsResponse, type ReadingGroup } from "@/lib/group-client";
 
@@ -73,7 +74,7 @@ export default function GroupsPage() {
       <section className="login-panel" aria-labelledby="groups-title" aria-busy={busy !== null}>
         <div className="login-brand">
           <span><BookOpen size={26} strokeWidth={1.7} /></span>
-          <strong>Kitap Tahlil <em>&amp; İstişare</em></strong>
+          <strong><GroupName /></strong>
         </div>
         <div className="login-copy">
           <span className="eyebrow">OKUMA GRUPLARIM</span>

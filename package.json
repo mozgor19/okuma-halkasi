@@ -21,6 +21,7 @@
     "groups:test": "node scripts/test-reading-groups.mjs",
     "groups:test:unit": "node scripts/test-reading-groups-unit.mjs",
     "groups:test:ui": "node scripts/test-reading-groups-ui.mjs",
+    "groups:test:branding": "node scripts/test-group-branding.mjs",
     "groups:test:legacy": "node scripts/test-legacy-web.mjs",
     "groups:test:memberships": "node scripts/test-reading-group-memberships.mjs",
     "mobile:test:android": "node scripts/test-android-shell.mjs",

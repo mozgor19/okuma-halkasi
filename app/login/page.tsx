@@ -5,8 +5,10 @@ import { BookOpen, LockKeyhole, UserRound } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { groupsPath, safeReturnPath } from "@/lib/group-client";
+import { GroupName, useGroupName } from "@/components/group-branding";
 
 export default function LoginPage() {
+  const groupName = useGroupName();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -38,11 +40,11 @@ export default function LoginPage() {
       <section className="login-panel" aria-labelledby="login-title">
         <div className="login-brand">
           <span><BookOpen size={26} strokeWidth={1.7} /></span>
-          <strong>Kitap Tahlil <em>&amp; İstişare</em></strong>
+          <strong><GroupName accentElement="em" /></strong>
         </div>
         <div className="login-copy">
           <span className="eyebrow">ÜYE GİRİŞİ</span>
-          <h1 id="login-title">Kitap Tahlil &amp; İstişare</h1>
+          <h1 id="login-title">{groupName}</h1>
         </div>
         <form onSubmit={submit} className="login-form">
           <div className="login-field">

@@ -45,6 +45,10 @@ try {
       }, { scheme, mode });
       await page.reload();
       await page.locator(`html[data-scheme="${scheme}"][data-color-mode="${mode}"]`).waitFor();
+      assert.equal(await page.title(), "Kitap Tahlil & İstişare");
+      assert.equal(await page.locator(".mobile-brand .group-brand-name").textContent(), "Kitap Tahlil & İstişare");
+      assert.equal(await page.locator('meta[name="application-name"]').getAttribute("content"), "Kitap Tahlil ve İstişare");
+      assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"), "/manifest.webmanifest");
       try { await page.locator(".featured-book-card").waitFor(); }
       catch (error) { console.error({ url: page.url(), body: (await page.locator("body").innerText()).slice(0, 1800) }); throw error; }
       await page.locator(".mobile-nav").getByRole("button", { name: "Profil", exact: true }).click();

@@ -8,7 +8,7 @@ import {
 } from "@/lib/auth";
 import { noStore, ReadingGroupError, readingGroupErrorResponse, readingGroupsEnabled, resolveReadingGroup, resolveLegacyReadingGroup } from "@/lib/groups";
 
-const publicPaths = new Set(["/login", "/design-lab", "/api/auth/login", "/api/auth/logout"]);
+const publicPaths = new Set(["/login", "/design-lab", "/api/auth/login", "/api/auth/logout", "/api/manifest"]);
 const publicAsset = /\.(?:css|js|map|svg|png|jpg|jpeg|webp|ico|woff2?)$/i;
 
 function enforceLocalBrowserRequests<T extends Response>(response: T): T {

@@ -28,6 +28,7 @@ belirtir. API testi tek başına native etkileşim kanıtı sayılmaz.
 | Tek üyelikte girişten doğrudan uygulamaya geçiş | Doğrulandı | Doğrulandı | Engelli |
 | Çoklu üyelikte her yeni girişte grup seçimi | Doğrulandı | Doğrulandı | Engelli |
 | Profil üzerinden grup değiştirme | Doğrulandı | Doğrulandı | Engelli |
+| Grup değişince uygulamadaki adın ve sekme başlığının değişmesi | Doğrulandı; ilk HTML ve 32 uzun ad görünümü | 17 Ekim: iki grup arasında gerçek WebView geçişi, başlık, alt bilgi ve manifest | Engelli |
 | Grup verisi, yerel üye kimliği ve rol ayrımı | Doğrulandı | Doğrulandı | Engelli |
 | Hesap+grup görünümü, web/mobil eşitleme ve kalıcılık | Doğrulandı | Doğrulandı | Engelli |
 | Grup değişiminde ilk HTML'de doğru şablon | Doğrulandı | Ortak HTML; matris kontrolü | Engelli |

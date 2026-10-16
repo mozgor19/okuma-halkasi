@@ -50,6 +50,7 @@ async function handleGET(
     "PRODID:-//Kitap Tahlil ve Istisare//TR",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
+    ...(group ? [`X-WR-CALNAME:${escapeIcs(group.name)}`] : []),
     "BEGIN:VEVENT",
     `UID:meeting-${group ? `${group.id}-` : ""}${meeting.id}@${new URL(request.url).hostname}`,
     `DTSTAMP:${utcStamp(new Date())}`,

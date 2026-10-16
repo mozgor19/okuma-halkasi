@@ -35,6 +35,25 @@ Gercek cihaz bildirimine dokunma testi, uygulama sureci durdurulduktan sonra
 dogru grup ve bulusmanin acilmasini denetler. Bu, sunucudan kapali uygulamaya
 yeni olay push'u gonderildigi anlamina gelmez.
 
+## Grup Adi Takibi
+
+17 Ekim 2026: uygulama basliklari secili grubun adina baglandi. Web kontrolu
+ilk HTML, tum marka etiketleri, sekme/Apple metaverisi, manifest, takvim adi,
+anonim isim gizliligi ve profil uzerinden iki yonlu grup gecisini kapsar.
+32 uzun/kesintisiz/HTML benzeri ad gorunumu dort sema, iki mod ve iki genislikte
+kontrol edildi; toplam 35 kayit ve sifir tarayici hatasi vardir. Mevcut 193 web
+gorunumu ve bayrak kapali sekiz legacy gorunum de yeniden gecti.
+
+API36 kurulu Android uygulamasinda profilden `default` ve `second` gruplarina
+gecilerek gorunen ad, sekme basligi, alt bilgi ve manifest adi ayrica denetlendi.
+Bu odakli kontroldur; onceki 101 native senaryo yeniden kosuldu anlamina gelmez.
+iOS native grup adi kontrolu macOS/Xcode erisimi olmadigindan halen engellidir.
+PWA kisayolu/native baslatici adi sinirlari [grup rehberindedir](READING_GROUPS.md).
+
+- [Grup adi web raporu](mobile-evidence/group-branding-report.json)
+- [Android birinci grup](mobile-evidence/group-branding-android-default.png)
+- [Android ikinci grup](mobile-evidence/group-branding-android-second.png)
+
 ## Kanitlar
 
 - [Web matrisi](mobile-evidence/web-layout-report.json)
