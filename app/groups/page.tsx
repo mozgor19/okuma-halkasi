@@ -6,10 +6,12 @@ import { AppearanceModeMenu } from "@/components/appearance-mode-menu";
 import { GroupName } from "@/components/group-branding";
 import { Button } from "@/components/ui/button";
 import { currentReturnPath, finishGroupSelection, groupFetch, type GroupsResponse, type ReadingGroup } from "@/lib/group-client";
+import { useOnboardingConfig } from "@/components/onboarding";
 
 const roles = { member: "Katılımcı", admin: "Yönetici", super_admin: "Ana yönetici" };
 
 export default function GroupsPage() {
+  const onboarding = useOnboardingConfig();
   const [data, setData] = useState<GroupsResponse | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -93,6 +95,7 @@ export default function GroupsPage() {
             </button>
           ))}
         </div>
+        {onboarding?.enabled && <a className="small-link onboarding-command" href="/groups/manage">Grup kur veya katıl</a>}
         <div className="mt-6 flex items-center justify-between gap-3">
           <button type="button" className="small-link" disabled={busy !== null} onClick={() => void signOut()}><LogOut size={17} /> Çıkış yap</button>
           <AppearanceModeMenu />

@@ -7,6 +7,14 @@ Kullanicinin staging/canli HTTPS adresleri henuz belirli degil.
 
 ## Veri nerede durur?
 
+17 Ekim web kayit eklemesi: kanonik `DB` artik dogrulanmis e-posta,
+bekleyen kayitlarin gecici parola hashleri, dogrulama/kurtarma/davet ozetleri,
+HMAC'li deneme sayaclari ve grup provizyonlama durumlarini da tutar. Yerel
+posta kutusu sadece loopback gelistirmede asil e-posta/token govdesi tutar;
+canlida Resend ve alicinin posta saglayicisi yeni veri isleyen taraflardir.
+Yeni akis, saklama/silme ve saglayici sozlesmesi incelemesi gerektirir.
+[Ayrintilar](WEB_ONBOARDING.md). Hesap silme istegi bu yeni tablolari da kapsamali.
+
 ```text
 Web tarayicisi / Android WebView
         | HTTPS ve oturum cerezi

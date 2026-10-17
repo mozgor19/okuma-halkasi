@@ -5,6 +5,10 @@ ve [grup geliştirme/üretim rehberi](READING_GROUPS.md) ile birlikte kullan.
 
 ## Güncel Yaklaşım
 
+17 Ekim web kaydı/grup kurma/davet akışları ayrı geliştirme bayrağı arkasında
+eklendi. [Web rehberindeki](WEB_ONBOARDING.md) yeni akışlar için Android/iOS
+native doğrulama henüz yapılmadı; aşağıdaki eski doğrulamalar bunları kapsamaz.
+
 Expo uygulaması, mevcut web arayüzünü aynı origin'den React Native WebView içinde
 açar. Dört şablon, ekranlar ve iş kuralları ikinci kez yazılmaz. Eski native ekran
 iskeleti kaldırıldı; `mobile/src/web-shell.tsx` güncel giriş noktasıdır. Web ve mobil
@@ -37,7 +41,7 @@ belirtir. API testi tek başına native etkileşim kanıtı sayılmaz.
 | Parola değişikliğinin bütün eski oturumları iptal etmesi | Doğrulandı | Ortak oturum API'si; native UI bekliyor | Engelli |
 | Bayrak kapalıyken eski web ve cihaz görünümü | Doğrulandı | Aynı web kaynağı; ayrı native koşum bekliyor | Engelli |
 
-Sunucu kanıtları: `scripts/test-reading-groups-unit.mjs` (88 kontrol),
+Sunucu kanıtları: `scripts/test-reading-groups-unit.mjs` (91 kontrol),
 `scripts/test-reading-groups.mjs` (20 yerel D1 senaryosu),
 `scripts/test-legacy-web.mjs` (bayrak kapalı akışlar ve sekiz görünüm).
 Eşzamanlı istek bağlamı, farklı yerel üye numarası, izinli binding listesi,

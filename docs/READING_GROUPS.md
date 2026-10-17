@@ -65,8 +65,11 @@ Medya, takvim ve paylasilan bulusma baglantilari grup kimligini de tasir.
 Eski bir sekmedeki `meeting=1` yeni grubun `meeting=1` kaydina yazamaz.
 AsyncLocalStorage yalniz istek suresince dogrulanmis DB baglamini tasir.
 
-Bu surumde herkese acik kayit, otomatik grup olusturma/davet ve hesap birlestirme
-yoktur. Uyeligi kontrollu olarak provizyonlayan yonetim sureci gerekir.
+17 Ekim web gelistirmesi: e-posta dogrulamali kayit, grup kurma ve davetle
+katilma ayri `SELF_SERVICE_ENABLED` bayragiyla eklendi. Yeni migration, bos D1
+havuzu ve canli e-posta sinirlari [web rehberindedir](WEB_ONBOARDING.md).
+Varsayilan kapali kalir; kontrollu uye provizyonlama sureci korunur.
+Hesap birlestirme yoktur.
 Iki mevcut hesabı ada veya parola benzerligine gore otomatik birlestirme.
 
 ## Grup API'si

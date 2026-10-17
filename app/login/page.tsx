@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { groupsPath, safeReturnPath } from "@/lib/group-client";
 import { GroupName, useGroupName } from "@/components/group-branding";
+import { useOnboardingConfig } from "@/components/onboarding";
+import { TOKEN_PATTERN } from "@/lib/onboarding-policy";
 
 export default function LoginPage() {
   const groupName = useGroupName();
+  const onboarding = useOnboardingConfig();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,8 +27,11 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      const result = await response.json() as { error?: string; next?: string };
+      const result = await response.json() as { error?: string; next?: string; selfService?: boolean };
       if (!response.ok) throw new Error(result.error ?? "Giriş yapılamadı.");
+      let pendingInvite = false;
+      try { pendingInvite = TOKEN_PATTERN.test(sessionStorage.getItem("okumaPendingInvite") || ""); } catch { /* Storage is optional. */ }
+      if (result.selfService && (pendingInvite || new URLSearchParams(window.location.search).get("intent") === "join")) { window.location.replace("/join"); return; }
       const next = safeReturnPath(new URLSearchParams(window.location.search).get("next"));
       window.location.replace(result.next === "/groups" ? groupsPath(next) : next);
     } catch (cause) {
@@ -84,6 +90,7 @@ export default function LoginPage() {
             {busy ? "Giriş yapılıyor" : "Giriş yap"}
           </Button>
         </form>
+        {onboarding?.enabled && <nav className="onboarding-links" aria-label="Hesap işlemleri"><a href="/register">Hesap oluştur</a><a href="/forgot-password">Şifremi unuttum</a><a href="/support">Destek</a></nav>}
       </section>
     </main>
   );

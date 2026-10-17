@@ -9,6 +9,9 @@ export { groupsSettingsPath, groupsConfigPath, groupsStatePath } from "./test-en
 export const groupsBindings = [
   { binding: "DB", database_name: "okuma-local-accounts", database_id: "11111111-1111-4111-8111-111111111111" },
   { binding: "GROUP_SECOND", database_name: "okuma-local-second", database_id: "22222222-2222-4222-8222-222222222222" },
+  { binding: "GROUP_POOL_ONE", database_name: "okuma-local-pool-one", database_id: "33333333-3333-4333-8333-333333333333" },
+  { binding: "GROUP_POOL_TWO", database_name: "okuma-local-pool-two", database_id: "44444444-4444-4444-8444-444444444444" },
+  { binding: "GROUP_POOL_THREE", database_name: "okuma-local-pool-three", database_id: "55555555-5555-4555-8555-555555555555" },
 ];
 
 export function readGroupsDevelopmentSettings() {
@@ -33,13 +36,15 @@ if (process.argv[1] === resolve("scripts/groups-development.mjs")) {
   const marker = groupsSeedPath;
   if (!existsSync(marker)) {
     if (existsSync(groupsStatePath)) throw new Error("Kismi veya onceki DB bulundu. Veriyi incele; kurulum otomatik silmez.");
-    for (const binding of ["DB", "GROUP_SECOND"]) {
+    for (const { binding } of groupsBindings) {
       for (const file of ["0000_strange_eternals", "0001_store_media_in_d1", "0002_member_accounts", "0003_member_profiles_and_reading_progress", "0004_face_recognition", "0005_club_tools", "0006_super_admin_roles", "0007_meeting_rsvps"]) {
         execute(binding, resolve(`drizzle/${file}.sql`));
       }
-      execute(binding, resolve("demo/groups-local.sql"));
+      execute(binding, resolve("drizzle/0010_group_account_links.sql"));
+      if (["DB", "GROUP_SECOND"].includes(binding)) execute(binding, resolve("demo/groups-local.sql"));
     }
     execute("DB", resolve("drizzle/0008_reading_groups.sql"));
+    execute("DB", resolve("drizzle/0009_self_service.sql"));
     execute("DB", resolve("demo/groups-memberships-local.sql"));
     execute("GROUP_SECOND", resolve("demo/groups-second-local.sql"));
     writeFileSync(marker, new Date().toISOString());

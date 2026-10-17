@@ -6,7 +6,7 @@
   "minimumTargetSdk": 36,
   "nativeTemplate": "expo-template-bare-minimum@56.0.37",
   "maximumEvidenceAgeDays": 14,
-  "webSteps": ["fixtures", "release-unit", "backend-unit", "mobile-policy", "web-types", "mobile-types", "ui-contract", "lint", "web-build", "api", "web-ui", "branding", "legacy", "memberships"],
+  "webSteps": ["fixtures", "release-unit", "backend-unit", "mobile-policy", "web-types", "mobile-types", "ui-contract", "lint", "web-build", "api", "web-ui", "branding", "legacy", "memberships", "self-service"],
   "androidSteps": ["fixtures", "android-device", "android-prebuild", "android-build", "android-install", "android-open", "android-shell", "android-media", "android-notifications"],
   "forbiddenPermissions": ["android.permission.SYSTEM_ALERT_WINDOW", "android.permission.RECORD_AUDIO", "android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.READ_MEDIA_IMAGES", "android.permission.READ_MEDIA_VIDEO", "android.permission.MANAGE_EXTERNAL_STORAGE", "android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION", "android.permission.QUERY_ALL_PACKAGES", "com.google.android.gms.permission.AD_ID"],
   "manualChecks": [

@@ -12,6 +12,7 @@ import {
   validGroupId,
 } from "@/lib/groups";
 import type { ReadingGroupsResponse } from "@/lib/types";
+import { selfServiceEnabled } from "@/lib/onboarding-security";
 
 export const runtime = "edge";
 
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
   }
   try {
     const identity = await requireAccountIdentity(request);
-    const groups = await accountReadingGroups(identity.memberId);
+    const groups = await accountReadingGroups(identity.memberId, selfServiceEnabled());
     return noStore(Response.json({ enabled: true, groups, selectedGroupId: selectedGroupId(request, groups) } satisfies ReadingGroupsResponse));
   } catch (error) {
     return readingGroupErrorResponse(error);

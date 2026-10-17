@@ -7,6 +7,11 @@ Bu belge yayin yetkisi vermez; otomatik magaza yuklemesi eklenmedi.
 
 ## Kurulan test ortami
 
+Web kapisina e-posta dogrulama, grup kurma ve davetle katilma icin zorunlu
+`self-service` adimi eklendi. Canli posta/Turnstile ve yeni native akislar ayri
+kabul ister; [kurulum ve sinirlar](WEB_ONBOARDING.md). Acik kayit gelecekte
+etkinlestirilecekse Play hesap silme gereklilikleri de buna gore tamamlanmali.
+
 Node 24 ve sabit pnpm surumuyle repo kokunde:
 
 ```bash
@@ -166,7 +171,7 @@ sinirli/dogrulanmis kullanici topluluklarinda da uygulama ici icerik ve kullanic
 raporlama gerekir. Yalniz yoneticinin fotograf silebilmesi bunun yerine gecmez.
 [Google UGC politikasi](https://support.google.com/googleplay/android-developer/answer/9876937).
 
-Su anda genel hesap olusturma akisi yok. Google'in hesap silme zorunlulugunun
+Genel kayit akisi gelistirmede eklendi, canlida henuz etkin degil. Google'in hesap silme zorunlulugunun
 kapsami uygulama icinden veya uygulamanin yonlendirdigi hesap olusturma akisina
 baglidir; bunu Console'da dogru beyan et. Buna ragmen urun kabul kriterimiz veri
 silme talebi ve uygulanabilir saklama politikasidir. Oturum kapatma/uyelik iptali

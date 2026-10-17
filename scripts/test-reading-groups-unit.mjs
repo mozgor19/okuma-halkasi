@@ -33,6 +33,8 @@ let guest = false;
 let missingAccounts = false;
 let missingRegistry = false;
 let legacyRegistry = false;
+let provisioned = false;
+let domainOwner = "second";
 let canonicalReads = 0;
 let domainCalls = 0;
 function db(kind) {
@@ -43,7 +45,9 @@ function db(kind) {
       return {
         bind(...args) { values = args; return this; },
         async first() {
-          if (sql.includes("sqlite_master")) return legacyRegistry ? { name: "reading_group_memberships" } : null;
+          if (sql.includes("sqlite_master")) return sql.includes("group_provisioning") ? provisioned ? { name: "group_provisioning" } : null : legacyRegistry ? { name: "reading_group_memberships" } : null;
+          if (sql.includes("FROM group_provisioning")) return provisioned ? { group_id: "second" } : null;
+          if (sql.includes("FROM group_database_ownership")) return { groupId: domainOwner };
           if (sql.includes("JOIN reading_groups")) {
             assert.ok(sql.includes("m.is_active = 1"));
             return memberships.find((group) => group.id === "default" && group.isActive !== false) ?? null;
@@ -158,6 +162,13 @@ async function main() {
   assert.equal(listed[1].role, "member");
   assert.equal(listed[1].scheme, "minimal");
   assert.ok(!("bindingName" in listed[1]));
+  provisioned = true;
+  domainOwner = "another-group";
+  await expect(request("second"), 503, "GROUP_UNAVAILABLE");
+  await expect(request("default"), 200);
+  domainOwner = "second";
+  await expect(request("second"), 200);
+  provisioned = false;
   checks++;
   memberships = [secondGroup];
   assert.equal((await (await expect(request(), 200)).json()).memberId, 7);

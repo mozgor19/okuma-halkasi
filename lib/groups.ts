@@ -80,7 +80,7 @@ export async function requireAccountIdentity(request: Request) {
   return identity;
 }
 
-async function membershipsForAccount(accountMemberId: number): Promise<MembershipRow[]> {
+async function membershipsForAccount(accountMemberId: number, allowEmpty = false): Promise<MembershipRow[]> {
   const db = identityDatabase();
   const member = await db.prepare("SELECT id FROM members WHERE id = ? AND is_guest = 0")
     .bind(accountMemberId).first();
@@ -91,11 +91,11 @@ async function membershipsForAccount(accountMemberId: number): Promise<Membershi
     FROM reading_group_memberships m JOIN reading_groups g ON g.id = m.group_id
     WHERE m.account_member_id = ? AND m.is_active = 1 ORDER BY g.name, g.id
   `).bind(accountMemberId).all<MembershipRow>();
-  if (!results.length) throw new ReadingGroupError("GROUP_ACCESS_DENIED", 403, "Henüz erişebildiğin bir okuma grubu yok.");
+  if (!results.length && !allowEmpty) throw new ReadingGroupError("GROUP_ACCESS_DENIED", 403, "Henüz erişebildiğin bir okuma grubu yok.");
   return results;
 }
 
-function groupDatabase(group: MembershipRow): D1Database {
+export function groupDatabase(group: MembershipRow): D1Database {
   if (!validGroupId(group.id) || !validGroupScheme(group.scheme) || !validGroupMode(group.mode)
     || !Number.isSafeInteger(group.memberId) || group.memberId < 1) {
     throw new ReadingGroupError("GROUP_UNAVAILABLE", 503, "Okuma grubu yapılandırması geçersiz.");
@@ -124,6 +124,13 @@ function groupDatabase(group: MembershipRow): D1Database {
 
 async function resolveMembership(accountMemberId: number, membership: MembershipRow): Promise<ResolvedGroup> {
   const db = groupDatabase(membership);
+  if (membership.id !== "default") {
+    const registry = await identityDatabase().prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'group_provisioning'").first<{ name: string }>();
+    if (registry?.name === "group_provisioning" && await identityDatabase().prepare("SELECT group_id FROM group_provisioning WHERE group_id = ?").bind(membership.id).first()) {
+      const owner = await db.prepare("SELECT group_id AS groupId FROM group_database_ownership WHERE singleton = 1").first<{ groupId: string }>();
+      if (owner?.groupId !== membership.id) throw new ReadingGroupError("GROUP_UNAVAILABLE", 503, "Okuma grubunun veri bağlantısı doğrulanamadı.");
+    }
+  }
   const member = await db.prepare("SELECT role FROM members WHERE id = ? AND is_guest = 0")
     .bind(membership.memberId).first<{ role: Member["role"] }>();
   if (!member || !["member", "admin", "super_admin"].includes(member.role)) {
@@ -137,8 +144,8 @@ async function resolveMembership(accountMemberId: number, membership: Membership
   };
 }
 
-export async function accountReadingGroups(accountMemberId: number): Promise<ReadingGroupMembership[]> {
-  const memberships = await membershipsForAccount(accountMemberId);
+export async function accountReadingGroups(accountMemberId: number, allowEmpty = false): Promise<ReadingGroupMembership[]> {
+  const memberships = await membershipsForAccount(accountMemberId, allowEmpty);
   return Promise.all(memberships.map(async (membership) => (await resolveMembership(accountMemberId, membership)).group));
 }
 

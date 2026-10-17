@@ -51,6 +51,7 @@ export default defineConfig(async ({ command }) => {
   return {
     ...(groupsDevelopment ? { cacheDir: `node_modules/.vite-${legacyDevelopment ? "legacy" : "groups"}${testRunId ? "-" + testRunId : ""}` } : {}),
     server: {
+      fs: { deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**", "**/.sites-runtime/**", "**/.wrangler/**", "**/outputs/**", "**/*.sqlite", "**/*.sqlite-wal", "**/*.sqlite-shm"] },
       ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),
       watch: {
         ...(isCodexSeatbeltSandbox ? { useFsEvents: false, usePolling: true } : {}),
@@ -70,7 +71,10 @@ export default defineConfig(async ({ command }) => {
           d1_databases: groupsBindings,
           vars: {
             READING_GROUPS_ENABLED: legacyDevelopment ? "false" : "true",
-            READING_GROUP_DB_BINDINGS: JSON.stringify(["GROUP_SECOND"]),
+            READING_GROUP_DB_BINDINGS: JSON.stringify(groupsBindings.filter((item) => item.binding !== "DB").map((item) => item.binding)),
+            SELF_SERVICE_ENABLED: !legacyDevelopment && process.env.OKUMA_SELF_SERVICE_DEVELOPMENT === "1" ? "true" : "false",
+            SELF_SERVICE_LOCAL: "true",
+            SELF_SERVICE_GROUP_BINDINGS: JSON.stringify(["GROUP_POOL_ONE", "GROUP_POOL_TWO", "GROUP_POOL_THREE"]),
             SESSION_SECRET: groupSettings.sessionSecret,
             MEMBER_CREDENTIALS: JSON.stringify(Object.fromEntries(["demo.multi", "demo.single", "demo.none"].map((name, index) => [name, { memberId: index + 1, password: groupSettings.password }]))),
           },

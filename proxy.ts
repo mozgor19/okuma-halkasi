@@ -7,18 +7,30 @@ import {
   sessionIdentity,
 } from "@/lib/auth";
 import { noStore, ReadingGroupError, readingGroupErrorResponse, readingGroupsEnabled, resolveReadingGroup, resolveLegacyReadingGroup } from "@/lib/groups";
+import { selfServiceEnabled } from "@/lib/onboarding-security";
 
 const publicPaths = new Set(["/login", "/design-lab", "/api/auth/login", "/api/auth/logout", "/api/manifest"]);
+const onboardingPublicPaths = new Set(["/register", "/verify-email", "/forgot-password", "/reset-password", "/join", "/support", "/api/onboarding/register", "/api/onboarding/verify-email", "/api/onboarding/forgot-password", "/api/onboarding/reset-password"]);
 const publicAsset = /\.(?:css|js|map|svg|png|jpg|jpeg|webp|ico|woff2?)$/i;
 
 function enforceLocalBrowserRequests<T extends Response>(response: T): T {
   response.headers.set("Content-Security-Policy", "connect-src 'self'");
+  if (selfServiceEnabled()) {
+    response.headers.set("Content-Security-Policy", "connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("X-Frame-Options", "DENY");
+  }
   if (readingGroupsEnabled()) noStore(response);
   return response;
 }
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (pathname === "/api/onboarding/config") return enforceLocalBrowserRequests(NextResponse.next());
+  if (onboardingPublicPaths.has(pathname)) {
+    return enforceLocalBrowserRequests(selfServiceEnabled() ? NextResponse.next() : new NextResponse("Sayfa bulunamadı.", { status: 404 }));
+  }
   if (!pathname.startsWith("/api/") && publicAsset.test(pathname)) return NextResponse.next();
   if (publicPaths.has(pathname) && pathname !== "/login") return NextResponse.next();
 

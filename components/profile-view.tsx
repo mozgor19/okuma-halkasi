@@ -499,7 +499,7 @@ export function ProfileView({
         </label>
       </section>
 
-      <ReadingGroupSwitcher disabled={busy || avatarBusy} />
+      <ReadingGroupSwitcher disabled={busy || avatarBusy} isAdmin={isAdminRole(member.role)} />
       <Tabs defaultValue="overview" className="profile-tabs">
         <TabsList variant="line" aria-label="Profil bölümleri">
           <TabsTrigger value="overview">Özet</TabsTrigger>

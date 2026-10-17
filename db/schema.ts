@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { blob, check, integer, sqliteTable, text, primaryKey, unique } from "drizzle-orm/sqlite-core";
+import { blob, check, integer, sqliteTable, text, primaryKey, unique, index } from "drizzle-orm/sqlite-core";
 
 export const members = sqliteTable("members", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -47,6 +47,62 @@ export const readingGroupMemberships = sqliteTable("reading_group_memberships", 
   check("reading_group_memberships_scheme", sql`${table.scheme} IN ('editorial', 'catalogue', 'notebook', 'minimal')`),
   check("reading_group_memberships_color_mode", sql`${table.colorMode} IN ('light', 'dark', 'system')`),
 ]);
+
+export const accountProfiles = sqliteTable("account_profiles", {
+  memberId: integer("member_id").primaryKey().notNull().references(() => memberAccounts.memberId),
+  email: text("email").notNull().unique(),
+  verifiedAt: integer("verified_at").notNull(),
+  policyVersion: text("policy_version").notNull(),
+});
+export const pendingRegistrations = sqliteTable("pending_registrations", {
+  tokenHash: text("token_hash").primaryKey().notNull(), email: text("email").notNull(),
+  username: text("username").notNull(), name: text("name").notNull(),
+  passwordHash: text("password_hash").notNull(), passwordSalt: text("password_salt").notNull(),
+  passwordIterations: integer("password_iterations").notNull(), expiresAt: integer("expires_at").notNull(),
+  consumedAt: integer("consumed_at"), memberId: integer("member_id").references(() => members.id),
+}, (table) => [index("pending_registrations_expiry").on(table.expiresAt)]);
+export const accountRecoveryTokens = sqliteTable("account_recovery_tokens", {
+  tokenHash: text("token_hash").primaryKey().notNull(),
+  memberId: integer("member_id").notNull().references(() => memberAccounts.memberId),
+  sessionVersion: integer("session_version").notNull(), expiresAt: integer("expires_at").notNull(), consumedAt: integer("consumed_at"),
+});
+export const accountEmailVerifications = sqliteTable("account_email_verifications", {
+  tokenHash: text("token_hash").primaryKey().notNull(),
+  memberId: integer("member_id").notNull().references(() => memberAccounts.memberId),
+  email: text("email").notNull(), sessionVersion: integer("session_version").notNull(),
+  expiresAt: integer("expires_at").notNull(), consumedAt: integer("consumed_at"),
+});
+export const securityRateLimits = sqliteTable("security_rate_limits", {
+  key: text("key").primaryKey().notNull(), count: integer("count").notNull(), expiresAt: integer("expires_at").notNull(),
+});
+export const developmentMail = sqliteTable("development_mail", {
+  id: text("id").primaryKey().notNull(), recipient: text("recipient").notNull(), subject: text("subject").notNull(),
+  body: text("body").notNull(), expiresAt: integer("expires_at").notNull(),
+});
+export const groupProvisioning = sqliteTable("group_provisioning", {
+  groupId: text("group_id").primaryKey().notNull().references(() => readingGroups.id),
+  ownerId: integer("owner_id").notNull().references(() => members.id), requestKey: text("request_key").notNull(),
+  state: text("state", { enum: ["pending", "ready"] }).notNull().default("pending"), createdAt: integer("created_at").notNull(),
+}, (table) => [unique().on(table.ownerId, table.requestKey), check("group_provisioning_state", sql`${table.state} IN ('pending', 'ready')`)]);
+export const groupInvitations = sqliteTable("group_invitations", {
+  id: text("id").primaryKey().notNull(), groupId: text("group_id").notNull().references(() => readingGroups.id),
+  tokenHash: text("token_hash").notNull().unique(), createdBy: integer("created_by").notNull().references(() => members.id),
+  createdAt: integer("created_at").notNull(), expiresAt: integer("expires_at").notNull(),
+  maxUses: integer("max_uses").notNull(), revokedAt: integer("revoked_at"),
+}, (table) => [check("group_invitations_max_uses", sql`${table.maxUses} BETWEEN 1 AND 100`)]);
+export const groupInvitationRedemptions = sqliteTable("group_invitation_redemptions", {
+  accountMemberId: integer("account_member_id").notNull().references(() => members.id),
+  groupId: text("group_id").notNull().references(() => readingGroups.id),
+  invitationId: text("invitation_id").notNull().references(() => groupInvitations.id),
+  state: text("state", { enum: ["pending", "ready"] }).notNull().default("pending"), createdAt: integer("created_at").notNull(),
+}, (table) => [primaryKey({ columns: [table.accountMemberId, table.groupId] }), index("group_invitation_redemptions_invite").on(table.invitationId), check("group_invitation_redemptions_state", sql`${table.state} IN ('pending', 'ready')`)]);
+export const groupAccountLinks = sqliteTable("group_account_links", {
+  accountMemberId: integer("account_member_id").primaryKey().notNull(),
+  memberId: integer("member_id").notNull().unique().references(() => members.id),
+});
+export const groupDatabaseOwnership = sqliteTable("group_database_ownership", {
+  singleton: integer("singleton").primaryKey().notNull(), groupId: text("group_id").notNull().unique(),
+}, (table) => [check("group_database_ownership_singleton", sql`${table.singleton} = 1`)]);
 
 export const books = sqliteTable("books", {
   id: integer("id").primaryKey({ autoIncrement: true }),

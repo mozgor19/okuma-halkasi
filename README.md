@@ -1,5 +1,10 @@
 # Okuma Halkası
 
+Webde e-posta doğrulamalı kayıt, grup kurma ve davetle katılma için
+[web hesap/grup rehberi](docs/WEB_ONBOARDING.md). Ayrı yerel deneme:
+`corepack pnpm self-service:dev`, ardından http://127.0.0.1:5184/register.
+Canlı e-posta ve kayıt, yapılandırma ve staging kabulü tamamlanana kadar kapalıdır.
+
 Altı kişilik haftalık okuma grubu için Türkçe, tam yığın bir web uygulaması.
 
 ## Mobil dönüşüm

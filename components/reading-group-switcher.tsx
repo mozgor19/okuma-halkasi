@@ -2,9 +2,12 @@
 
 import { UserSwitch } from "@/components/icons";
 import { groupsPath, useReadingGroup } from "@/lib/group-client";
+import { useOnboardingConfig } from "@/components/onboarding";
+import { GroupInvitations } from "@/components/group-invitations";
 
-export function ReadingGroupSwitcher({ disabled = false }: { disabled?: boolean }) {
+export function ReadingGroupSwitcher({ disabled = false, isAdmin = false }: { disabled?: boolean; isAdmin?: boolean }) {
   const group = useReadingGroup();
+  const onboarding = useOnboardingConfig();
   if (!group) return null;
   return (
     <section className="profile-section" aria-label="Okuma grubu">
@@ -16,6 +19,7 @@ export function ReadingGroupSwitcher({ disabled = false }: { disabled?: boolean 
         onClick={() => { window.location.assign(groupsPath("/")); }}>
         <UserSwitch size={17} /> Grup değiştir
       </button>
+      {onboarding?.enabled && <><a className="small-link onboarding-command" href="/groups/manage">Gruplarımı yönet · Grup kur veya katıl</a>{isAdmin && <GroupInvitations groupId={group.id} disabled={disabled} />}</>}
     </section>
   );
 }

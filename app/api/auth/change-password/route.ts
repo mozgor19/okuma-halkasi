@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { changeMemberPassword } from "@/db/accounts";
 import { getAuthenticatedMember } from "@/db/store";
-import { noStore, readingGroupsEnabled } from "@/lib/groups";
+import { noStore, readingGroupErrorResponse, readingGroupsEnabled } from "@/lib/groups";
+import { jsonBody, rateLimit, sameOrigin, selfServiceEnabled } from "@/lib/onboarding-security";
 import {
   createSessionToken,
   SESSION_COOKIE,
@@ -11,11 +12,17 @@ import {
 export const runtime = "edge";
 
 export async function POST(request: Request) {
-  const response = await handlePOST(request);
-  return readingGroupsEnabled() ? noStore(response) : response;
+  try {
+    const response = await handlePOST(request);
+    return readingGroupsEnabled() ? noStore(response) : response;
+  } catch (error) { return readingGroupErrorResponse(error); }
 }
 
 async function handlePOST(request: Request) {
+  if (selfServiceEnabled()) {
+    sameOrigin(request);
+    await rateLimit(request, "password-change-ip", 30);
+  }
   const origin = request.headers.get("origin");
   if (origin && origin !== new URL(request.url).origin) {
     return NextResponse.json({ error: "Geçersiz istek kaynağı." }, { status: 403 });
@@ -25,8 +32,9 @@ async function handlePOST(request: Request) {
   if (!member) {
     return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
   }
+  if (selfServiceEnabled()) await rateLimit(request, "password-change-account", 10, 900, String(member.id));
 
-  const body = await request.json().catch(() => null) as {
+  const body = (selfServiceEnabled() ? await jsonBody(request) : await request.json().catch(() => null)) as {
     currentPassword?: unknown;
     newPassword?: unknown;
     confirmPassword?: unknown;

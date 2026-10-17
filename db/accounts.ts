@@ -118,13 +118,9 @@ export async function authenticateAccount(usernameInput: string, password: strin
       account.passwordIterations,
     );
     if (!valid) {
-      const failedAttempts = account.failedAttempts + 1;
-      const lockedUntil = failedAttempts >= 5
-        ? new Date(Date.now() + 15 * 60 * 1000).toISOString()
-        : null;
       await identityDatabase().prepare(
-        "UPDATE member_accounts SET failed_attempts = ?, locked_until = ? WHERE member_id = ?",
-      ).bind(failedAttempts, lockedUntil, account.memberId).run();
+        "UPDATE member_accounts SET failed_attempts = failed_attempts + 1, locked_until = CASE WHEN failed_attempts + 1 >= 5 THEN ? ELSE locked_until END WHERE member_id = ?",
+      ).bind(new Date(Date.now() + 15 * 60 * 1000).toISOString(), account.memberId).run();
       return null;
     }
 
@@ -216,7 +212,8 @@ export async function changeMemberPassword(
   }
 
   const passwordRecord = await hashPassword(newPassword);
-  await identityDatabase().prepare(`
+  // A simultaneous recovery must not let an older password record reuse a session version.
+  const updated = await identityDatabase().prepare(`
     INSERT INTO member_accounts (
       member_id, username, password_hash, password_salt, password_iterations,
       session_version, failed_attempts, locked_until, password_changed_at
@@ -225,10 +222,12 @@ export async function changeMemberPassword(
       password_hash = excluded.password_hash,
       password_salt = excluded.password_salt,
       password_iterations = excluded.password_iterations,
-      session_version = excluded.session_version,
+      session_version = member_accounts.session_version + 1,
       failed_attempts = 0,
       locked_until = NULL,
       password_changed_at = CURRENT_TIMESTAMP
+    WHERE member_accounts.session_version = ? AND member_accounts.password_hash = ?
+    RETURNING session_version AS sessionVersion
   `).bind(
     memberId,
     username,
@@ -236,7 +235,10 @@ export async function changeMemberPassword(
     passwordRecord.salt,
     passwordRecord.iterations,
     nextVersion,
-  ).run();
+    account?.sessionVersion ?? 0,
+    account?.passwordHash ?? "",
+  ).first<{ sessionVersion: number }>();
 
-  return { ok: true, sessionVersion: nextVersion };
+  if (!updated) return { ok: false, reason: "invalid-current", error: "Hesap bilgileri değişti. Yeniden giriş yapıp tekrar dene." };
+  return { ok: true, sessionVersion: updated.sessionVersion };
 }

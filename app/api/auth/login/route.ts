@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { authenticateAccount, passwordRehashRequired } from "@/db/accounts";
 import { getMember } from "@/db/store";
 import { identityDatabase } from "@/db/database";
+import { jsonBody, rateLimit, sameOrigin, selfServiceEnabled } from "@/lib/onboarding-security";
 import {
   accountReadingGroups,
   groupCookieOptions,
@@ -32,7 +33,15 @@ async function handlePOST(request: Request) {
     return NextResponse.json({ error: configurationIssue }, { status: 503 });
   }
 
-  const body = await request.json().catch(() => null) as { username?: unknown; password?: unknown } | null;
+  let body: { username?: unknown; password?: unknown } | null;
+  try {
+    if (selfServiceEnabled()) {
+      sameOrigin(request);
+      await rateLimit(request, "login-ip", 30);
+    }
+    body = (selfServiceEnabled() ? await jsonBody(request) : await request.json().catch(() => null)) as typeof body;
+    if (selfServiceEnabled()) await rateLimit(request, "login-username", 15, 900, typeof body?.username === "string" ? body.username.trim().toLowerCase().slice(0, 40) : "invalid");
+  } catch (error) { return readingGroupErrorResponse(error); }
   const username = typeof body?.username === "string" ? body.username : "";
   const password = typeof body?.password === "string" ? body.password : "";
   if (!username || username.length > 40 || !password || password.length > 200) {
@@ -46,10 +55,10 @@ async function handlePOST(request: Request) {
       return NextResponse.json({ error: "Kullanıcı adı veya şifre yanlış." }, { status: 401 });
     }
 
-    const groups = readingGroupsEnabled() ? await accountReadingGroups(account.memberId) : null;
+    const groups = readingGroupsEnabled() ? await accountReadingGroups(account.memberId, selfServiceEnabled()) : null;
     if (!groups) await legacyAccountReadingGroup(account.memberId);
     const response = NextResponse.json(groups
-      ? { ok: true, next: groups.length === 1 ? "/" : "/groups" }
+      ? { ok: true, next: groups.length === 1 ? "/" : "/groups", ...(selfServiceEnabled() ? { selfService: true } : {}) }
       : { ok: true });
     if (groups) {
       const groupId = groups.length === 1 ? groups[0].id : null;
