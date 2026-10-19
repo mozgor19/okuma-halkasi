@@ -47,6 +47,36 @@ test("Mutations reject missing and cross-site origins, regardless of cookies", (
   assert.doesNotThrow(() => security.sameOrigin(local()));
   for (const headers of [{}, { Origin: "https://evil.example" }, { Origin: "http://127.0.0.1:5184", "Sec-Fetch-Site": "cross-site" }]) assert.throws(() => security.sameOrigin(new Request(local().url, { method: "POST", headers })), /kaynağı/);
 });
+test("staging requires a private exact email allowlist even with working email and Turnstile", () => {
+  const remote = new Request("https://app.example.com/api/onboarding/register");
+  env.STAGING_ENVIRONMENT = "true";
+  try {
+    assert.equal(security.onboardingConfiguration(remote).ready, false);
+    assert.throws(() => security.requireTestEmail("reader@example.com"), /eksik/);
+    for (const invalid of ["[]", "not-json", '["Reader@example.com"]', '["reader@example.com","reader@example.com"]', '["@example.com"]']) {
+      env.SELF_SERVICE_TEST_EMAILS = invalid;
+      assert.equal(security.onboardingConfiguration(remote).ready, false);
+    }
+    env.SELF_SERVICE_TEST_EMAILS = '["reader@example.com"]';
+    const config = security.onboardingConfiguration(remote);
+    assert.equal(config.ready, true); assert.equal(config.restrictedTest, true);
+    assert.equal(JSON.stringify(config).includes("reader@example.com"), false);
+    assert.doesNotThrow(() => security.requireTestEmail("READER@example.com"));
+    for (const address of ["other@example.com", "reader+anything@example.com", "reader@example.com.evil.org", null]) assert.throws(() => security.requireTestEmail(address), /izin/);
+    env.STAGING_ENVIRONMENT = "false";
+    assert.throws(() => security.requireTestEmail("reader@example.com"), /eksik/);
+  } finally { delete env.STAGING_ENVIRONMENT; delete env.SELF_SERVICE_TEST_EMAILS; }
+});
+test("unapproved staging recipients cannot register, recover, link or enqueue email", async () => {
+  env.STAGING_ENVIRONMENT = "true"; env.SELF_SERVICE_TEST_EMAILS = '["reader@example.com"]';
+  try {
+    const accounts = load("db/onboarding-accounts");
+    await assert.rejects(accounts.registerAccount(local(), { name: "Test Reader", username: "new.reader", email: "outsider@example.com", password: "Sample-Password-9324", acceptedPolicy: true }), /izin/);
+    await assert.rejects(accounts.requestRecovery(local(), "outsider@example.com"), /izin/);
+    await assert.rejects(accounts.linkAccountEmail(local(), 1, { email: "outsider@example.com", password: "Sample-Password-9324" }), /izin/);
+    await assert.rejects(load("lib/account-mail").deliverAccountMail(local(), "outsider@example.com", "verify", "a".repeat(64)), /izin/);
+  } finally { delete env.STAGING_ENVIRONMENT; delete env.SELF_SERVICE_TEST_EMAILS; }
+});
 test("JSON parser bounds streamed bodies, media types and object shapes", async () => {
   assert.deepEqual(await security.jsonBody(local()), {});
   for (const body of ["[]", "null", "invalid", JSON.stringify({ data: "x".repeat(9000) })]) await assert.rejects(security.jsonBody(new Request(local().url, { method: "POST", headers: { "Content-Type": "application/json" }, body })));

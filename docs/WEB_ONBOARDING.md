@@ -1,8 +1,21 @@
 # Web kayit ve grup yonetimi
 
 17 Ekim 2026. Once web icindir. Canli SQL/deploy, gercek e-posta gonderimi veya
-yeni native Android/iOS kabul testi yapilmaz. Marka adi henuz kararlastirilmadi;
+yeni native Android/iOS kabul testi yapilmaz. Urun adi Koru olarak belirlendi;
 secili okuma grubunun adi uygulama markasindan ayri kalir.
+
+18 Ekim 2026: ayri HTTPS [staging ortami](STAGING.md) ve Gmail gonderimi kuruldu.
+Bes D1 yalniz deneme verisi icindir; ikisi yeni grup kurma havuzudur. Kisitli
+kayit/kurtarma `staging:prepare --onboarding` ile acilir. Sunucu tarafindaki
+`SELF_SERVICE_TEST_EMAILS` Secret'i olmadan staging hazir sayilmaz. Yalniz
+isletmecinin destek kutusu ve iki sabit +deneme adresi kullanilir. Normal kayit,
+kurtarma, eski hesaba e-posta ekleme, dogrulama, grup kurma/katilma ve e-posta
+gonderimi bu izin listesini denetler. Liste tarayici config'ine verilmez.
+Gercek Turnstile zorunludur; public hostta test anahtari veya yerel posta bypass'i yoktur.
+`/privacy`, `/terms` ve `/support` hizmeti sunan Mustafa Ozgor bilgisiyle eklenmistir.
+Metinler sinirli deneme icindir; hukuki uygunluk veya genel yayin onayi degildir.
+HTTPS uzerinde gercek kayit ve kurtarma baglantisinin alicida acilmasi ayri
+manuel kabul adimidir. Yerel posta testleri bunun yerine sayilmaz.
 
 ## Yerel deneme
 
@@ -50,11 +63,30 @@ loopback ve acik sunucu bayraklariyla calisir; public hostta kullanilamaz.
    Yenileme tum eski oturumlari ve ayni surumdeki diger yenileme linklerini iptal eder.
    Normal sifre degisimiyle eszamanli yarista surum geri alinamaz; eski parola
    kaydi degismisse normal guncelleme compare-and-swap ile reddedilir.
+   Profil > Guvenlik'teki normal sifre degisimi mevcut sifreyle onaylanir;
+   bu islem e-posta dogrulama postasi gondermez. Dugme yalniz islem surerken
+   pasiftir; eksik alanlar tarayici dogrulamasi, hatali parola/eslesme ise
+   gorunur hata ile belirtilir. E-postayla kurtarma icin buradaki Sifremi
+   unuttum baglantisi kullanilir; self-service kapaliyken baglanti gosterilmez.
 8. Eski hesap `/account` uzerinden mevcut sifreyle e-posta ekler; hesap tasinmaz.
    Ad/e-posta benzerligiyle hesap birlestirilmez. Dogrulanmis e-posta olmadan
    yeni grup/davet kurulamaz veya davete katilinmaz; mevcut grup girisleri korunur.
 9. `/support` yapilandirilan destek adresine baglanir. Gercek posta kutusu veya
    ticket sistemi yaratmaz; adres eksikse bunu acikca gosterir.
+10. Grup yonetimi ve e-posta ekleme ekranlari oturumdaki ad/kullanici adini
+    gosterir; hesaplar e-posta benzerligiyle birlestirilmez. E-posta durumu
+    sekmeye geri donuste, sayfa geri yuklemesinde veya acik yenileme komutuyla
+    sunucudan tekrar okunur. Formdaki grup adi korunur. Bilgi alinamazsa
+    dogrulanmamis gibi yanlis bir bildirim yapilmaz; hata gosterilir ve grup
+    kurma kapali kalir. Zaten dogrulanmis hesap yeniden e-posta baglamaya
+    yonlendirilmez. Oturum sona ermisse girise donulur; cikis dugmesi yanlis
+    hesaptaki oturumu guvenle kapatmayi saglar. Backend dogrulama sarti korunur.
+11. Profildeki grup komutlari ve davet calisma alani ortak semantik renkleri
+    kullanir; Defter'in cerceveli komut ve satir duzeni semaya ozel kalir.
+    Davet kayitlari aktif, dolu, suresi dolmus ve iptal edilmis durumlari ayirir.
+    Liste yeniden acilinca guncellenir; sadece iptal edilen baglantinin acik
+    sonucu temizlenir. Kopyalama sonucu kontrol boyutunu degistirmez.
+    Davet kodlari kabul ekran goruntulerine veya raporlara yazilmaz.
 
 ## Guvenlik
 
@@ -115,22 +147,31 @@ kanonik parola/hesap kaydi tasinmaz. Canliya yerel setup/demo SQL uygulama.
 
 ## Canli E-posta
 
-Gercek destek kutusu, alan adi, Resend/Turnstile hesabi kod tarafindan acilmadi.
-Marka/alan adi kararlastiktan sonra:
+Destek kutusu `koru.destek@gmail.com` kullanici tarafindan acildi. Gmail API ile
+yalniz gonderme izni olan, staging'e ozel OAuth baglantisi desteklenir;
+kurulum ve kontrollu deneme [GMAIL_SETUP.md](GMAIL_SETUP.md) icindedir. Ucretli
+kaynak veya ozel alan adi otomatik olusturulmaz. Canli yayin oncesinde:
 
 1. Gercek gelen kutusu olan destek adresini kur; MFA/yetkileri ayarla. Otomatik
    posta gonderim servisi tek basina destek gelen kutusu degildir.
-2. Resend gonderici alan adini dogrula; DNS/SPF/DKIM/DMARC ve posta almayi test et.
+2. Alan adiyla Resend kullanilacaksa gonderici alan adini dogrula;
+   DNS/SPF/DKIM/DMARC ve posta almayi test et.
    Auth postalarinda link/acilma takibini kapat. API key yalniz ilgili alan
    adinda gonderim yetkisiyle sinirli olsun.
 3. `AUTH_PUBLIC_ORIGIN` (tam HTTPS origin), `APPLICATION_BRAND`, `SUPPORT_EMAIL`,
    `MAIL_FROM` (yalin e-posta), `PRIVACY_POLICY_URL`, `TERMS_URL`,
-   `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY` sunucuda ayarlanir.
+   `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` sunucuda ayarlanir. Resend icin
+   `RESEND_API_KEY`; staging Gmail icin `ACCOUNT_MAIL_PROVIDER=gmail` ve tek JSON
+   `GMAIL_CREDENTIALS` Worker Secret'i gerekir. Saglayici belirtilmezse eski
+   Resend davranisi korunur. Eksik/bilinmeyen Gmail ayari Resend'e dusmez.
    Sirlar Worker Secret'tir, repoya/pakete konmaz. Canlida `SELF_SERVICE_LOCAL` kapali.
 4. Staging ve canli icin ayri DB/anahtar/gonderici kullan; gercek posta, bounce,
    spam, kesinti, rate-limit ve parola kurtarmayi HTTPS staging'de kabul et.
-   Gonderim uc kez idempotent denenir; kalici kuyruk degildir. Son hata sanitize
-   edilmis loga gider. Operator alarmi ve yeniden gonderim/olay sureci zorunludur.
+   Resend ayni idempotency anahtariyla en fazla uc kez denenir. Gmail'de belirsiz
+   gonderim hatasi otomatik tekrarlanmaz; sadece gonderim oncesi gecici refresh
+   hatalari veya kesin 401 tekrar denenebilir. Kalici kuyruk degildir. Son hata
+   sanitize edilmis loga gider. Operator alarmi ve yeniden gonderim/olay sureci
+   zorunludur. Google Testing yetkisi 7 gunluk oldugundan kalici canli kabul sayilmaz.
 5. Gercek veri sorumlusu ile gizlilik, kullanim kosullari, destek, saklama/silme
    sureclerini hazirla. Sema/yedek, staging ve bagimsiz guvenlik kabulunden sonra
    bayragi kontrollu ac. Bu belge canli yayin veya SQL uygulama izni degildir.
@@ -144,6 +185,10 @@ Origin/govde/parola, dogrulama/kurtarma, eski hesap e-posta ekleme, bos/tek/cok
 grup, eszamanli son yer, retry, yetki/izolasyon, iptal/sure/pasif uyelik,
 kapasite ve dort semanin iki modu kapsanir. Gercek posta ve yeni native kabul
 yerel web testi yerine sayilamaz.
+Grup/davet alani ayrica 390px ve 1440px genislikte dort sema x acik/koyu
+matrisinde hedef boyutu, tasma ve gercek hesaplanmis renklerle metin/kontrol
+kontrastini denetler. Klavye acma/kapama, kopyalama ve pano hatasi, istekte
+kilitlenen form, iptal ve katilimciya yonetici komutlarini gostermeme kapsanir.
 
 Kaynaklar: [D1 batch](https://developers.cloudflare.com/d1/worker-api/d1-database/),
 [Turnstile](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/),

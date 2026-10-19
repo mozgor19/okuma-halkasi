@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { BookOpen, LockKeyhole, UserRound } from "@/components/icons";
+import { LockKeyhole, UserRound } from "@/components/icons";
+import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { groupsPath, safeReturnPath } from "@/lib/group-client";
@@ -45,7 +46,7 @@ export default function LoginPage() {
     <main className="login-page">
       <section className="login-panel" aria-labelledby="login-title">
         <div className="login-brand">
-          <span><BookOpen size={26} strokeWidth={1.7} /></span>
+          <span><BrandMark size={26} /></span>
           <strong><GroupName accentElement="em" /></strong>
         </div>
         <div className="login-copy">

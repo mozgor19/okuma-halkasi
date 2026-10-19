@@ -54,6 +54,19 @@ export const accountProfiles = sqliteTable("account_profiles", {
   verifiedAt: integer("verified_at").notNull(),
   policyVersion: text("policy_version").notNull(),
 });
+export const accountExperience = sqliteTable("account_experience", {
+  memberId: integer("member_id").primaryKey().notNull().references(() => memberAccounts.memberId),
+  tourVersion: integer("tour_version").notNull(),
+  tourState: text("tour_state", { enum: ["completed", "dismissed"] }).notNull(),
+  updatedAt: integer("updated_at").notNull(),
+}, (table) => [check("account_experience_version", sql`${table.tourVersion} > 0`), check("account_experience_state", sql`${table.tourState} IN ('completed', 'dismissed')`)]);
+export const accountDeletionRequests = sqliteTable("account_deletion_requests", {
+  id: text("id").primaryKey().notNull(),
+  memberId: integer("member_id").notNull().unique().references(() => memberAccounts.memberId),
+  status: text("status", { enum: ["requested", "processing", "cancelled", "completed"] }).notNull().default("requested"),
+  requestedAt: integer("requested_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+}, (table) => [index("account_deletion_requests_status").on(table.status, table.requestedAt), check("account_deletion_requests_state", sql`${table.status} IN ('requested', 'processing', 'cancelled', 'completed')`)]);
 export const pendingRegistrations = sqliteTable("pending_registrations", {
   tokenHash: text("token_hash").primaryKey().notNull(), email: text("email").notNull(),
   username: text("username").notNull(), name: text("name").notNull(),

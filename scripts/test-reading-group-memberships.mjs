@@ -1,20 +1,15 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { request } from "playwright";
 import { groupsConfigPath, groupsSettingsPath, groupsStatePath, testOrigin, legacyOrigin } from "./test-environment.mjs";
+import { localTestSql } from "./local-d1-test.mjs";
 
 const config = groupsConfigPath;
 const bindings = JSON.parse(readFileSync(config, "utf8")).d1_databases;
 assert.equal(bindings.find((item) => item.binding === "DB")?.database_id, "11111111-1111-4111-8111-111111111111");
 const { password } = JSON.parse(readFileSync(groupsSettingsPath, "utf8"));
 function sql(command) {
-  const result = JSON.parse(execFileSync(process.execPath, ["node_modules/wrangler/bin/wrangler.js", "d1", "execute", "DB", "--local", "--config", config,
-    "--persist-to", groupsStatePath, "--command", command, "--json"], {
-    encoding: "utf8", timeout: 30_000, env: { ...process.env, WRANGLER_SEND_METRICS: "false", CLOUDFLARE_CF_FETCH_ENABLED: "false" },
-  }));
-  assert.ok(result.every((item) => item.success));
-  return result[0].results;
+  return localTestSql({ config, persistTo: groupsStatePath, command });
 }
 const main = await request.newContext({ baseURL: testOrigin });
 const legacy = await request.newContext({ baseURL: legacyOrigin });

@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "Koru",
+  "short_name": "Koru",
+  "description": "Birlikte oku, düşün, paylaş.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fffdf7",
+  "theme_color": "#172d45",
+  "categories": ["books", "social"],
+  "icons": [
+    { "src": "/brand/koru-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/koru-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/koru-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

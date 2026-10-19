@@ -3,7 +3,13 @@
 17 Ekim 2026. Bu belge kaynak kodun veri envanteridir; yayinlanmis bir gizlilik
 politikasi veya hukuki uygunluk onayi degildir. Canli Cloudflare hesabi, D1
 bolgesi, kullanim plani, yedekleri ve mevcut migration'lar uzaktan dogrulanmadi.
-Kullanicinin staging/canli HTTPS adresleri henuz belirli degil.
+18 Ekim guncellemesi: canli adres `okuma-halkasi.mustafayapayzeka.workers.dev`,
+ayri test adresi `koru-staging.mustafayapayzeka.workers.dev` olarak belirlendi.
+Bes test D1'inin kimlikleri ve migration marker'lari dogrulandi; bu canli DB
+migration/bolge dogrulamasi degildir. Gmail yalniz staging'e ozel, gonderme
+izniyle baglandi; tek deneme postasi Gelen Kutusu'nda operatorce dogrulandi.
+Hizmeti sunan Mustafa Ozgor, destek `koru.destek@gmail.com` olarak belirtildi.
+Hukuki sayfalar sinirli deneme kapsamindadir; genel yayin uygunlugu degildir.
 
 ## Veri nerede durur?
 
@@ -11,7 +17,9 @@ Kullanicinin staging/canli HTTPS adresleri henuz belirli degil.
 bekleyen kayitlarin gecici parola hashleri, dogrulama/kurtarma/davet ozetleri,
 HMAC'li deneme sayaclari ve grup provizyonlama durumlarini da tutar. Yerel
 posta kutusu sadece loopback gelistirmede asil e-posta/token govdesi tutar;
-canlida Resend ve alicinin posta saglayicisi yeni veri isleyen taraflardir.
+uzak ortamda secilen saglayici (staging Gmail/Google, alternatif Resend) ve
+alicinin posta saglayicisi yeni veri isleyen taraflardir. Destek yazismalari
+Gmail kutusunda tutulur. Gmail yetkisi posta okumayi kapsamaz.
 Yeni akis, saklama/silme ve saglayici sozlesmesi incelemesi gerektirir.
 [Ayrintilar](WEB_ONBOARDING.md). Hesap silme istegi bu yeni tablolari da kapsamali.
 
@@ -115,6 +123,23 @@ okumadan tumunu "paylasilmiyor" diye varsayma.
 [Resmi Data safety rehberi](https://support.google.com/googleplay/android-developer/answer/10787469).
 
 ## Yayin oncesi tamamlanacak veri haklari
+
+19 Ekim eklemesi: `0011_account_experience.sql` yalniz kanonik DB'ye iki
+tablo ekler. `account_experience` tur surumu/tamamla-ertele tercihini;
+`account_deletion_requests` hesap kimligi, rastgele basvuru numarasi,
+durum ve zamanlari tutar. Parola veya yeni bir e-posta kopyasi saklanmaz.
+Silme istegi mevcut sifreyle yeniden dogrulanir, ayni origin/oturum ve
+kalici deneme limiti ister; tekrar ayni aktif talebi dondurur. Inceleme
+baslamadan ayni dogrulamayla iptal edilebilir. API hesap kimligini URL,
+grup veya govdeden almaz. Posta saglayicisinin calismasina bagli degildir.
+Yeni SQL yalniz izole yerel fixture'larda uygulanmistir. Eksik tabloda
+eski giris/grup akisina dokunulmaz; destek e-postasi basvuru yolu kalir.
+
+Bu bir **talep kaydi**, otomatik kalici silme degildir. Destek kuyrugunun
+izlenmesi, sureli yanit/saklama politikasi ve asagidaki coklu-D1 silme
+islemi tamamlanmadan genel yayin acilmaz. Talep olusmasi destek adresine
+otomatik e-posta gonderildigi anlamina da gelmez. Isletici bekleyen
+`requested` kayitlarini takip edecek korumali operasyon akisina ihtiyac duyar.
 
 1. Veri sorumlusunun gercek adi, iletisim/destek ve guvenlik sorumlusu belirlenmeli.
 2. Gizlilik ve kullanim kosullari herkese acik HTTPS sayfasinda ve uygulama icinde

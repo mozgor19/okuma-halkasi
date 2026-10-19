@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/compon
 import type { AppData } from "@/lib/types";
 import { groupUrl, useReadingGroup } from "@/lib/group-client";
 import { isNativeApp, nativeNotificationPermission, nativeNotificationsSupported, showNativeNotification } from "@/lib/native-bridge";
+import { useKoruBrand } from "@/components/group-branding";
 
 export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
   data: AppData;
@@ -17,6 +18,7 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
   const [native, setNative] = useState(false);
   const [error, setError] = useState("");
   const group = useReadingGroup();
+  const koru = useKoruBrand();
   const delivered = useRef(new Set<string>());
   const pending = useRef(new Set<string>());
   const notifications = useMemo(() => {
@@ -61,7 +63,7 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
     window.addEventListener("okuma:resume", update);
     if (isNativeApp()) update();
     else if ("Notification" in window && "serviceWorker" in navigator) {
-      void navigator.serviceWorker.register("/sw.js")
+      void navigator.serviceWorker.register(koru ? "/koru-sw.js" : "/sw.js")
         .then(() => { if (active && !isNativeApp()) setPermission(Notification.permission); })
         .catch(() => { if (active && !isNativeApp()) setError("Cihaz bildirimleri başlatılamadı."); });
     }
@@ -70,7 +72,7 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
       window.removeEventListener("okuma:native-ready", update);
       window.removeEventListener("okuma:resume", update);
     };
-  }, []);
+  }, [koru]);
 
   useEffect(() => {
     if (permission !== "granted" || !memberId || group === undefined) return;
@@ -95,8 +97,8 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
         if (!active) return;
         await registration.showNotification(title, {
           body,
-          icon: "/icons/notebook-icon-192.png",
-          badge: "/icons/notebook-icon-192.png",
+          icon: koru ? "/brand/koru-192.png" : "/icons/notebook-icon-192.png",
+          badge: koru ? "/brand/koru-badge-96.png" : "/icons/notebook-icon-192.png",
           tag: key,
           data: { url },
         });
@@ -106,7 +108,7 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
     })().catch(() => { if (active) setError("Cihaz bildirimi gösterilemedi."); })
       .finally(() => { pending.current.delete(key); });
     return () => { active = false; };
-  }, [group, memberId, notifications, permission]);
+  }, [group, koru, memberId, notifications, permission]);
 
   async function enableNotifications() {
     try {

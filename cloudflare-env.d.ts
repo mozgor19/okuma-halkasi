@@ -12,11 +12,17 @@ declare namespace Cloudflare {
     SELF_SERVICE_GROUP_BINDINGS?: string;
     AUTH_PUBLIC_ORIGIN?: string;
     APPLICATION_BRAND?: string;
+    STAGING_ENVIRONMENT?: string;
+    /** Server-only JSON allowlist. Staging self service fails closed without it. */
+    SELF_SERVICE_TEST_EMAILS?: string;
     SUPPORT_EMAIL?: string;
     PRIVACY_POLICY_URL?: string;
     TERMS_URL?: string;
     MAIL_FROM?: string;
     RESEND_API_KEY?: string;
+    ACCOUNT_MAIL_PROVIDER?: string;
+    /** Server-only JSON OAuth credential, never a build variable. */
+    GMAIL_CREDENTIALS?: string;
     TURNSTILE_SITE_KEY?: string;
     TURNSTILE_SECRET_KEY?: string;
   }

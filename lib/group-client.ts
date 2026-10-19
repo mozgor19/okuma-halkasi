@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import type { ReadingGroup } from "@/lib/types";
+import { requireOnline } from "@/lib/network-client";
 export type { ReadingGroup, ReadingGroupsResponse as GroupsResponse } from "@/lib/types";
 
 // Undefined means state has not loaded; null is the legacy, single-club API.
@@ -81,6 +82,7 @@ export function acceptReadingGroup(group?: ReadingGroup | null) {
 }
 
 export async function groupFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  requireOnline();
   if (invalidated) throw new Error("Okuma grubu değişti. Sayfa yenileniyor.");
   const url = new URL(input, window.location.origin);
   if (url.origin !== window.location.origin || !url.pathname.startsWith("/api/")) {
@@ -94,7 +96,9 @@ export async function groupFetch(input: string, init: RequestInit = {}): Promise
   if (groupScoped && readingGroup) headers.set("X-Reading-Group", readingGroup.id);
   pendingRequests += 1;
   try {
-    const response = await fetch(input, { ...init, headers, credentials: "same-origin" });
+    const response = await fetch(input, { ...init, headers, credentials: "same-origin" }).catch(() => {
+      throw new Error("Ağ isteği tamamlanamadı. Sonucu kontrol edip yeniden dene; otomatik tekrar gönderilmedi.");
+    });
     if (response.status === 401) {
       invalidated = true;
       window.location.replace("/login?next=" + encodeURIComponent(currentReturnPath()));

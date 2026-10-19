@@ -4,7 +4,10 @@ import { useEffect, useEffectEvent, useMemo, useRef, useState, type FormEvent } 
 import { Archive, ArrowRight, BookOpen, CalendarDays, CalendarPlus, Camera, Check, ChevronDown, ChevronRight, Compass, Download, ExternalLink, ImagePlus, LogOut, MapPin, Pencil, Plus, Search, Share, Star, Trash2, UserPlus, UserRound, UserSwitch, Users, X } from "@/components/icons";
 import { AttendanceSuggestionDialog } from "@/components/attendance-suggestion-dialog";
 import { AppearanceModeMenu } from "@/components/appearance-mode-menu";
-import { GroupName, useGroupName } from "@/components/group-branding";
+import { BrandMark } from "@/components/brand-mark";
+import { PwaInstallAction } from "@/components/pwa-lifecycle";
+import { GroupName, useGroupName, useKoruBrand } from "@/components/group-branding";
+import { AccountExperienceProvider, TourMenuAction, WelcomeTour } from "@/components/account-experience";
 import { BookEditDialog } from "@/components/book-edit-dialog";
 import { GlobalSearchDialog } from "@/components/global-search-dialog";
 import { NotificationCenter } from "@/components/notification-center";
@@ -22,6 +25,7 @@ import type { FaceMatchCandidate } from "@/lib/face-recognition";
 import { isAdminRole, type AppData, type Book, type Meeting, type Member, type Attendance, readingLabels } from "@/lib/types";
 import { acceptReadingGroup, getReadingGroup, groupFetch, groupRequestPending, groupUrl, meetingPath } from "@/lib/group-client";
 import { isNativeApp, saveFile, shareNative } from "@/lib/native-bridge";
+import { browserOnline } from "@/lib/network-client";
 
 type View = "home" | "archive" | "roadmap" | "meeting" | "profile";
 type AppNavigationState = { view: View; meetingId: number | null; guard?: boolean };
@@ -90,6 +94,11 @@ function BookCover({ book, small = false }: { book: Book; small?: boolean }) {
 }
 
 export default function Home() {
+  const koru = useKoruBrand();
+  return <AccountExperienceProvider enabled={koru}><ReadingApp /></AccountExperienceProvider>;
+}
+
+function ReadingApp() {
   const groupName = useGroupName();
   const [data, setData] = useState<AppData>(emptyData);
   const [view, setView] = useState<View>("home");
@@ -225,6 +234,7 @@ export default function Home() {
   }
 
   const refreshWhenIdle = useEffectEvent(() => {
+    if (!browserOnline()) return;
     if (!loaded.current && document.visibilityState === "visible" && !groupRequestPending()) {
       void reload().catch((cause) => setError(cause instanceof Error ? cause.message : "Kayıtlar yüklenemedi."));
       return;
@@ -237,11 +247,13 @@ export default function Home() {
   useEffect(() => {
     const refresh = () => refreshWhenIdle();
     window.addEventListener("focus", refresh);
+    window.addEventListener("online", refresh);
     window.addEventListener("okuma:resume", refresh);
     document.addEventListener("visibilitychange", refresh);
     const timer = window.setInterval(refresh, 30_000);
     return () => {
       window.removeEventListener("focus", refresh);
+      window.removeEventListener("online", refresh);
       window.removeEventListener("okuma:resume", refresh);
       document.removeEventListener("visibilitychange", refresh);
       window.clearInterval(timer);
@@ -472,8 +484,9 @@ export default function Home() {
   }
 
   return <div className={`app-shell view-${view}`}>
+    <WelcomeTour ready={memberId > 0} name={accountMember.name} groupName={groupName} planCount={data.roadmap.length} meetingCount={data.meetings.length} onNavigate={navigate} />
     <aside className="sidebar">
-      <button className="brand" type="button" onClick={() => navigate("home")} title={groupName}><span className="brand-emblem"><BookOpen size={25} strokeWidth={1.65} /></span><span><span className="group-brand-name"><GroupName accentClassName="brand-accent" /></span><small>kitap kulübü</small></span></button>
+      <button className="brand" type="button" onClick={() => navigate("home")} title={groupName}><span className="brand-emblem"><BrandMark size={25} /></span><span><span className="group-brand-name"><GroupName accentClassName="brand-accent" /></span><small>kitap kulübü</small></span></button>
       <p className="nav-label">KEŞFET</p>
       <nav className="side-nav" aria-label="Ana menü">
         <button className={view === "home" ? "active" : ""} onClick={() => navigate("home")}><BookOpen size={19} /> Ana sayfa</button>
@@ -485,15 +498,15 @@ export default function Home() {
     </aside>
 
     <div className="main-area">
-      <header className="topbar"><button className="mobile-brand" type="button" onClick={() => navigate("home")} aria-label="Ana sayfaya git" title={groupName}><BookOpen size={21} /><span className="group-brand-name"><GroupName accentClassName="brand-accent" /></span></button><div className="breadcrumb"><span className="breadcrumb-group" title={groupName}>{groupName.toLocaleUpperCase("tr-TR")}</span><ChevronRight size={14} /> <strong>{view === "home" ? "Ana sayfa" : view === "roadmap" ? "Gelecek kitaplar" : view === "archive" ? "Buluşmalar" : view === "profile" ? "Profilim" : "Kitap defteri"}</strong></div><div className="topbar-actions"><button type="button" className="topbar-tool" aria-label="Kayıtlarda ara" title="Ara" onClick={() => setSearchOpen(true)}><Search size={18} /></button><NotificationCenter data={data} memberId={memberId} now={now.getTime()} onOpenMeeting={openMeeting} /><AppearanceModeMenu /><DropdownMenu><DropdownMenuTrigger asChild><button type="button" className="person-picker" aria-label="Hesap menüsü"><Avatar member={member} size="small" /><strong>{member.name}{isAdminAccount ? participantView ? " · katılımcı görünümü" : accountMember.role === "super_admin" ? " · ana yönetici" : " · yönetici" : ""}</strong><ChevronDown size={15} /></button></DropdownMenuTrigger><DropdownMenuContent align="end" className="account-menu"><DropdownMenuItem onSelect={() => navigate("profile")}><UserRound /> Profilim</DropdownMenuItem>{isAdminAccount && <DropdownMenuItem onSelect={() => changeViewMode(participantView ? "admin" : "member")}><UserSwitch className="size-4" />{participantView ? "Yönetici görünümüne dön" : "Katılımcı görünümüne geç"}</DropdownMenuItem>}<DropdownMenuSeparator /><DropdownMenuItem onSelect={() => void signOut()}><LogOut /> Çıkış yap</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></header>
+      <header className="topbar"><button className="mobile-brand" type="button" onClick={() => navigate("home")} aria-label="Ana sayfaya git" title={groupName}><BrandMark size={21} /><span className="group-brand-name"><GroupName accentClassName="brand-accent" /></span></button><div className="breadcrumb"><span className="breadcrumb-group" title={groupName}>{groupName.toLocaleUpperCase("tr-TR")}</span><ChevronRight size={14} /> <strong>{view === "home" ? "Ana sayfa" : view === "roadmap" ? "Gelecek kitaplar" : view === "archive" ? "Buluşmalar" : view === "profile" ? "Profilim" : "Kitap defteri"}</strong></div><div className="topbar-actions"><button type="button" className="topbar-tool" aria-label="Kayıtlarda ara" title="Ara" onClick={() => setSearchOpen(true)}><Search size={18} /></button><NotificationCenter data={data} memberId={memberId} now={now.getTime()} onOpenMeeting={openMeeting} /><AppearanceModeMenu /><DropdownMenu><DropdownMenuTrigger asChild><button type="button" className="person-picker" aria-label="Hesap menüsü"><Avatar member={member} size="small" /><strong>{member.name}{isAdminAccount ? participantView ? " · katılımcı görünümü" : accountMember.role === "super_admin" ? " · ana yönetici" : " · yönetici" : ""}</strong><ChevronDown size={15} /></button></DropdownMenuTrigger><DropdownMenuContent align="end" className="account-menu"><DropdownMenuItem onSelect={() => navigate("profile")}><UserRound /> Profilim</DropdownMenuItem><PwaInstallAction /><TourMenuAction />{isAdminAccount && <DropdownMenuItem onSelect={() => changeViewMode(participantView ? "admin" : "member")}><UserSwitch className="size-4" />{participantView ? "Yönetici görünümüne dön" : "Katılımcı görünümüne geç"}</DropdownMenuItem>}<DropdownMenuSeparator /><DropdownMenuItem onSelect={() => void signOut()}><LogOut /> Çıkış yap</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></header>
       <div className="mobile-nav" aria-label="Mobil menü"><button onClick={() => navigate("home")} className={view === "home" ? "active" : ""}><BookOpen size={18} /> Ana sayfa</button><button onClick={() => navigate("archive")} className={view === "archive" || view === "meeting" ? "active" : ""}><Archive size={18} /> Buluşmalar</button><button onClick={() => navigate("roadmap")} className={view === "roadmap" ? "active" : ""}><Compass size={18} /> Plan</button><button onClick={() => navigate("profile")} className={view === "profile" ? "active" : ""}><UserRound size={18} /> Profil</button></div>
       {notice && <div className="success-banner" role="status">{notice}<button aria-label="Bildirimi kapat" onClick={() => setNotice("")}><X size={16} /></button></div>}
       {error && <div className="error-banner" role="alert">{error}<button aria-label="Uyarıyı kapat" onClick={() => setError("")}><X size={16} /></button></div>}
       <main className="content">
         {view === "home" && <>
-          <section className="hero" style={{ backgroundImage: "linear-gradient(90deg, #101f28 1%, #101f28ee 34%, #101f2866 67%, #101f2808 100%), url('/reading-room.png')" }}>
+          <section className="hero" style={{ backgroundImage: "linear-gradient(90deg, #101f28 1%, #101f28ee 34%, #101f2866 67%, #101f2808 100%), url('/reading-room.webp')" }}>
             <div className="hero-copy"><span className="eyebrow light">{heroEyebrow}</span><h1><span className="theme-copy-default">{groupName}</span><span className="theme-copy-notebook">{featuredBook?.title ?? groupName}</span></h1><p className="theme-copy-default">Buluşma, katılım, puan, yorum ve fotoğraflar tek yerde.</p><p className="theme-copy-notebook">{featured?.note || (featuredBook ? `${featuredBook.author} ile aynı masada buluşuyoruz.` : "Yeni okuma kaydını birlikte oluşturalım.")}</p>{isAdminRole(member.role) ? <button className="hero-link" onClick={() => setCreateMode("meeting")}><Plus size={18} /> Yeni buluşma oluştur</button> : featured && <button className="hero-link" onClick={() => openMeeting(featured.id)}>Buluşma kaydını aç <ArrowRight size={18} /></button>}</div>
-            <figure className="notebook-hero-media"><img src="/reading-room.png" alt="Kitaplarla çevrili okuma odası" /><figcaption><span>{featured ? String(new Date(featured.date).getDate()).padStart(2, "0") : "--"}</span><strong>{featured ? dayFormat.format(new Date(featured.date)) : "Yeni buluşma"}</strong><small>{featured?.location ?? "Kitap kulübü"}</small></figcaption></figure>
+            <figure className="notebook-hero-media"><img src="/reading-room.webp" alt="Kitaplarla çevrili okuma odası" /><figcaption><span>{featured ? String(new Date(featured.date).getDate()).padStart(2, "0") : "--"}</span><strong>{featured ? dayFormat.format(new Date(featured.date)) : "Yeni buluşma"}</strong><small>{featured?.location ?? "Kitap kulübü"}</small></figcaption></figure>
             <div className="hero-counter"><span>{String(data.members.filter((person) => !person.isGuest).length).padStart(2, "0")}</span><small>aktif üye</small></div>
           </section>
           <div className="section-top"><div><span className="eyebrow">{featuredEyebrow}</span><h2>{featuredHeading}</h2></div>{featured && <button className="text-link" onClick={() => openMeeting(featured.id)}>Buluşmayı aç <ArrowRight size={17} /></button>}</div>

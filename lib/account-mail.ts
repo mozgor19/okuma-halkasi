@@ -1,23 +1,32 @@
 import { env } from "cloudflare:workers";
 import { after } from "next/server";
 import { identityDatabase } from "@/db/database";
-import { localMail } from "@/lib/onboarding-security";
+import { localMail, requireTestEmail } from "@/lib/onboarding-security";
 import { normalizeEmail, publicHttpsOrigin, tokenHash } from "@/lib/onboarding-policy";
+import { accountMailConfiguration } from "@/lib/mail-configuration";
+import { GmailDeliveryError, sendGmailMail } from "@/lib/gmail-mail";
 
 export async function deliverAccountMail(request: Request, recipient: string, purpose: "verify" | "reset", token: string) {
+  requireTestEmail(recipient);
   if (localMail(request)) return sendAccountMail(request, recipient, purpose, token);
   // Keep provider latency and account existence out of the public response timing.
   // vinext forwards after() work to the Worker's request ExecutionContext.waitUntil.
   after(async () => {
+    let diagnostic = "provider";
     for (let attempt = 0; attempt < 3; attempt++) {
-      try { await sendAccountMail(request, recipient, purpose, token); return; }
-      catch { if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1))); }
+      try { await sendAccountMail(request, recipient, purpose, token); console.info("Account email delivery accepted"); return; }
+      catch (error) {
+        if (error instanceof GmailDeliveryError) diagnostic = `gmail phase=${error.phase} status=${error.status ?? "network"} reason=${error.reason}`;
+        if (error instanceof GmailDeliveryError && !error.retryable) break;
+        if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+      }
     }
-    console.error("Account email delivery failed after retries");
+    console.error("Account email delivery failed", diagnostic);
   });
 }
 
 export async function sendAccountMail(request: Request, recipient: string, purpose: "verify" | "reset", token: string) {
+  requireTestEmail(recipient);
   const origin = localMail(request) ? new URL(request.url).origin : publicHttpsOrigin(env.AUTH_PUBLIC_ORIGIN || "");
   if (!origin) throw new Error("Account email origin is not configured.");
   // Fragments do not reach HTTP access logs or Referer headers. GET never consumes a token.
@@ -32,10 +41,17 @@ export async function sendAccountMail(request: Request, recipient: string, purpo
       .bind(crypto.randomUUID(), recipient, subject, body, Date.now() + 30 * 60_000).run();
     return;
   }
+  const provider = accountMailConfiguration(env);
+  const to = normalizeEmail(recipient), replyTo = normalizeEmail(env.SUPPORT_EMAIL);
+  if (!provider || !to || !replyTo) throw new Error("Account email provider is not configured.");
+  if (provider.provider === "gmail") {
+    await sendGmailMail(provider.credentials, { recipient: to, replyTo, subject, text: body });
+    return;
+  }
   const response = await fetch("https://api.resend.com/emails", {
-    method: "POST", signal: AbortSignal.timeout(10_000),
-    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `${purpose}-${await tokenHash(token)}` },
-    body: JSON.stringify({ from: normalizeEmail(env.MAIL_FROM), to: [recipient], reply_to: normalizeEmail(env.SUPPORT_EMAIL), subject, text: body }),
+    method: "POST", redirect: "manual", signal: AbortSignal.timeout(10_000),
+    headers: { Authorization: `Bearer ${provider.apiKey}`, "Content-Type": "application/json", "Idempotency-Key": `${purpose}-${await tokenHash(token)}` },
+    body: JSON.stringify({ from: provider.from, to: [to], reply_to: replyTo, subject, text: body }),
   });
   if (!response.ok) throw new Error("Account email delivery failed.");
 }

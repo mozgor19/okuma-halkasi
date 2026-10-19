@@ -12,5 +12,6 @@ export async function groupPresentation(request: Request) {
       // Protected pages and APIs handle selection, auth and configuration errors.
     }
   }
-  return { name: enabled ? APPLICATION_NAME : LEGACY_GROUP_NAME, legacy: !enabled, group: null };
+  return { name: enabled ? env.APPLICATION_BRAND?.trim() || APPLICATION_NAME : LEGACY_GROUP_NAME, legacy: !enabled, group: null };
 }
+import { env } from "cloudflare:workers";

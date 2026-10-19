@@ -130,7 +130,9 @@ parola, çerez ve sunucu sırlarını kanıtlara ekleme. Çalıştırma ayrınt�
 [veri envanteri](USER_DATA.md) eklendi. İzole otomatik koşumlar ve CI,
 mağaza onayı değildir. `release:check`, imzalı AAB, aynı temiz kaynak sürümüne
 ait güncel web/Android raporları ve manuel kanıtlar tamamlanmadan yayını reddeder.
-Play Console ve staging/canlı HTTPS ortamları henüz kurulmadı. Gizlilik/veri
+Play Console henüz kurulmadı. 18 Ekim'de ayrı HTTPS staging ve Gmail gönderimi
+kuruldu; bu, yeni native veya gerçek kayıt/kurtarma posta akışı kabulü değildir.
+Deneme kapsamlı gizlilik/koşul sayfaları genel yayın onayı sayılmaz. Gizlilik/veri
 hakları, UGC raporlama, fiziksel cihaz ve release kabulü açık yayın engelleridir.
 
 Bu çalışma geliştirme/test teslimidir, mağaza veya üretim onayı değildir.

@@ -18,7 +18,11 @@ import {
 import { PhotoLightbox } from "@/components/photo-lightbox";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { ReadingGroupSwitcher } from "@/components/reading-group-switcher";
+import { AccountDataRequests } from "@/components/account-experience";
+import { useKoruBrand } from "@/components/group-branding";
+import { useOnboardingConfig } from "@/components/onboarding";
 import { groupFetch, groupUrl } from "@/lib/group-client";
+import { passwordValidationIssue } from "@/lib/password";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -157,6 +161,7 @@ function ReadingBookRow({ entry, onOpen }: { entry: ReadingBookEntry; onOpen: ()
 }
 
 function PasswordForm({ onChanged }: { onChanged: () => void }) {
+  const onboarding = useOnboardingConfig();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -165,7 +170,13 @@ function PasswordForm({ onChanged }: { onChanged: () => void }) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy) return;
     setError("");
+    const issue = passwordValidationIssue(newPassword, "");
+    if (issue) {
+      setError(issue);
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setError("Yeni şifreler eşleşmiyor.");
       return;
@@ -195,11 +206,6 @@ function PasswordForm({ onChanged }: { onChanged: () => void }) {
     }
   }
 
-  const validPassword =
-    newPassword.length >= 12
-    && /[a-zçğıöşü]/i.test(newPassword)
-    && /\d/.test(newPassword);
-
   return (
     <section className="profile-section security-section">
       <div className="profile-section-heading">
@@ -207,13 +213,14 @@ function PasswordForm({ onChanged }: { onChanged: () => void }) {
         <h2>Şifremi değiştir</h2>
         <p>Yeni şifren en az 12 karakter, bir harf ve bir rakam içermeli.</p>
       </div>
-      <form className="profile-password-form" onSubmit={submit}>
+      <form className="profile-password-form" onSubmit={submit} aria-busy={busy}>
         <label>
           Mevcut şifre
           <Input
             type="password"
             autoComplete="current-password"
             required
+            disabled={busy}
             maxLength={200}
             value={currentPassword}
             onChange={(event) => setCurrentPassword(event.target.value)}
@@ -225,6 +232,7 @@ function PasswordForm({ onChanged }: { onChanged: () => void }) {
             type="password"
             autoComplete="new-password"
             required
+            disabled={busy}
             minLength={12}
             maxLength={200}
             value={newPassword}
@@ -237,6 +245,7 @@ function PasswordForm({ onChanged }: { onChanged: () => void }) {
             type="password"
             autoComplete="new-password"
             required
+            disabled={busy}
             minLength={12}
             maxLength={200}
             value={confirmPassword}
@@ -246,19 +255,19 @@ function PasswordForm({ onChanged }: { onChanged: () => void }) {
         {error && <p className="form-error" role="alert">{error}</p>}
         <Button
           type="submit"
-          disabled={
-            busy
-            || !currentPassword
-            || !validPassword
-            || newPassword !== confirmPassword
-          }
+          disabled={busy}
         >
           <KeyRound size={17} />
           {busy ? "Değiştiriliyor" : "Şifreyi değiştir"}
         </Button>
+        {onboarding?.enabled && <a className="profile-password-recovery" href="/forgot-password">Şifremi unuttum<ArrowRight size={16} aria-hidden="true" /></a>}
       </form>
     </section>
   );
+}
+
+function DataRequestsSection() {
+  return useKoruBrand() ? <AccountDataRequests /> : null;
 }
 
 function FaceReferencePanel({
@@ -755,6 +764,7 @@ export function ProfileView({
           <PasswordForm
             onChanged={() => onNotice("Şifren değiştirildi. Diğer oturumlar kapatıldı.")}
           />
+          <DataRequestsSection />
         </TabsContent>
       </Tabs>
     </div>

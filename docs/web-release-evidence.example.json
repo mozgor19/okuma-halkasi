@@ -1,0 +1,21 @@
+{
+  "commit": "REPLACE_WITH_REVIEWED_COMMIT",
+  "sourceDigest": "REPLACE_WITH_FIXED_SUITE_DIGEST",
+  "publicOrigin": "https://REPLACE_WITH_APPROVED_DOMAIN",
+  "checks": {
+    "androidPwa": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "iosPwa": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "socialPreviews": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "visualReview": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "performanceAccessibility": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "securityReview": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "passwordStorage": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "permanentMail": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "privacyDeletion": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "backupRestore": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "capacityMonitoring": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "productionMigrationPlan": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "rollbackPlan": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
+    "operatorApproval": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] }
+  }
+}

@@ -8,19 +8,16 @@ import {
 } from "@/lib/auth";
 import { noStore, ReadingGroupError, readingGroupErrorResponse, readingGroupsEnabled, resolveReadingGroup, resolveLegacyReadingGroup } from "@/lib/groups";
 import { selfServiceEnabled } from "@/lib/onboarding-security";
+import { browserSecurityHeaders } from "@/lib/web-security";
 
 const publicPaths = new Set(["/login", "/design-lab", "/api/auth/login", "/api/auth/logout", "/api/manifest"]);
-const onboardingPublicPaths = new Set(["/register", "/verify-email", "/forgot-password", "/reset-password", "/join", "/support", "/api/onboarding/register", "/api/onboarding/verify-email", "/api/onboarding/forgot-password", "/api/onboarding/reset-password"]);
+const onboardingPublicPaths = new Set(["/register", "/verify-email", "/forgot-password", "/reset-password", "/join", "/support", "/privacy", "/terms", "/api/onboarding/register", "/api/onboarding/verify-email", "/api/onboarding/forgot-password", "/api/onboarding/reset-password"]);
 const publicAsset = /\.(?:css|js|map|svg|png|jpg|jpeg|webp|ico|woff2?)$/i;
+const publicShell = new Set(["/koru.webmanifest", "/offline.html"]);
 
 function enforceLocalBrowserRequests<T extends Response>(response: T): T {
-  response.headers.set("Content-Security-Policy", "connect-src 'self'");
-  if (selfServiceEnabled()) {
-    response.headers.set("Content-Security-Policy", "connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
-    response.headers.set("Referrer-Policy", "no-referrer");
-    response.headers.set("X-Content-Type-Options", "nosniff");
-    response.headers.set("X-Frame-Options", "DENY");
-  }
+  if (env.STAGING_ENVIRONMENT === "true") response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+  for (const [key, value] of Object.entries(browserSecurityHeaders(selfServiceEnabled()))) response.headers.set(key, value);
   if (readingGroupsEnabled()) noStore(response);
   return response;
 }
@@ -31,16 +28,16 @@ export async function proxy(request: NextRequest) {
   if (onboardingPublicPaths.has(pathname)) {
     return enforceLocalBrowserRequests(selfServiceEnabled() ? NextResponse.next() : new NextResponse("Sayfa bulunamadı.", { status: 404 }));
   }
-  if (!pathname.startsWith("/api/") && publicAsset.test(pathname)) return NextResponse.next();
-  if (publicPaths.has(pathname) && pathname !== "/login") return NextResponse.next();
+  if (publicShell.has(pathname) || (!pathname.startsWith("/api/") && publicAsset.test(pathname))) return enforceLocalBrowserRequests(NextResponse.next());
+  if (publicPaths.has(pathname) && pathname !== "/login") return enforceLocalBrowserRequests(NextResponse.next());
 
   const session = request.cookies.get(SESSION_COOKIE)?.value;
   const identity = await sessionIdentity(session);
   let authenticated = false;
   try {
     authenticated = !!identity && await sessionAccountIsCurrent(identity);
-  } catch (error) {
-    console.error("Could not validate session account", error);
+  } catch {
+    console.error("Could not validate session account");
   }
 
   if (authenticated && !readingGroupsEnabled() && pathname === "/") {
@@ -90,3 +87,4 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image).*)"],
 };
+import { env } from "cloudflare:workers";

@@ -23,8 +23,11 @@ export async function GET(request: Request, context: Context) {
     requireSelfService(request);
     const account = await requireAccountIdentity(request);
     if (action === "account") {
-      const profile = await identityDatabase().prepare("SELECT email FROM account_profiles WHERE member_id = ?").bind(account.memberId).first<{ email: string }>();
-      return noStore(Response.json({ email: profile?.email || null, verified: !!profile }));
+      const profile = await identityDatabase().prepare(`SELECT a.username, m.name, p.email FROM member_accounts a
+        JOIN members m ON m.id = a.member_id LEFT JOIN account_profiles p ON p.member_id = a.member_id
+        WHERE a.member_id = ?`).bind(account.memberId).first<{ username: string; name: string; email: string | null }>();
+      if (!profile) throw new ReadingGroupError("UNAUTHORIZED", 401, "Oturum gerekli.");
+      return noStore(Response.json({ ...profile, verified: !!profile.email }));
     }
     if (action === "invitations") return noStore(Response.json(await manageInvitations(request, "list")));
     throw new ReadingGroupError("NOT_FOUND", 404, "Sayfa bulunamadı.");

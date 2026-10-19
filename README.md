@@ -1,9 +1,27 @@
 # Okuma Halkası
 
+Güncel öncelik: **Koru web/PWA yayını**; yerel Android/iOS çalışması sonraki aşamadadır.
+[Kurumsal kimlik](docs/BRAND_IDENTITY.md), [oturum hafızası](docs/SESSION_MEMORY.md),
+[web yayın kontrolü](docs/WEB_RELEASE.md) ve [alan adı seçenekleri](docs/DOMAIN_OPTIONS.md)
+sonraki tüm geliştirmelerin başlangıç belgeleridir.
+
+Güncelleme/çevrimdışı, ilk kullanım turu, uzun grup adları, klavye ve silme
+talebi için [web deneyim kabul planı](docs/WEB_EXPERIENCE_ACCEPTANCE.md).
+Yeni migration yalnız yerelde test edildi; silme talebi kalıcı veri silme
+anlamına gelmez. Önceki kontroller ile yeni odaklı kanıtlar bu planda ayrılır.
+
+Native uygulamalar hariç canlıya çıkışın güncel engelleri ve önerilen sıra:
+[web yayın durum raporu](docs/WEB_LAUNCH_STATUS.md).
+
 Webde e-posta doğrulamalı kayıt, grup kurma ve davetle katılma için
 [web hesap/grup rehberi](docs/WEB_ONBOARDING.md). Ayrı yerel deneme:
 `corepack pnpm self-service:dev`, ardından http://127.0.0.1:5184/register.
 Canlı e-posta ve kayıt, yapılandırma ve staging kabulü tamamlanana kadar kapalıdır.
+
+Koru için ayrı Cloudflare test ortamı ve güvenli dağıtım komutları:
+[staging rehberi](docs/STAGING.md). Bu ortam yalnızca sentetik hesap/veri kullanır;
+kayıt ve kurtarma yalnız izin verilen test e-postalarıyla açılabilir. Gizlilik,
+koşullar ve destek sayfaları staging kapsamındadır; canlı yayın onayı değildir.
 
 Altı kişilik haftalık okuma grubu için Türkçe, tam yığın bir web uygulaması.
 

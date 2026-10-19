@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, Check, LogOut } from "@/components/icons";
 import { AppearanceModeMenu } from "@/components/appearance-mode-menu";
+import { BrandMark } from "@/components/brand-mark";
 import { GroupName } from "@/components/group-branding";
 import { Button } from "@/components/ui/button";
 import { currentReturnPath, finishGroupSelection, groupFetch, type GroupsResponse, type ReadingGroup } from "@/lib/group-client";
@@ -75,7 +76,7 @@ export default function GroupsPage() {
     <main className="login-page">
       <section className="login-panel" aria-labelledby="groups-title" aria-busy={busy !== null}>
         <div className="login-brand">
-          <span><BookOpen size={26} strokeWidth={1.7} /></span>
+          <span><BrandMark /></span>
           <strong><GroupName /></strong>
         </div>
         <div className="login-copy">
@@ -95,7 +96,7 @@ export default function GroupsPage() {
             </button>
           ))}
         </div>
-        {onboarding?.enabled && <a className="small-link onboarding-command" href="/groups/manage">Grup kur veya katıl</a>}
+        {onboarding?.enabled && <><a className="small-link onboarding-command" href="/groups/manage">Grup kur veya katıl</a><a className="small-link onboarding-command" href="/account">Hesap ve verilerim</a></>}
         <div className="mt-6 flex items-center justify-between gap-3">
           <button type="button" className="small-link" disabled={busy !== null} onClick={() => void signOut()}><LogOut size={17} /> Çıkış yap</button>
           <AppearanceModeMenu />

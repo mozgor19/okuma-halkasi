@@ -74,6 +74,8 @@ export default defineConfig(async ({ command }) => {
             READING_GROUP_DB_BINDINGS: JSON.stringify(groupsBindings.filter((item) => item.binding !== "DB").map((item) => item.binding)),
             SELF_SERVICE_ENABLED: !legacyDevelopment && process.env.OKUMA_SELF_SERVICE_DEVELOPMENT === "1" ? "true" : "false",
             SELF_SERVICE_LOCAL: "true",
+            ...(process.env.OKUMA_APPLICATION_BRAND ? { APPLICATION_BRAND: process.env.OKUMA_APPLICATION_BRAND } : {}),
+            ...(process.env.OKUMA_BRAND_ORIGIN ? { AUTH_PUBLIC_ORIGIN: process.env.OKUMA_BRAND_ORIGIN } : {}),
             SELF_SERVICE_GROUP_BINDINGS: JSON.stringify(["GROUP_POOL_ONE", "GROUP_POOL_TWO", "GROUP_POOL_THREE"]),
             SESSION_SECRET: groupSettings.sessionSecret,
             MEMBER_CREDENTIALS: JSON.stringify(Object.fromEntries(["demo.multi", "demo.single", "demo.none"].map((name, index) => [name, { memberId: index + 1, password: groupSettings.password }]))),

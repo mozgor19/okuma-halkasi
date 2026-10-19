@@ -47,6 +47,7 @@ import { ChevronRightIcon as AnimatedChevronRightIcon } from "@/components/ui/ch
 import { CircleCheckIcon as AnimatedCircleCheckIcon } from "@/components/ui/circle-check";
 import { CloudDownloadIcon } from "@/components/ui/cloud-download";
 import { CompassIcon } from "@/components/ui/compass";
+import { Copy01Icon } from "@/components/ui/copy-01";
 import { Delete02Icon } from "@/components/ui/delete-02";
 import { ExternalLinkIcon as AnimatedExternalLinkIcon } from "@/components/ui/external-link";
 import { FullScreenIcon } from "@/components/ui/full-screen";
@@ -123,6 +124,7 @@ export const CalendarPlus = createAnimatedIcon(CalendarAdd01Icon, "CalendarPlus"
 export const ChevronDown = createAnimatedIcon(AnimatedChevronDownIcon, "ChevronDown");
 export const ChevronRight = createAnimatedIcon(AnimatedChevronRightIcon, "ChevronRight");
 export const Compass = createAnimatedIcon(CompassIcon, "Compass");
+export const Copy = createAnimatedIcon(Copy01Icon, "Copy");
 export const Download = createAnimatedIcon(CloudDownloadIcon, "Download");
 export const ExternalLink = createAnimatedIcon(AnimatedExternalLinkIcon, "ExternalLink");
 export const LogOut = createAnimatedIcon(Logout01Icon, "LogOut");

@@ -1,23 +1,34 @@
 import { env } from "cloudflare:workers";
 import { identityDatabase, readingGroupsEnabled } from "@/db/database";
 import { ReadingGroupError } from "@/lib/groups";
-import { loopback, normalizeEmail, publicHttpsOrigin, publicHttpsUrl } from "@/lib/onboarding-policy";
+import { loopback, normalizeEmail, publicHttpsOrigin, publicHttpsUrl, stagingEmailPolicy } from "@/lib/onboarding-policy";
+import { accountMailConfiguration } from "@/lib/mail-configuration";
 
 export function selfServiceEnabled() { return readingGroupsEnabled() && env.SELF_SERVICE_ENABLED === "true"; }
 export function localMail(request: Request) { return env.SELF_SERVICE_LOCAL === "true" && loopback(new URL(request.url)); }
 
 export function onboardingConfiguration(request: Request) {
   const local = localMail(request);
-  const configured = local || (!!publicHttpsOrigin(env.AUTH_PUBLIC_ORIGIN || "") && !!env.RESEND_API_KEY && !!normalizeEmail(env.MAIL_FROM)
-    && !!normalizeEmail(env.SUPPORT_EMAIL) && publicHttpsUrl(env.PRIVACY_POLICY_URL) && publicHttpsUrl(env.TERMS_URL) && !!env.TURNSTILE_SITE_KEY && !!env.TURNSTILE_SECRET_KEY);
+  const testPolicy = stagingEmailPolicy(env);
+  const configured = testPolicy.valid && (local || (!!publicHttpsOrigin(env.AUTH_PUBLIC_ORIGIN || "") && !!accountMailConfiguration(env)
+    && !!normalizeEmail(env.SUPPORT_EMAIL) && publicHttpsUrl(env.PRIVACY_POLICY_URL) && publicHttpsUrl(env.TERMS_URL) && !!env.TURNSTILE_SITE_KEY && !!env.TURNSTILE_SECRET_KEY));
   return {
-    enabled: selfServiceEnabled(), ready: configured, local,
+    enabled: selfServiceEnabled(), ready: configured, local, restrictedTest: testPolicy.restricted,
     brand: env.APPLICATION_BRAND || "Okuma Halkası",
     supportEmail: normalizeEmail(env.SUPPORT_EMAIL),
     privacyUrl: publicHttpsUrl(env.PRIVACY_POLICY_URL) ? env.PRIVACY_POLICY_URL! : null,
     termsUrl: publicHttpsUrl(env.TERMS_URL) ? env.TERMS_URL! : null,
     siteKey: local ? null : env.TURNSTILE_SITE_KEY || null,
   };
+}
+
+export function requireTestEmail(value: unknown) {
+  const policy = stagingEmailPolicy(env);
+  if (!policy.valid) throw new ReadingGroupError("ONBOARDING_UNAVAILABLE", 503, "Test hesabı yapılandırması eksik.");
+  const email = normalizeEmail(value);
+  if (policy.restricted && (!email || !policy.emails.includes(email))) {
+    throw new ReadingGroupError("TEST_ACCOUNT_ONLY", 403, "Bu deneme ortamında yalnız önceden izin verilen test e-postaları kullanılabilir.");
+  }
 }
 
 export function requireSelfService(request: Request) {

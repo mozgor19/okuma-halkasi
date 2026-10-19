@@ -4,6 +4,7 @@ import { ReadingGroupError } from "@/lib/groups";
 import { cleanName, newToken, normalizeEmail, POLICY_VERSION, TOKEN_PATTERN, tokenHash } from "@/lib/onboarding-policy";
 import { hashPassword, normalizeUsername, passwordValidationIssue } from "@/lib/password";
 import { deliverAccountMail } from "@/lib/account-mail";
+import { requireTestEmail } from "@/lib/onboarding-security";
 
 const invalidToken = () => new ReadingGroupError("INVALID_TOKEN", 400, "Bağlantı geçersiz, süresi dolmuş veya daha önce kullanılmış.");
 const genericMessage = "Bilgiler uygunsa e-posta gönderildi. Gelen kutunu ve spam klasörünü kontrol et.";
@@ -20,6 +21,7 @@ export async function registerAccount(request: Request, body: Record<string, unk
   const username = typeof body.username === "string" ? normalizeUsername(body.username) : "";
   const password = typeof body.password === "string" ? body.password : "";
   if (!email || !name || !/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username)) throw new ReadingGroupError("INVALID_REGISTRATION", 400, "Ad, e-posta ve kullanıcı adını kontrol et. Kullanıcı adı 3–40 karakter olmalı.");
+  requireTestEmail(email);
   const issue = passwordValidationIssue(password, username);
   if (issue) throw new ReadingGroupError("INVALID_PASSWORD", 400, issue);
   if (body.acceptedPolicy !== true) throw new ReadingGroupError("POLICY_REQUIRED", 400, "Kullanım koşullarını kabul etmelisin.");
@@ -44,8 +46,9 @@ export async function verifyEmail(token: unknown) {
   const db = identityDatabase();
   const hash = await tokenHash(token);
   const now = Date.now();
-  const pending = await db.prepare("SELECT token_hash FROM pending_registrations WHERE token_hash = ? AND consumed_at IS NULL AND expires_at > ?").bind(hash, now).first();
+  const pending = await db.prepare("SELECT token_hash, email FROM pending_registrations WHERE token_hash = ? AND consumed_at IS NULL AND expires_at > ?").bind(hash, now).first<{ token_hash: string; email: string }>();
   if (pending) {
+    requireTestEmail(pending.email);
     try {
       // D1 batch is one transaction: competing verifications cannot allocate two accounts.
       const result = await db.batch([
@@ -65,6 +68,8 @@ export async function verifyEmail(token: unknown) {
     } catch { throw invalidToken(); }
     return { ok: true };
   }
+  const verification = await db.prepare("SELECT email FROM account_email_verifications WHERE token_hash = ? AND consumed_at IS NULL AND expires_at > ?").bind(hash, now).first<{ email: string }>();
+  if (verification) requireTestEmail(verification.email);
   try {
     const result = await db.batch([
       db.prepare(`INSERT INTO account_profiles(member_id, email, verified_at, policy_version)
@@ -81,6 +86,7 @@ export async function verifyEmail(token: unknown) {
 export async function requestRecovery(request: Request, emailInput: unknown) {
   const email = normalizeEmail(emailInput);
   if (!email) throw new ReadingGroupError("INVALID_EMAIL", 400, "Geçerli bir e-posta adresi gir.");
+  requireTestEmail(email);
   await cleanup();
   const db = identityDatabase();
   const account = await db.prepare(`SELECT a.member_id AS memberId, a.session_version AS sessionVersion FROM account_profiles p
@@ -101,9 +107,11 @@ export async function resetAccountPassword(token: unknown, password: unknown) {
   const db = identityDatabase();
   const hash = await tokenHash(token);
   const now = Date.now();
-  const account = await db.prepare(`SELECT a.username FROM member_accounts a JOIN account_recovery_tokens t ON t.member_id = a.member_id
-    WHERE t.token_hash = ? AND t.consumed_at IS NULL AND t.expires_at > ? AND t.session_version = a.session_version`).bind(hash, now).first<{ username: string }>();
+  const account = await db.prepare(`SELECT a.username, p.email FROM member_accounts a JOIN account_recovery_tokens t ON t.member_id = a.member_id
+    JOIN account_profiles p ON p.member_id = a.member_id
+    WHERE t.token_hash = ? AND t.consumed_at IS NULL AND t.expires_at > ? AND t.session_version = a.session_version`).bind(hash, now).first<{ username: string; email: string }>();
   if (!account) throw invalidToken();
+  requireTestEmail(account.email);
   const issue = passwordValidationIssue(password, account.username);
   if (issue) throw new ReadingGroupError("INVALID_PASSWORD", 400, issue);
   const record = await hashPassword(password);
@@ -120,12 +128,14 @@ export async function resetAccountPassword(token: unknown, password: unknown) {
 export async function verifiedAccount(memberId: number) {
   const account = await identityDatabase().prepare(`SELECT m.name, p.email FROM account_profiles p JOIN members m ON m.id = p.member_id WHERE p.member_id = ?`).bind(memberId).first<{ name: string; email: string }>();
   if (!account) throw new ReadingGroupError("EMAIL_VERIFICATION_REQUIRED", 403, "Önce hesabına bir e-posta adresi ekleyip doğrula.");
+  requireTestEmail(account.email);
   return account;
 }
 
 export async function linkAccountEmail(request: Request, memberId: number, body: Record<string, unknown>) {
   const email = normalizeEmail(body.email);
   if (!email || typeof body.password !== "string" || body.password.length > 200) throw new ReadingGroupError("INVALID_EMAIL", 400, "E-posta ve mevcut şifreni kontrol et.");
+  requireTestEmail(email);
   const db = identityDatabase();
   const row = await db.prepare("SELECT username FROM member_accounts WHERE member_id = ?").bind(memberId).first<{ username: string }>();
   const account = row ? await authenticateAccount(row.username, body.password) : null;

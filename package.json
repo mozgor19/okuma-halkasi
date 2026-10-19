@@ -19,6 +19,15 @@
     "self-service:dev": "node scripts/self-service-development.mjs",
     "self-service:mail": "OKUMA_TEST_RUN_ID=${OKUMA_TEST_RUN_ID:-self-service-web} node scripts/development-mail.mjs",
     "self-service:test": "node scripts/test-self-service.mjs",
+    "staging:status": "node scripts/staging-cloudflare.mjs status",
+    "staging:init": "node scripts/staging-cloudflare.mjs init",
+    "staging:prepare": "node scripts/staging-cloudflare.mjs prepare",
+    "staging:deploy": "node scripts/staging-cloudflare.mjs deploy",
+    "staging:credentials": "node scripts/staging-cloudflare.mjs credentials",
+    "staging:test": "node scripts/test-staging.mjs",
+    "staging:mail:authorize": "node scripts/gmail-oauth.mjs",
+    "staging:mail:install": "node scripts/staging-cloudflare.mjs mail",
+    "staging:mail:test": "node --experimental-strip-types scripts/staging-mail.mjs",
     "groups:dev": "OKUMA_GROUPS_DEVELOPMENT=1 node scripts/run-framework.mjs dev --port 5174",
     "groups:dev:legacy": "OKUMA_GROUPS_DEVELOPMENT=legacy vite --port 5175",
     "groups:test": "node scripts/test-reading-groups.mjs",
@@ -36,7 +45,15 @@
     "mobile:test:android:notifications": "node scripts/test-android-notifications.mjs",
     "db:generate": "drizzle-kit generate",
     "check:ui": "node scripts/check-ui-contract.mjs",
-    "generate:icons": "node scripts/generate-app-icons.mjs"
+    "generate:icons": "node scripts/generate-app-icons.mjs",
+    "brand:assets": "node scripts/generate-brand-assets.mjs",
+    "web:test:pwa": "node scripts/test-web-pwa.mjs",
+    "web:test:experience": "node scripts/test-web-experience.mjs",
+    "web:test:updates": "node scripts/test-pwa-updates.mjs",
+    "web:images": "node scripts/optimize-web-images.mjs",
+    "web:preview:local": "node scripts/preview-local-production.mjs",
+    "web:measure": "node scripts/measure-web-performance.mjs",
+    "web:release:check": "node scripts/check-web-release.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -54,12 +71,13 @@
     "fflate": "0.8.3",
     "input-otp": "^1.4.2",
     "motion": "^13.4.4",
-    "next": "16.3.4",
+    "mimetext": "3.0.28",
+    "next": "16.3.8",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.6.7",
-    "react": "19.2.6",
+    "react": "19.2.8",
     "react-day-picker": "^10.0.1",
-    "react-dom": "19.2.6",
+    "react-dom": "19.2.8",
     "react-hook-form": "^7.85.0",
     "react-resizable-panels": "^4.12.2",
     "recharts": "^3.8.0",
@@ -79,9 +97,10 @@
     "@vitejs/plugin-rsc": "0.5.26",
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.3.4",
+    "eslint-config-next": "16.3.8",
+    "google-auth-library": "11.2.0",
     "playwright": "1.62.1",
-    "react-server-dom-webpack": "19.2.6",
+    "react-server-dom-webpack": "19.2.8",
     "tailwindcss": "4.2.1",
     "tw-animate-css": "^1.4.0",
     "typescript": "5.9.3",
@@ -92,8 +111,10 @@
   "type": "module",
   "overrides": {
     "miniflare": {
-      "sharp": "0.35.4"
-    }
+      "sharp": "0.35.5"
+    },
+    "next": { "sharp": "0.35.5" },
+    "source-map-js": "1.2.2"
   },
   "packageManager": "pnpm@11.25.0"
 }

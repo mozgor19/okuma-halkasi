@@ -1,5 +1,13 @@
 # Project Rules
 
+## Session Read Order
+
+- At the start of every session, read `docs/SESSION_MEMORY.md` and `docs/BRAND_IDENTITY.md`.
+- Before release, PWA, public metadata or security work, also read `docs/WEB_RELEASE.md`.
+- Current priority is mobile-first web/PWA launch. Native Android/iOS work is deferred until web acceptance.
+- Preserve the Koru identity on every platform. Update the identity document and project session memory when an approved brand decision changes.
+- Missing release evidence blocks publication. Do not turn a passing local suite into a production-readiness claim.
+
 ## Icons
 
 - Use [Hugeicons Animated](https://hugeicons-animated.com/) for application icons whenever a matching animated icon exists.

@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { spawnSync } from "node:child_process";
 import { chromium } from "playwright";
 import { readDevelopmentMail } from "./development-mail.mjs";
 import { readGroupsDevelopmentSettings } from "./groups-development.mjs";
 import { groupsConfigPath, groupsStatePath, testOrigin, testOutputPath, testRunId } from "./test-environment.mjs";
+import { localTestSql } from "./local-d1-test.mjs";
+import { checkGroupTools } from "./group-tools-checks.mjs";
 
 if (!testRunId) throw new Error("Run this suite only in a fresh isolated self-service environment.");
 const origin = testOrigin;
@@ -16,10 +17,10 @@ assert.equal(config.enabled, true); assert.equal(config.local, true); assert.equ
 const suffix = Date.now().toString(36);
 const password = "Isolated-Books-7429!";
 const results = [];
+const groupToolsVisuals = [];
 async function check(name, fn) { await fn(); results.push({ name, status: "passed" }); console.log(`ok ${results.length} - ${name}`); }
 function sql(command) {
-  const result = spawnSync(process.execPath, ["node_modules/wrangler/bin/wrangler.js", "d1", "execute", "DB", "--local", "--config", groupsConfigPath, "--persist-to", groupsStatePath, "--json", "--command", command], { encoding: "utf8", env: { ...process.env, WRANGLER_SEND_METRICS: "false" } });
-  assert.equal(result.status, 0, "Local test SQL failed"); return JSON.parse(result.stdout).flatMap((item) => item.results || []);
+  return localTestSql({ config: groupsConfigPath, persistTo: groupsStatePath, command });
 }
 class Client {
   cookies = new Map(); group = null;
@@ -45,6 +46,16 @@ const alice = new Client(), bob = new Client(), charlie = new Client(), anonymou
 const users = ["alice", "bob", "charlie"].map((name) => ({ name: `Test ${name}`, username: `${name}.${suffix}`, email: `${name}.${suffix}@example.test`, password, acceptedPolicy: true }));
 let group, invite, winner, loser;
 
+await check("Legal and support pages are available before login without leaking group data", async () => {
+  for (const path of ["/privacy", "/terms", "/support"]) {
+    const response = await anonymous.request(path);
+    const html = await response.text();
+    assert.match(html, /Mustafa Özgör/);
+    assert.equal(response.headers.get("cache-control").includes("no-store"), true);
+    assert.equal(response.headers.get("x-frame-options"), "DENY");
+  }
+});
+
 await check("Public registration is same-origin, bounded and does not accept weak passwords", async () => {
   await anonymous.post("register", users[0], 403, { Origin: "https://evil.example" });
   await anonymous.post("register", { ...users[0], password: "short" }, 400);
@@ -69,6 +80,9 @@ await check("An account with no memberships can sign in but cannot read default-
   await bob.login(users[1].username); await charlie.login(users[2].username);
   assert.deepEqual((await (await alice.request("/api/groups")).json()).groups, []);
   await alice.request("/api/state", { expected: 403 });
+  const profile = await (await alice.request("/api/onboarding/account?memberId=1")).json();
+  assert.equal(profile.username, users[0].username); assert.equal(profile.name, users[0].name);
+  assert.equal(profile.email, users[0].email); assert.equal(profile.verified, true);
 });
 await check("Group creation is idempotent under concurrent retries and grants local ownership only", async () => {
   const requestKey = randomUUID();
@@ -168,6 +182,130 @@ await check("An invitation cannot revive a disabled membership", async () => {
 
 const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
 try {
+  await check("Security form explains invalid input, changes the global password and preserves group identity", async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+    try {
+      const accountsBefore = sql("SELECT member_id, session_version FROM member_accounts ORDER BY member_id");
+      const accountId = sql(`SELECT member_id FROM member_accounts WHERE username = '${users[0].username}'`)[0].member_id;
+      const mailCount = () => sql(`SELECT count(*) AS count FROM development_mail WHERE recipient = '${users[0].email}'`)[0].count;
+      const mailBefore = mailCount();
+      assert.equal((await context.request.post(origin + "/api/auth/login", { headers: { Origin: origin }, data: { username: users[0].username, password } })).status(), 200);
+      assert.equal((await context.request.post(origin + "/api/groups", { headers: { Origin: origin, "X-Reading-Group": group.id }, data: { groupId: group.id } })).status(), 200);
+      const page = await context.newPage(); page.setDefaultTimeout(30_000);
+      await page.goto(origin + "/?group=" + group.id);
+      await page.locator(".person-picker").filter({ hasText: users[0].name }).waitFor();
+      await page.locator(".mobile-nav").getByRole("button", { name: "Profil", exact: true }).click();
+      await page.getByRole("tab", { name: "Güvenlik", exact: true }).click();
+      const current = page.getByLabel("Mevcut şifre", { exact: true });
+      const next = page.getByLabel("Yeni şifre", { exact: true });
+      const confirm = page.getByLabel("Yeni şifre tekrar", { exact: true });
+      const submit = page.getByRole("button", { name: "Şifreyi değiştir", exact: true });
+      const alert = page.locator('.profile-password-form [role="alert"]');
+      const recovery = page.getByRole("link", { name: "Şifremi unuttum", exact: true });
+      await recovery.waitFor();
+      assert.equal(await recovery.getAttribute("href"), "/forgot-password");
+      let attempts = 0;
+      page.on("request", (request) => { if (new URL(request.url()).pathname === "/api/auth/change-password") attempts++; });
+      assert.equal(await submit.isEnabled(), true);
+      await submit.click();
+      assert.equal(await current.evaluate((input) => input.validity.valueMissing), true);
+      await current.fill(password); await next.fill("short"); await confirm.fill("short");
+      await submit.click();
+      assert.equal(await next.evaluate((input) => input.validity.tooShort), true);
+      await next.fill("LettersWithoutDigits"); await confirm.fill("LettersWithoutDigits"); await submit.click();
+      await alert.filter({ hasText: "bir harf ve bir rakam" }).waitFor();
+      const replacement = "Profile-Change-5629!";
+      await next.fill(replacement); await confirm.fill("Different-Password-9842!"); await submit.click();
+      await alert.filter({ hasText: "eşleşmiyor" }).waitFor();
+      assert.equal(attempts, 0, "Invalid input must not submit a password mutation");
+      await current.fill("Incorrect-Current-2394!"); await confirm.fill(replacement); await submit.click();
+      await alert.filter({ hasText: "Mevcut şifre yanlış." }).waitFor();
+      assert.equal(attempts, 1);
+      assert.deepEqual(sql("SELECT member_id, session_version FROM member_accounts ORDER BY member_id"), accountsBefore);
+      await current.fill(password);
+      await page.route("**/api/auth/change-password", async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Şifre değiştirilemedi. Tekrar dene." }) });
+      });
+      await submit.click();
+      assert.equal(await current.isDisabled(), true);
+      assert.equal(await next.isDisabled(), true);
+      assert.equal(await confirm.isDisabled(), true);
+      await alert.filter({ hasText: "Tekrar dene." }).waitFor();
+      assert.equal(await submit.isEnabled(), true);
+      assert.equal(attempts, 2);
+      await page.unroute("**/api/auth/change-password");
+      await page.route("**/api/auth/change-password", async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        await route.continue();
+      });
+      const changed = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/auth/change-password");
+      await submit.click();
+      assert.equal((await changed).status(), 200);
+      await page.waitForFunction(() => document.querySelector('.profile-password-form input[autocomplete="current-password"]')?.value === "");
+      assert.equal(attempts, 3);
+      await alice.request("/api/groups", { expected: 401 });
+      assert.equal((await (await context.request.get(origin + "/api/onboarding/account")).json()).username, users[0].username);
+      const groups = (await (await context.request.get(origin + "/api/groups")).json()).groups;
+      assert.equal(groups.length, 2);
+      for (const item of groups) {
+        assert.equal((await context.request.post(origin + "/api/groups", { headers: { Origin: origin, "X-Reading-Group": item.id }, data: { groupId: item.id } })).status(), 200);
+        const response = await context.request.get(origin + "/api/state", { headers: { "X-Reading-Group": item.id } });
+        assert.equal(response.status(), 200);
+        const state = await response.json();
+        assert.notEqual(state.currentMemberId, accountId);
+        assert.equal(state.members.find((member) => member.id === state.currentMemberId).name, users[0].name);
+        assert.equal(state.readingGroup.scheme, item.scheme);
+      }
+      const login = new Client();
+      await login.login(users[0].username, password, 401);
+      await login.login(users[0].username, replacement);
+      assert.equal(mailCount(), mailBefore, "Current-password change does not send a recovery email");
+      assert.equal((await context.request.post(origin + "/api/auth/change-password", { headers: { Origin: origin }, data: { currentPassword: replacement, newPassword: password, confirmPassword: password } })).status(), 200);
+      assert.deepEqual(sql(`SELECT member_id, session_version FROM member_accounts WHERE member_id <> ${accountId} ORDER BY member_id`), accountsBefore.filter((account) => account.member_id !== accountId));
+      await alice.login(users[0].username); await alice.select(group.id);
+    } finally { await context.close(); }
+  });
+  await check("Verification in another tab refreshes group permissions without losing the entered name", async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+    try {
+      const fixturePassword = readGroupsDevelopmentSettings().password;
+      assert.equal((await context.request.post(origin + "/api/auth/login", { headers: { Origin: origin }, data: { username: "demo.none", password: fixturePassword } })).status(), 200);
+      const page = await context.newPage(); page.setDefaultTimeout(30_000);
+      await page.goto(origin + "/groups/manage");
+      await page.getByText("@demo.none", { exact: true }).waitFor();
+      await page.getByRole("tab", { name: "Grup kur", exact: true }).click();
+      await page.getByLabel("Okuma grubu adı").fill("Korunan Grup Adı");
+      assert.equal(await page.getByRole("button", { name: "Okuma grubu oluştur", exact: true }).isDisabled(), true);
+      const linked = await context.request.post(origin + "/api/onboarding/link-email", { headers: { Origin: origin }, data: { email: `resume.${suffix}@example.test`, password: fixturePassword } });
+      assert.equal(linked.status(), 200);
+      const verification = await context.newPage();
+      await verification.goto(origin + "/verify-email#token=" + tokenFor(`resume.${suffix}@example.test`, "verify-email"));
+      await verification.getByRole("button", { name: "E-postamı doğrula", exact: true }).click();
+      await verification.getByRole("status").filter({ hasText: "doğrulandı" }).waitFor();
+      await page.bringToFront();
+      await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+      await page.waitForFunction(() => document.querySelector('button[type="submit"]')?.disabled === false);
+      assert.equal(await page.getByLabel("Okuma grubu adı").inputValue(), "Korunan Grup Adı");
+      assert.equal(await page.getByText("Grup kurmak veya davetle katılmak için e-postanı doğrula.", { exact: true }).count(), 0);
+      await page.route("**/api/onboarding/account", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Synthetic outage" }) }));
+      await page.getByRole("button", { name: "Hesap durumunu yenile", exact: true }).click();
+      await page.getByRole("alert").filter({ hasText: "Hesap bilgileri yüklenemedi" }).waitFor();
+      assert.equal(await page.getByRole("button", { name: "Okuma grubu oluştur", exact: true }).isDisabled(), true);
+      assert.equal(await page.getByText("Grup kurmak veya davetle katılmak için e-postanı doğrula.", { exact: true }).count(), 0);
+      await page.unroute("**/api/onboarding/account");
+      await page.getByRole("button", { name: "Hesap durumunu yenile", exact: true }).click();
+      await page.waitForFunction(() => document.querySelector('button[type="submit"]')?.disabled === false);
+      await page.goto(origin + "/account");
+      await page.getByText("E-posta adresin doğrulanmış.", { exact: true }).waitFor();
+      assert.equal(await page.getByRole("button", { name: "Doğrulama bağlantısı gönder", exact: true }).count(), 0);
+      await page.getByRole("link", { name: "Gruplarıma dön", exact: true }).click();
+      await page.getByText("@demo.none", { exact: true }).waitFor();
+      await page.getByRole("button", { name: "Çıkış yap", exact: true }).click();
+      await page.waitForURL((url) => url.pathname === "/login");
+      assert.equal((await context.request.get(origin + "/api/onboarding/account")).status(), 401);
+    } finally { await context.close(); }
+  });
   await check("Web registration, verification and empty-account onboarding work through real forms", async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
     const page = await context.newPage();
@@ -202,10 +340,12 @@ try {
     await page.getByRole("button", { name: "İlk buluşmayı oluştur", exact: true }).waitFor();
     await page.locator(".mobile-nav").getByRole("button", { name: "Profil", exact: true }).click();
     await page.getByText("Davetleri yönet", { exact: true }).click();
+    await page.getByLabel("Geçerlilik (gün)", { exact: true }).fill("1");
+    await page.getByLabel("Kişi sınırı", { exact: true }).fill("1");
     await page.getByRole("button", { name: "Davet oluştur", exact: true }).click();
     await page.getByLabel("Davet bağlantısı", { exact: true }).waitFor();
     const url = await page.getByLabel("Davet bağlantısı", { exact: true }).inputValue();
-    assert.match(url, /\/join#invite=[a-f0-9]{64}$/);
+    assert.equal(/\/join#invite=[a-f0-9]{64}$/.test(url), true, "Invitation URL must have the expected shape");
     const guest = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
     const join = await guest.newPage();
     join.setDefaultTimeout(30_000);
@@ -222,13 +362,148 @@ try {
     assert.equal(await join.getByRole("heading", { name: "Son buluşma", exact: true }).count(), 0);
     assert.equal(await join.getByRole("button", { name: "İlk buluşmayı oluştur", exact: true }).count(), 0);
     await join.getByText("İlk buluşma henüz planlanmadı.", { exact: true }).waitFor();
+    await join.locator(".mobile-nav").getByRole("button", { name: "Profil", exact: true }).click();
+    await join.getByRole("button", { name: "Grup değiştir", exact: true }).waitFor();
+    assert.equal(await join.getByText("Davetleri yönet", { exact: true }).count(), 0);
     await join.screenshot({ path: `${output}/web-invited-member.png`, animations: "disabled" });
     await guest.close();
+
+    await check("Invitation tools support keyboard, copy, revocation and every theme without leaking tokens", async () => {
+      await page.bringToFront();
+      const summary = page.locator(".group-invitations>summary");
+      await summary.focus(); await summary.press("Enter");
+      await page.waitForFunction(() => !document.querySelector(".group-invitations").open);
+      await summary.press("Space");
+      await page.locator('.invitation-state[data-state="full"]').waitFor();
+      assert.equal(await page.locator(".invitation-usage strong").first().innerText(), "1 / 1");
+
+      async function createInvitation() {
+        const pending = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/onboarding/invitations" && response.request().method() === "POST");
+        await page.getByRole("button", { name: "Davet oluştur", exact: true }).click();
+        const response = await pending; assert.equal(response.status(), 200);
+        const result = await response.json();
+        await page.locator(`[data-invitation-id="${result.id}"]`).waitFor();
+        await page.getByRole("button", { name: "Davet oluştur", exact: true }).waitFor({ state: "visible" });
+        return result;
+      }
+      const revoked = await createInvitation();
+      const revokedRow = page.locator(`[data-invitation-id="${revoked.id}"]`);
+      await revokedRow.getByRole("button", { name: "Daveti iptal et", exact: true }).click();
+      await revokedRow.getByText("İptal edildi", { exact: true }).waitFor();
+      assert.equal(await revokedRow.getByRole("button", { name: "Daveti iptal et", exact: true }).isDisabled(), true);
+      assert.equal(await page.getByLabel("Davet bağlantısı", { exact: true }).count(), 0);
+      const expired = await createInvitation();
+      sql(`UPDATE group_invitations SET expires_at = ${Date.now() - 86_400_000} WHERE id = '${expired.id}'`);
+      const active = await createInvitation();
+      await page.locator('.invitation-state[data-state="expired"]').waitFor();
+
+      await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+      const copy = page.getByRole("button", { name: "Bağlantıyı kopyala", exact: true });
+      const before = await copy.boundingBox();
+      await copy.click();
+      await page.getByRole("status").filter({ hasText: "Bağlantı kopyalandı." }).waitFor();
+      assert.equal(await page.evaluate(() => navigator.clipboard.readText()) === `${origin}/join#invite=${active.token}`, true, "Copied invitation must match the generated link");
+      const after = await copy.boundingBox();
+      assert.equal(before.width, after.width); assert.equal(before.height, after.height);
+      await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("Synthetic clipboard failure"); } } }));
+      await copy.click();
+      await page.getByRole("alert").filter({ hasText: "Bağlantı kopyalanamadı." }).waitFor();
+      await page.evaluate(() => Reflect.deleteProperty(navigator, "clipboard"));
+      await copy.click();
+      await page.getByRole("status").filter({ hasText: "Bağlantı kopyalandı." }).waitFor();
+
+      let attempted = 0;
+      await page.route("**/api/onboarding/invitations", async (route) => {
+        if (route.request().method() !== "POST") { await route.continue(); return; }
+        attempted++;
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Davet oluşturulamadı." }) });
+      });
+      await page.getByRole("button", { name: "Davet oluştur", exact: true }).click();
+      assert.equal(await page.getByLabel("Kişi sınırı", { exact: true }).isDisabled(), true);
+      await page.getByRole("alert").filter({ hasText: "Davet oluşturulamadı." }).waitFor();
+      assert.equal(attempted, 1);
+      await page.unroute("**/api/onboarding/invitations");
+      assert.equal(await page.getByLabel("Kişi sınırı", { exact: true }).isDisabled(), false);
+      assert.equal(await page.locator(".invitation-list li").count(), 4);
+      await copy.click();
+      await page.getByRole("status").filter({ hasText: "Bağlantı kopyalandı." }).waitFor();
+
+      for (const width of [390, 1440]) {
+        await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+        for (const scheme of ["editorial", "catalogue", "notebook", "minimal"]) for (const mode of ["light", "dark"]) {
+          await page.evaluate(({ scheme, mode }) => {
+            const root = document.documentElement;
+            root.dataset.scheme = scheme; root.dataset.mode = mode; root.dataset.colorMode = mode;
+            root.classList.toggle("dark", mode === "dark"); root.style.colorScheme = mode;
+          }, { scheme, mode });
+          await page.evaluate(() => document.fonts.ready);
+          const evidence = await checkGroupTools(page);
+          const input = page.getByLabel("Geçerlilik (gün)", { exact: true });
+          await input.focus();
+          assert.ok(await input.evaluate((element) => Number.parseFloat(getComputedStyle(element).outlineWidth) >= 2));
+          await input.blur();
+          // Hide only the secret text; keep the actual field, border and copy control visible.
+          await page.locator(".reading-group-section").screenshot({ path: `${output}/group-tools-${width}-${scheme}-${mode}.png`, animations: "disabled", style: ".invitation-result input{color:transparent!important}.topbar,.mobile-nav{visibility:hidden!important}" });
+          groupToolsVisuals.push({ width, scheme, mode, ...evidence });
+        }
+      }
+      const recovery = await context.newPage();
+      try {
+        let unavailable = true;
+        await recovery.route("**/api/onboarding/invitations", async (route) => {
+          if (route.request().method() === "GET" && unavailable) {
+            unavailable = false;
+            await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Davetler yüklenemedi." }) });
+          } else await route.continue();
+        });
+        await recovery.goto(origin + "/");
+        await recovery.waitForFunction(() => {
+          const button = [...document.querySelectorAll(".mobile-nav button")].find((item) => item.textContent.trim() === "Profil");
+          return button && Object.keys(button).some((key) => key.startsWith("__reactProps"));
+        });
+        await recovery.locator(".mobile-nav").getByRole("button", { name: "Profil", exact: true }).click();
+        await recovery.getByText("Davetleri yönet", { exact: true }).click();
+        await recovery.getByRole("alert").filter({ hasText: "Davetler yüklenemedi." }).waitFor();
+        await recovery.getByRole("button", { name: "Tekrar dene", exact: true }).click();
+        await recovery.waitForFunction(() => document.querySelectorAll(".invitation-list li").length === 4);
+        assert.equal(await recovery.locator('.group-invitations [role="alert"]').count(), 0);
+      } finally { await recovery.close(); }
+    });
     // Do not screenshot a live invitation secret.
     await page.getByText("Davetleri yönet", { exact: true }).click();
     await page.screenshot({ path: `${output}/web-created-group-profile.png`, animations: "disabled" });
     assert.deepEqual(errors, []);
     await context.close();
+  });
+  await check("Forgot-password and reset-password forms deliver local mail and revoke old sessions", async () => {
+    const authenticated = await browser.newContext();
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+    try {
+      const username = `web.${suffix}`, email = `web.${suffix}@example.test`;
+      assert.equal((await authenticated.request.post(origin + "/api/auth/login", { headers: { Origin: origin }, data: { username, password } })).status(), 200);
+      const page = await context.newPage(); page.setDefaultTimeout(30_000);
+      await page.goto(origin + "/forgot-password");
+      await page.getByLabel("E-posta", { exact: true }).fill(email);
+      await page.getByRole("button", { name: "Yenileme bağlantısı gönder", exact: true }).click();
+      await page.getByRole("status").filter({ hasText: "Bilgiler uygunsa" }).waitFor();
+      const token = tokenFor(email, "reset-password");
+      await page.goto(origin + "/reset-password#token=" + token);
+      await page.getByRole("button", { name: "Yeni şifre belirle", exact: true }).waitFor();
+      await page.waitForFunction(() => window.location.hash === "");
+      const replacement = "Recovery-Form-8235!";
+      await page.getByLabel("Yeni şifre", { exact: true }).fill(replacement);
+      await page.getByLabel("Şifre tekrarı", { exact: true }).fill("Different-Recovery-9123!");
+      await page.getByRole("button", { name: "Yeni şifre belirle", exact: true }).click();
+      await page.getByRole("alert").filter({ hasText: "Şifreler eşleşmiyor." }).waitFor();
+      await page.getByLabel("Şifre tekrarı", { exact: true }).fill(replacement);
+      await page.getByRole("button", { name: "Yeni şifre belirle", exact: true }).click();
+      await page.getByRole("status").filter({ hasText: "Şifren yenilendi." }).waitFor();
+      assert.equal((await authenticated.request.get(origin + "/api/onboarding/account")).status(), 401);
+      const login = new Client();
+      await login.login(username, password, 401); await login.login(username, replacement);
+      await anonymous.post("reset-password", { token, password }, 400);
+    } finally { await authenticated.close(); await context.close(); }
   });
   await check("Account screens preserve every scheme and mode at mobile and desktop widths", async () => {
     const context = await browser.newContext({ reducedMotion: "reduce" });
@@ -258,6 +533,7 @@ await check("Capacity exhaustion does not reuse an existing group's data", async
   assert.equal((await (await alice.request("/api/state")).json()).readingGroup.id, group.id);
 });
 await check("Concurrent recovery and password change cannot reuse or roll back a session version", async () => {
+  const versionBefore = sql(`SELECT session_version AS version FROM member_accounts WHERE username = '${users[0].username}'`)[0].version;
   await anonymous.post("forgot-password", { email: users[0].email });
   const token = tokenFor(users[0].email, "reset-password");
   const cookies = [...alice.cookies].map(([key, value]) => `${key}=${value}`).join("; ");
@@ -268,7 +544,7 @@ await check("Concurrent recovery and password change cannot reuse or roll back a
   assert.equal(Number(changed.status === 200) + Number(recovered.status === 200), 1);
   assert.ok([200, 400, 401].includes(changed.status)); assert.ok([200, 400].includes(recovered.status));
   const version = sql(`SELECT session_version AS version FROM member_accounts WHERE username = '${users[0].username}'`)[0].version;
-  assert.equal(version, 2);
+  assert.equal(version, versionBefore + 1);
   await alice.request("/api/groups", { expected: 401 });
 });
 await check("Sign-out rejects cross-origin requests and clears the authenticated session", async () => {
@@ -277,5 +553,5 @@ await check("Sign-out rejects cross-origin requests and clears the authenticated
   await bob.request("/api/auth/logout", { method: "POST" });
   await bob.request("/api/groups", { expected: 401 });
 });
-writeFileSync(`${output}/report.json`, JSON.stringify({ status: "passed", checks: results, noProductionWrites: true }, null, 2));
-console.log(`Self-service passed: ${results.length} flows; 16 scheme/viewport screenshots. No live mail or production data used.`);
+writeFileSync(`${output}/report.json`, JSON.stringify({ status: "passed", checks: results, groupToolsVisuals, noProductionWrites: true, invitationTokensCaptured: false }, null, 2));
+console.log(`Self-service passed: ${results.length} flows; 16 account and ${groupToolsVisuals.length} invitation screenshots. No live mail or production data used.`);

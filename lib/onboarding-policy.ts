@@ -10,6 +10,18 @@ export function normalizeEmail(value: unknown): string | null {
     && !email.includes("..") && !email.startsWith(".") && !email.includes(".@") ? email : null;
 }
 
+export function stagingEmailPolicy(source: { STAGING_ENVIRONMENT?: string; SELF_SERVICE_TEST_EMAILS?: string }) {
+  const restricted = source.STAGING_ENVIRONMENT === "true" || source.SELF_SERVICE_TEST_EMAILS !== undefined;
+  if (!restricted) return { restricted: false, valid: true, emails: [] as string[] };
+  try {
+    const emails: unknown = JSON.parse(source.SELF_SERVICE_TEST_EMAILS || "null");
+    if (source.STAGING_ENVIRONMENT !== "true" || !Array.isArray(emails) || !emails.length || emails.length > 10
+      || !emails.every((email) => typeof email === "string" && normalizeEmail(email) === email)
+      || new Set(emails).size !== emails.length) throw new Error("Invalid test allowlist");
+    return { restricted: true, valid: true, emails: emails as string[] };
+  } catch { return { restricted: true, valid: false, emails: [] as string[] }; }
+}
+
 export function cleanName(value: unknown, maximum = 100): string | null {
   if (typeof value !== "string") return null;
   const name = value.trim().replace(/\s+/gu, " ");

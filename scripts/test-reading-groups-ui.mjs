@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 import { groupsSettingsPath, testOrigin, testOutputPath } from "./test-environment.mjs";
+import { checkFooterLayout } from "./footer-layout-checks.mjs";
 
 const origin = testOrigin;
 if (!["127.0.0.1", "localhost", "[::1]"].includes(new URL(origin).hostname)) throw new Error("Only loopback development environments may be tested.");
@@ -40,7 +41,7 @@ async function capture(page, name) {
   const missing = await page.locator("img:visible").evaluateAll((images) => images.filter((img) => img.complete && !img.naturalWidth).map((img) => img.getAttribute("src")));
   assert.deepEqual(missing, [], `${name}: failed images`);
   await page.screenshot({ path: `${output}/${name}.png`, animations: "disabled" });
-  results.push({ name, ...geometry });
+  results.push({ name, ...geometry, footer: await checkFooterLayout(page) });
 }
 
 try {
@@ -121,8 +122,23 @@ try {
         await nav(account, width < 768 ? "Profil" : "Profilim");
         for (const tab of ["Özet", "Kitaplarım", "Galerim", "Görünüm", "Güvenlik", "Yüz verisi", "Çöp kutusu", "Yönetim"]) {
           await account.getByRole("tab", { name: tab, exact: true }).click();
+          if (tab === "Güvenlik") {
+            assert.equal(await account.getByRole("button", { name: "Şifreyi değiştir", exact: true }).isEnabled(), true);
+            const heights = await account.locator('.profile-password-form input,.profile-password-form button[type="submit"]').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().height));
+            assert.equal(heights.length, 4);
+            assert.ok(heights.every((height) => height >= 44));
+            assert.equal(await account.getByRole("link", { name: "Şifremi unuttum", exact: true }).count(), 0, "Recovery stays hidden when self-service is disabled");
+          }
           await capture(account, `${prefix}-profile-${tab.replace(/[^a-zA-Z0-9]/g, "_")}`);
         }
+        await account.getByRole("tab", { name: "Güvenlik", exact: true }).click();
+        await account.setViewportSize({ width, height: 1600 });
+        await capture(account, `${prefix}-short-page-footer`);
+        if (width === 1440 && scheme === "notebook") {
+          await account.setViewportSize({ width: 2557, height: 1262 });
+          await capture(account, `2557-${scheme}-${mode}-short-page-footer`);
+        }
+        await account.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
       }
     }
   }

@@ -62,10 +62,10 @@ async function freePort(origin) {
   await new Promise((resolve, reject) => { server.once("error", reject); server.listen(Number(url.port), url.hostname, resolve); });
   await new Promise((resolve) => server.close(resolve));
 }
-async function server(legacy = false, selfService = false) {
+async function server(legacy = false, selfService = false, koru = false) {
   const origin = legacy ? legacyOrigin : testOrigin;
   await freePort(origin);
-  const child = launch(node("node_modules/vite/bin/vite.js", "--port", new URL(origin).port), { OKUMA_GROUPS_DEVELOPMENT: legacy ? "legacy" : "1", OKUMA_SELF_SERVICE_DEVELOPMENT: selfService ? "1" : "0" }, legacy ? "legacy-server" : selfService ? "self-service-server" : "main-server");
+  const child = launch(node("node_modules/vite/bin/vite.js", "--port", new URL(origin).port), { OKUMA_GROUPS_DEVELOPMENT: legacy ? "legacy" : "1", OKUMA_SELF_SERVICE_DEVELOPMENT: selfService ? "1" : "0", OKUMA_APPLICATION_BRAND: koru ? "Koru" : "", OKUMA_BRAND_ORIGIN: koru ? "https://koru.example" : "" }, legacy ? "legacy-server" : koru ? "koru-server" : selfService ? "self-service-server" : "main-server");
   for (let attempt = 0; attempt < 120; attempt++) {
     if (child.exitCode !== null) throw new Error("Test server exited; inspect its log.");
     try { const response = await fetch(origin + "/login", { signal: AbortSignal.timeout(3_000) }); if (response.ok) return child; } catch { /* Server compilation is bounded by this loop. */ }
@@ -132,6 +132,12 @@ try {
     const onboarding = await server(false, true);
     await run("self-service", pnpm("self-service:test"));
     await stop(onboarding);
+    const koru = await server(false, true, true);
+    await run("web-pwa", pnpm("web:test:pwa"));
+    await run("web-experience", pnpm("web:test:experience"));
+    await run("web-experience-extra", [process.execPath, "scripts/test-web-experience.mjs", "--extra"]);
+    await run("web-updates", pnpm("web:test:updates"));
+    await stop(koru);
   }
   const after = sourceIdentity();
   if (after.commit !== report.commit || after.sourceDigest !== report.sourceDigest) throw new Error("Source changed during tests; rerun against one fixed revision.");
