@@ -1,13 +1,43 @@
 # Koru Üretim Firebase Hazırlığı
 
-20 Ekim ek çalışma: [ortak grup depolaması](SHARED_GROUP_STORAGE.md) toplam üç
-grup darboğazını kaldırmak için yerelde uygulandı. Bu, aşağıdaki çalışan sürümün
-değiştiği anlamına gelmez; 0015 ve ortak grup bayrağı henüz canlıya uygulanmadı.
+## Son Güncelleme: Ortak Grup Depolaması Canlıda
 
-## Yayın Gerçekleşti: 20 Ekim 2026
+20 Ekim 2026, 23:18 TRT: `https://birkoru.com`, kaynak
+`d6a1c4d720317c29c0fd366afb7582ab32f07ebf`, Cloudflare sürümü
+`fc31de5a-5c8f-4e7b-9645-81f151453374` (%100).
+[Ortak grup depolaması](SHARED_GROUP_STORAGE.md) etkin: yeni gruplar kanonik
+D1'de `group_id` ile ayrılır; toplam üç grup darboğazı kaldırıldı. Hesap başına
+üç grup kurma ve yirmi üyelik sınırı ile ücretsiz hizmet kotaları devam ediyor.
+
+Yalnız ekleyici `0015` uygulandı. Mevcut grupların depoları, kimlikleri, rolleri
+ve medyası taşınmadı. Taze şifreli yedek, çevrimdışı geri yükleme/0015 provası
+ve eski şema/tipli satır/medya/sıra değerlerinin birebir karşılaştırması geçti.
+Üç DB bağlantısı korunuyor; 14 yeni ortak grup tablosu yalnız kanonik DB'de.
+`SHARED_GROUPS_ENABLED=true`, `SELF_SERVICE_GROUP_BINDINGS=[]`, bakım kapalı.
+
+İlk deneme, eski yedek aracının tek bağlantı varsayımında SQL uygulanmadan
+durdu; bakım kapatıldı, kontrol düzeltildi ve temiz yeni kaynakta testler
+yenilendi. Son sürüm21/21 yayın adımını (269 kök birim testi dahil), güncel
+web bağımlılık taramasını ve gerçek HTTPS üzerinde14 anonim tarayıcı/PWA
+kontrolünü geçti. Son smoke normal sistem DNS'i ve TLS doğrulaması kullandı.
+Staging aktarılmadı, DB sıfırlanmadı, ücretli hizmet/ek test hesabı/posta açılmadı.
+Kaynak coauthor olmadan çalışma dalına gönderildi; main değişmedi.
+
+Bu güncellemeye özel açık risk kabulü kullanıldı ve tüketildi. 13 manuel
+kabul başlığı hâlâ bekliyor; fiziksel telefon, gerçek üretim postası/hesap
+ve ayrıcalıklı silme/çoklu-DB felaket kurtarma başarılı gösterilmedi.
+Sonraki yayınlar için bu karar tekrar kullanılamaz. `0015` tekrar uygulanmaz;
+geri adımda ortak okuyucular korunur, gerekirse yalnız yeni grup kurma durdurulur.
+
+Kanıtlar (Git dışı): `outputs/release-tests/shared-groups-clean-d6a1c4d/suite-report.json`,
+`outputs/web-acceptance/d6a1c4d/production-outcome.json`, `production-smoke.json`;
+özel rollout `838d658f-46c7-4fe5-8f42-ff773d4233e8`, taze yedek
+`cdfc3f87-d1b1-49c8-8609-abf4c11c1725`. Kullanıcı verisi/anahtarlar Git dışındadır.
+
+## İlk Genel Yayın Kaydı: 20 Ekim 2026
 
 `https://birkoru.com` genel erişime açıldı; `www` ve eski workers.dev adresi
-aynı HTTPS adrese yönleniyor. Çalışan kaynak commit'i
+aynı HTTPS adrese yönleniyor. İlk açılışta yayınlanan kaynak commit'i
 `1c1b235d75e0162a1c1bd3b6387bb07ce5eececf`, Cloudflare sürümü
 `7a93d173-3973-45e3-a05b-0691abad4c6e` (%100). Main'e dokunulmadı; kaynak
 coauthor olmadan çalışma dalına commit/push edildikten sonra dağıtıldı.

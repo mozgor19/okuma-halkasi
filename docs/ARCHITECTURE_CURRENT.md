@@ -2,7 +2,15 @@
 
 20 Ekim 2026. Mimari envanteri; güvenlik/hukuki uygunluk sertifikası değildir.
 [Görsel raporu aç](architecture/index.html). Diyagramlar bu dosyayla aynı
-snapshot'ı anlatır; uygulama veya canlı yapılandırma bu çalışma için değiştirilmedi.
+17:52 TRT snapshot'ını anlatır; bu ilk envanter çalışması uygulamayı değiştirmedi.
+
+**23:18 TRT ek yayını:** Ortak grup depolaması artık canlıda (`d6a1c4d`, Worker
+`fc31de5a-5c8f-4e7b-9645-81f151453374`). Yeni gruplar kanonik D1'de tenant
+alanlarıyla ayrılıyor; eski grupların depoları ve üç DB bağlantısı korunuyor.
+Toplam üç grup/havuz darboğazı kalktı; hesap/kota sınırları sürüyor. Aşağıdaki
+sayaçlar ve diyagramlar ilk tarihli envanterdir, güncel grup sayacı değildir.
+Yeni mimari/kanıtlar: [Ortak Grup Depolaması](SHARED_GROUP_STORAGE.md),
+[Son Yayın Kaydı](FIREBASE_PRODUCTION.md). 13 manuel kabul başlığı hâlâ bekliyor.
 
 ## 1. Durum Özeti
 

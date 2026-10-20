@@ -1,7 +1,35 @@
 # Shared Group Storage
 
 October 20, 2026. Requested replacement of the GLOBAL three-group bottleneck.
-This document describes implementation, not a completed production migration.
+Production rollout completed at20:18UTC /23:18TRT. Source `d6a1c4d`, Worker
+`fc31de5a-5c8f-4e7b-9645-81f151453374` at100% on https://birkoru.com.
+
+## Verified Outcome
+
+Only0015 was applied. Fresh encrypted canonical backup and offline restore/
+migration rehearsal passed; exact previous schema/typed rows/media/sequences
+were verified before and after atomic DDL. All three existing D1 bindings
+remain, fourteen shared tables are present, maintenance is off, shared mode
+is on and pool creation bindings are empty. No existing group was moved/reset.
+The original global three-group bottleneck is gone, not quota/account limits.
+
+Clean source passed21/21 release steps,269 root unit tests and a fresh audit
+with no high/critical WEB findings. Anonymous live-HTTPS smoke passed14checks
+using the normal system resolver/TLS, including390/1440 light/dark, matching
+approved assets, private access denial, offline fallback and reconnection.
+This did not create a real provider account or send mail.
+
+The first attempt stopped BEFORE export/schema due to the backup tool's old
+single-binding guard. It was explicitly inspected, maintenance reopened with
+no D1 writes/restore, the guard fixed/tested, and a NEW clean-revision rollout
+performed. Successful private journal:838d658f-46c7-4fe5-8f42-ff773d4233e8;
+backup:cdfc3f87-d1b1-49c8-8609-abf4c11c1725. No staging import or paid service.
+
+The explicitly approved one-time update exception is CONSUMED. All thirteen
+manual categories stay pending, not passed. Future releases need their own
+standard evidence/authority. Do not rerun0015 or replay the first-launch tool.
+The rollout/recovery procedure below is retained as history and operational
+guidance, not an instruction to apply the migration again.
 
 ## Decision
 

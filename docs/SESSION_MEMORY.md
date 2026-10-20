@@ -931,3 +931,48 @@ manual check passed without the operator/device evidence for that exact revision
   creates no remote restore DB in export-only mode, and verifies all Worker
   settings/deployments remain unchanged. New clean commit/suite/audit and fresh
   revision-bound decision are required before a new rollout attempt.
+
+## October 20 Shared Group Storage Is LIVE
+
+- Source d6a1c4d720317c29c0fd366afb7582ab32f07ebf, digest
+  e4d1c36d4879fe931b33493780702894a03cf9ff12d9fa3119934ab08e1bc10d;
+  coauthorless400c714 +d6a1c4d pushed to work/koru-web-pwa-20261019 BEFORE
+  deployment. Main unchanged. Later docs-only commits are not new app builds.
+- Clean d6a1c4d full suite PASSED21/21,269 root unit tests,91 backend/20API,
+  211 visual/layout,35 branding,22 self-service,59PWA,27+8 experience,4updates,
+  types/build and lint0errors/16existing warnings. Fresh audit passed no WEB
+  high/critical; low/moderate and deferred native findings remain.
+- New rollout838d658f-46c7-4fe5-8f42-ff773d4233e8 reached opened at
+  2026-10-20T20:18:07Z. Canonical backup cdfc3f87-d1b1-49c8-8609-abf4c11c1725:
+  encrypted export, decrypt/offline restore verified, Worker settings/deployment
+  and DB identities unchanged during backup. No temporary restore DB created.
+- ONLY additive0015 applied after maintenance/drain/offline rehearsal; every
+  prior schema/typed row/BLOB/sequence compared before/after. No existing group
+  data moved/reset, no staging import, no Secrets or paid plan/provider account/
+  test-mail changes. Both dedicated group bindings remain even if occupied.
+- Live Worker fc31de5a-5c8f-4e7b-9645-81f151453374 at100%, deployment
+  e79c6321-481a-47b7-a752-b7707114bc6c. SHARED_GROUPS_ENABLED=true,
+  SELF_SERVICE_GROUP_BINDINGS=[], maintenance=false, three D1 bindings and14
+  shared canonical tables. Postflight required runtime/schema blockers ZERO.
+- New groups use canonical tenant tables, no per-group pool slot. Existing
+  default/dedicated readers remain. GLOBAL three-group limit removed; per-owner
+  three-created-group /twenty memberships and service storage/CPU quotas remain.
+- Anonymous production HTTPS smoke PASSED14checks at20:18UTC with normal system
+  DNS/TLS: public docs/security headers, exact approved C icon/social bytes,
+  Firebase/Turnstile config, private/operator rejection, foreign/empty signup
+  rejection, canonical redirects, real hydration390/1440light/dark, no overflow/
+  page errors, public-only cache/offline/reconnect. Zero accounts/mail created.
+  Inspected mobile dark and desktop light screenshots. These are NOT real
+  production password/provider-mail or physical-phone/operator acceptance.
+- Evidence Git-excluded: outputs/release-tests/shared-groups-clean-d6a1c4d/,
+  outputs/web-acceptance/d6a1c4d/production-outcome.json and production-smoke.json;
+  private shared-rollouts journal and backup/key dirs. NEVER commit user data.
+- The separate explicit shared-update exception is now CONSUMED. Thirteen manual
+  categories remain pending; standard gate did NOT pass and future releases
+  cannot reuse either earlier exception. Do NOT rerun0015 or first-launch SQL.
+  Once shared groups exist, keep shared readers enabled; to mitigate problems
+  pause only new creation with GROUP_CREATION_DISABLED=true. No restore over
+  newer users/content or rollback to shared-unaware binary.
+- Dated architecture diagrams/counters describe17:52TRT pre-shared snapshot;
+  prominent latest-update notices point to SHARED_GROUP_STORAGE.md. Do not
+  interpret their old two-pool illustration as a current global capacity limit.

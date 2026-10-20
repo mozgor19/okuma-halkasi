@@ -185,3 +185,9 @@ pushed work branch, the fixed baseline, allowlisted shared-storage paths and an
 unchanged package/dependency graph. Technical failures and failed manual evidence
 remain blocking. The standard gate is unchanged and continues to report missing
 manual checks. Never relabel them passed or reuse the consumed first-launch decision.
+
+This shared-update exception is now CONSUMED by source `d6a1c4d`, live Worker
+`fc31de5a-5c8f-4e7b-9645-81f151453374`, journal838d658f (20:18UTC).
+The full clean suite/audit, fresh encrypted backup, offline rehearsal and exact
+old-data preservation passed; thirteen manual categories remain pending. Do
+not replay0015 or use this decision as authority for another release.
