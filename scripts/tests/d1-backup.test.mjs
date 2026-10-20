@@ -2,12 +2,25 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { assertDrillTarget, assertFreeCapacity, catalogSql, describeSnapshot, digest, openSnapshot,
+import { assertBackupSourceBindings, assertDrillTarget, assertFreeCapacity, catalogSql, describeSnapshot, digest, openSnapshot,
   openSql, restoreSql, sealSql, verifySnapshot } from "../d1-backup-policy.mjs";
 import { production } from "../web-production-policy.mjs";
 
 const runId = "11111111-1111-4111-8111-111111111111";
 const targetId = "22222222-2222-4222-8222-222222222222";
+test("backup supports the original source and current three-binding topology without accepting aliases or foreign targets", () => {
+  const canonical = { type: "d1", name: "DB", database_id: production.canonicalDatabaseId };
+  const first = { type: "d1", name: "GROUP_CREATE_ONE", database_id: targetId };
+  const second = { type: "d1", name: "GROUP_CREATE_TWO", database_id: "33333333-3333-4333-8333-333333333333" };
+  assert.doesNotThrow(() => assertBackupSourceBindings([canonical]));
+  assert.doesNotThrow(() => assertBackupSourceBindings([second, { type: "plain_text", name: "SHARED_GROUPS_ENABLED", text: "true" }, canonical, first]));
+  for (const bindings of [[], [first], [canonical, first], [canonical, first, second, { ...second, name: "EXTRA" }],
+    [{ ...canonical, database_id: targetId }], [canonical, first, { ...second, name: "STAGING" }],
+    [canonical, first, { ...second, database_id: targetId }], [canonical, first, { ...second, database_id: production.canonicalDatabaseId }],
+    [canonical, first, { ...second, database_id: "invalid" }], [canonical, first, { ...second, name: "GROUP_CREATE_ONE" }]]) {
+    assert.throws(() => assertBackupSourceBindings(bindings));
+  }
+});
 test("remote entry point refuses missing approval and arbitrary existing target arguments before authentication", () => {
   const script = new URL("../backup-production-d1.mjs", import.meta.url);
   for (const args of [[], ["--confirm=wrong"], ["--confirm=production-backup-and-isolated-restore", "--target=" + production.canonicalDatabaseId]]) {

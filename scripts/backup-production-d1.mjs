@@ -6,7 +6,7 @@ import { constants as fileConstants } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { production } from "./web-production-policy.mjs";
-import { assertDrillTarget, assertFreeCapacity, catalogSql, describeSnapshot, digest, identifier,
+import { assertBackupSourceBindings, assertDrillTarget, assertFreeCapacity, catalogSql, describeSnapshot, digest, identifier,
   openSnapshot, openSql, ownershipTable, restoreSql, sealSql, verifySnapshot } from "./d1-backup-policy.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -130,7 +130,7 @@ async function run() {
       const deployment = await api(path + "/deployments");
       result[worker.id] = { settings: digest(JSON.stringify(stable(settings))), deployment: deployment.deployments?.[0]?.id };
       bindings.push(...(settings.bindings ?? []));
-      if (worker.id === production.worker) assert.deepEqual(settings.bindings.filter((item) => item.type === "d1").map((item) => ({ name: item.name, id: item.database_id })), [{ name: "DB", id: production.canonicalDatabaseId }]);
+      if (worker.id === production.worker) assertBackupSourceBindings(settings.bindings ?? []);
     }
     assert.ok(result[production.worker] && result["koru-staging"] && result["koru-public-info"]);
     return { fingerprints: result, bindings };

@@ -913,3 +913,21 @@ manual check passed without the operator/device evidence for that exact revision
   not real production account/mail acceptance.
 - This entry records authorization/preparation, NOT completed deployment. Check
   the private shared-rollouts journal and live preflight for actual outcome.
+
+### First Shared Rollout Stopped Before Schema
+
+- Coauthorless400c714 was pushed to the work branch, not main. Clean revision
+  passed21/21 full release steps (268 root unit tests) and a fresh dependency
+  audit with no high/critical web findings. Thirteen manual checks stay pending.
+- Rollout e827ae97 stopped at drained BEFORE backup export or schema writes:
+  the older backup guard assumed the pre-launch canonical-only Worker, while
+  current production correctly has DB plus both dedicated group bindings.
+  Backup attempt061d7bdc failed its preflight; no SQL, restore or schema applied.
+- Explicitly checked no shared schema exists and reopened the SAME tested
+  shared-disabled application with maintenance=false. Login200 confirmed.
+  Failed journal retained with recovery details; no blind cutover replay.
+- Fix only the backup source topology guard, with negative tests for missing/
+  extra/aliased/wrong canonical bindings. It still exports ONLY canonical DB,
+  creates no remote restore DB in export-only mode, and verifies all Worker
+  settings/deployments remain unchanged. New clean commit/suite/audit and fresh
+  revision-bound decision are required before a new rollout attempt.

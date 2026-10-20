@@ -12,6 +12,14 @@ export function identifier(value) {
   assert.ok(value.length && !value.includes("\0"));
   return '"' + value.replaceAll('"', '""') + '"';
 }
+export function assertBackupSourceBindings(bindings) {
+  const databases = bindings.filter((item) => item.type === "d1");
+  const names = databases.map((item) => item.name).sort();
+  assert.deepEqual(names, databases.length === 1 ? ["DB"] : ["DB", "GROUP_CREATE_ONE", "GROUP_CREATE_TWO"], "Unexpected backup source bindings");
+  assert.equal(databases.find((item) => item.name === "DB")?.database_id, production.canonicalDatabaseId, "Unexpected canonical backup source");
+  assert.equal(new Set(databases.map((item) => item.database_id)).size, databases.length, "Aliased backup source bindings");
+  assert.ok(databases.every((item) => /^[a-f0-9-]{36}$/.test(item.database_id ?? "")), "Invalid backup source identity");
+}
 export function assertFreeCapacity(databases, sourceId) {
   assert.ok(Array.isArray(databases) && databases.length < 10, "D1 Free database capacity unavailable");
   assert.equal(new Set(databases.map((item) => item.uuid)).size, databases.length);
