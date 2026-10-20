@@ -2,6 +2,7 @@ import { getAuthenticatedMember, getState } from "@/db/store";
 import { readingGroupContext } from "@/db/database";
 import { readingGroupsEnabled, withReadingGroup } from "@/lib/groups";
 import { isAdminRole } from "@/lib/types";
+import { faceRecognitionEnabled } from "@/lib/feature-policy";
 
 export const runtime = "edge";
 
@@ -13,7 +14,8 @@ async function handleGET(request: Request) {
 
   try {
     const state = await getState();
-    const members = isAdminRole(member.role)
+    const faces = faceRecognitionEnabled();
+    const members = !faces ? state.members.map((person) => ({ ...person, faceReferenceMediaKey: null })) : isAdminRole(member.role)
       ? state.members
       : state.members.map((person) => person.id === member.id
           ? person
@@ -23,7 +25,7 @@ async function handleGET(request: Request) {
       : state.bookVotes;
     const group = readingGroupContext()?.group;
     return Response.json(
-      { ...state, members, bookVotes, currentMemberId: member.id,
+      { ...state, members, bookVotes, currentMemberId: member.id, faceRecognitionEnabled: faces,
         ...(group && readingGroupsEnabled() ? { readingGroup: group } : {}),
       },
       { headers: { "Cache-Control": "no-store" } },

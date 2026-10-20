@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { TOKEN_PATTERN } from "@/lib/onboarding-policy";
 import { requireOnline } from "@/lib/network-client";
 
-export type OnboardingConfig = { enabled: boolean; ready: boolean; local: boolean; restrictedTest?: boolean; brand: string; supportEmail: string | null; privacyUrl: string | null; termsUrl: string | null; siteKey: string | null };
+export type OnboardingConfig = { enabled: boolean; ready: boolean; local: boolean; restrictedTest?: boolean; identityProvider?: "firebase" | "legacy"; brand: string; supportEmail: string | null; privacyUrl: string | null; termsUrl: string | null; siteKey: string | null };
 export function useOnboardingConfig() {
   const [config, setConfig] = useState<OnboardingConfig | null>(null);
   useEffect(() => {
@@ -158,6 +158,7 @@ export function AccountForm({ flow, children }: { flow: AccountFlow; children?: 
     return () => cancelAnimationFrame(frame);
   }, []);
   const isRegistration = flow === "register";
+  const remoteLink = flow === "link-email" && config?.identityProvider === "firebase";
   const isVerify = flow === "verify-email";
   const hasPassword = isRegistration || flow === "reset-password" || flow === "link-email";
   const needsChallenge = isRegistration || flow === "forgot-password";
@@ -168,11 +169,13 @@ export function AccountForm({ flow, children }: { flow: AccountFlow; children?: 
     if (busy) return;
     const form = new FormData(event.currentTarget);
     setError(""); setMessage("");
-    if ((isRegistration || flow === "reset-password") && form.get("password") !== form.get("confirmPassword")) { setError("Şifreler eşleşmiyor."); return; }
+    if (((isRegistration || flow === "reset-password") && form.get("password") !== form.get("confirmPassword"))
+      || (remoteLink && form.get("newPassword") !== form.get("confirmPassword"))) { setError("Şifreler eşleşmiyor."); return; }
     setBusy(true);
     try {
       const result = await onboardingRequest<{ message?: string; error?: string }>(flow, {
         name: form.get("name"), email: form.get("email"), username: form.get("username"), password: form.get("password"),
+        ...(remoteLink ? { newPassword: form.get("newPassword") } : {}),
         acceptedPolicy: form.get("acceptedPolicy") === "on", token, challenge,
       });
       setMessage(result.message || (isVerify ? "E-posta adresin doğrulandı. Giriş yapabilirsin." : "Şifren yenilendi. Yeniden giriş yap."));
@@ -190,8 +193,9 @@ export function AccountForm({ flow, children }: { flow: AccountFlow; children?: 
       {isRegistration && <><Field id="name" label="Ad soyad" autoComplete="name" required maxLength={80} /><Field id="username" label="Kullanıcı adı" autoComplete="username" autoCapitalize="none" pattern="[a-z0-9][a-z0-9._-]{2,39}" required minLength={3} maxLength={40} /></>}
       {(isRegistration || flow === "forgot-password" || flow === "link-email") && <Field id="email" label="E-posta" type="email" autoComplete="email" autoCapitalize="none" required maxLength={254} />}
       {hasPassword && <Field id="password" label={flow === "link-email" ? "Mevcut şifre" : "Yeni şifre"} type="password" autoComplete={flow === "link-email" ? "current-password" : "new-password"} required minLength={flow === "link-email" ? 1 : 12} maxLength={200} />}
-      {(isRegistration || flow === "reset-password") && <Field id="confirmPassword" label="Şifre tekrarı" type="password" autoComplete="new-password" required minLength={12} maxLength={200} />}
-      {isRegistration && <label className="onboarding-consent"><input type="checkbox" name="acceptedPolicy" required /><span>{config?.termsUrl ? <a href={config.termsUrl} target="_blank" rel="noreferrer">Kullanım koşullarını</a> : "Kullanım koşullarını"} kabul ediyorum; {config?.privacyUrl ? <a href={config.privacyUrl} target="_blank" rel="noreferrer">gizlilik bildirimini</a> : "gizlilik bildirimini"} okudum.</span></label>}
+      {remoteLink && <Field id="newPassword" label="Yeni hesap şifresi" type="password" autoComplete="new-password" required minLength={12} maxLength={200} />}
+      {(isRegistration || flow === "reset-password" || remoteLink) && <Field id="confirmPassword" label="Şifre tekrarı" type="password" autoComplete="new-password" required minLength={12} maxLength={200} />}
+      {(isRegistration || remoteLink) && <label className="onboarding-consent"><input type="checkbox" name="acceptedPolicy" required /><span>{config?.termsUrl ? <a href={config.termsUrl} target="_blank" rel="noreferrer">Kullanım koşullarını</a> : "Kullanım koşullarını"} kabul ediyorum; {config?.privacyUrl ? <a href={config.privacyUrl} target="_blank" rel="noreferrer">gizlilik bildirimini</a> : "gizlilik bildirimini"} okudum.</span></label>}
       {needsChallenge && config?.siteKey && <SecurityChallenge key={challengeKey} siteKey={config.siteKey} action={flow} onToken={setChallenge} />}
       {(isVerify || flow === "reset-password") && !token && <p role="alert">E-postadaki geçerli bağlantıyı aç.</p>}
       {error && <p role="alert">{error}</p>}

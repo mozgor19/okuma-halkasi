@@ -1,6 +1,6 @@
 # Koru Web/PWA Yayını
 
-18 Ekim 2026. Öncelik web, telefon tarayıcısı ve ana ekrana kurulan PWA'dır.
+19 Ekim 2026. Öncelik web, telefon tarayıcısı ve ana ekrana kurulan PWA'dır.
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
@@ -9,6 +9,16 @@ Mevcut testleri tekrar saymak yerine eksik akışlar için `web-experience` ve
 `web-updates` zorunlu adımları eklendi. `0011_account_experience.sql` henüz
 uzak ortamda uygulanmadı. Tur ve silme talebi yerel özelliklerdir; kalıcı
 çoklu-D1 silme ve fiziksel cihaz kabulü henüz tamamlanmış değildir.
+
+Ücretsiz origin ve güncel genel yayın hazırlığı:
+[WEB_PUBLIC_LAUNCH.md](WEB_PUBLIC_LAUNCH.md).
+
+19 Ekim sonraki ölçüm: onaylı izole uzak Worker 100k'yı destekledi, 200k ve
+600k'yı runtime sınırıyla reddetti; kaldırıldığı ve asıl Worker'ların
+değişmediği doğrulandı. [Yerel Firebase adayı](FIREBASE_AUTH_PLAN.md) yalnız
+sentetik prototip olarak onaylandı, üretim parola engelini henüz kapatmaz.
+[Yerel silme servisi](ACCOUNT_ERASURE.md) 13 odaklı testle eklendi; korumalı
+işletim, sağlayıcı eşgüdümü ve yedek/restore kabulü hâlâ eksik.
 
 ## Şu Anki Karar
 
@@ -34,13 +44,16 @@ Son komut salt okunurdur, deploy yapmaz. Şunlarda başarısız olur:
 - Kaynak revision/digest farklıysa veya çalışma ağacı commit edilmemişse.
 - PWA adımı dahil zorunlu adımlar geçmediyse; web raporu yedi günden eskiyse.
 - Web üretim bağımlılığında high/critical bulgu varsa veya audit bir günden eskiyse.
-- HTTPS özel alan adı, aşağıdaki insan/cihaz kanıtları ve operatör onayı yoksa.
+- İncelenmiş HTTPS origin, aşağıdaki insan/cihaz kanıtları ve operatör onayı yoksa.
+  Onaylı ücretsiz üretim Workers adresi kabul edilir; staging edilmez.
 
 Audit bir paketin yüklü olduğunu saptar; ilgili zafiyetin bu uygulamada
 gerçekten sömürülebildiğini tek başına kanıtlamaz. Web/mobil yolları ayrılır;
 mobil açıkları native yayın öncesi ayrıca kapatılır. Dev/build araçları,
 paket kilidi ve Worker çıktısı bağımsız güvenlik incelemesinin de kapsamındadır.
-Script CSP'nin script-src/nonce katmanı henüz tamamlanmış kabul edilmez.
+Koru script-src/nonce katmanı eklendi; yerel üretim tarayıcısında saldırgan
+inline HTML, sahte nonce ve hydration sınanır. Uzak Turnstile ve bağımsız
+güvenlik kabulünün yerine geçmez.
 18 Ekim ilk taramasındaki Next/sharp/source-map-js web high/critical
 uyarıları yama güncellemeleriyle giderildi; bu yalnız paket taramasının
 kapsamıdır. Mobil araç zincirindeki uyarılar ve native React/RSC peer
@@ -50,7 +63,7 @@ uyumluluğu native çalışma tekrar açıldığında ayrıca değerlendirilmeli
 
 | İş | Gerekli Kanıt |
 | --- | --- |
-| Kalıcı alan adı/origin | Satın alma onayı, DNS/HTTPS, canonical origin ve Turnstile hostname; eski link geçiş planı |
+| Onaylı origin | Ücretsiz üretim Workers adresi onaylandı; canonical, Turnstile ve posta aynı origin'i kullanmalı. Özel alan adı geçişi ayrıca onaylanır |
 | Android Chrome PWA | Gerçek telefonda yükle, standalone aç, oturum/grup değiştir, geri/klavye/safe-area/çıkış/offline/güncelleme |
 | iPhone Safari PWA | Gerçek iPhone'da ana ekrana ekle, tam ekran aç; aynı oturum/form/güncelleme kontrolleri |
 | Paylaşım | WhatsApp, Telegram, Facebook/LinkedIn gibi hedeflerde gerçek URL önizlemesi; dar kırpma ve yeniden tarama |
@@ -59,14 +72,17 @@ uyumluluğu native çalışma tekrar açıldığında ayrıca değerlendirilmeli
 | Parola saklama | Workers CPU/runtime ölçümü ile modern maliyet; mevcut hesapları kaybetmeyen sürümlü hash geçişi |
 | Kalıcı e-posta | Gmail test OAuth süresine dayanmayan düzen, kota/hata takibi, teslim ve kurtarma kabulü |
 | Gizlilik/silme | Gerçek saklama süreleri, dış sağlayıcılar, hesap silme/export, biyometrik özellik/rıza kararı ve yetkili hukuki inceleme |
-| Yedek/geri dönüş | Ayrı DB'ye restore tatbikatı, medya dahil tutarlılık, RPO/RTO, erişim yetkileri |
+| Yedek/geri dönüş | Mevcut tek DB için şifreli yedek ve izole uzak restore geçti; medya/değer eşleşmesi doğrulandı. Tam RPO/RTO, anahtar/saklama, çoklu-D1 ve silme tekrarı açık: BACKUP_RESTORE.md |
 | Kapasite/izleme | D1/Worker/medya/posta kotaları, dolu grup havuzu davranışı, alarm ve destek süreci |
 | Migration/rollback | Canlı şema salt okunur envanteri, yedek, geriye uyumlu SQL, sürüm rollback ve veri kurtarma ayrımı |
 | Güvenlik incelemesi | Oturum/grup/rol, CSRF, XSS, upload/medya, rate limit, bağımlılıklar, sırsız log, CSP, cache ve hesap kurtarma |
 
-Mevcut parola maliyeti PBKDF2-HMAC-SHA256/100.000; OWASP önerisi aynı
-algoritma için 600.000'dir. Workers sınırı nedeniyle sayıyı artırıp çalışıyor
-varsaymak güvenli bir geçiş değildir. Kanıtlı mimari/migration çalışması gerekir.
+100.000 olan eski parola varsayılanı korunur. `PASSWORD_HASH_ITERATIONS=600000`
+yalnız doğrulanmış çalışma zamanı için adaydır; yerel testte CAS yükseltmesi
+ve standart vektör sınandı, uzakta açılmadı. Node API de aynı üretim PBKDF2
+sınırına tabidir. Genel Koru kaydı eski maliyetle açılmaz; modern parola
+mimarisi/runtime kararı gerçek bir yayın engelidir, yalnız sayı değiştirerek
+veya yerel testi uzak CPU kanıtı sayarak kapanmaz.
 [OWASP parola saklama](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
 
 Gmail test yetkisinin yedi günlük süresini tarih değiştirerek uzatma.
@@ -121,7 +137,7 @@ operatör bunu atlayarak panelden dağıtım yapmamalıdır.
 
 ## Yayın Sırası
 
-1. Alan adını seç, toplam yenileme bedelini ve marka benzerliğini kontrol et.
+1. Onaylanan ücretsiz origin'i kullan; alan adı ileride seçilirse yenileme ve geçiş planını ayrıca değerlendir.
 2. Kalıcı posta, parola, veri yaşam döngüsü ve kapasite engellerini kapat.
 3. Sabit revision için izole test, audit ve staging dağıtımı yap.
 4. Gerçek Android/iPhone ve sosyal önizleme kanıtlarını tamamla.

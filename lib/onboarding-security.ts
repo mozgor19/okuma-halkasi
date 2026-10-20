@@ -3,6 +3,8 @@ import { identityDatabase, readingGroupsEnabled } from "@/db/database";
 import { ReadingGroupError } from "@/lib/groups";
 import { loopback, normalizeEmail, publicHttpsOrigin, publicHttpsUrl, stagingEmailPolicy } from "@/lib/onboarding-policy";
 import { accountMailConfiguration } from "@/lib/mail-configuration";
+import { firebaseLocalConfiguration, firebaseLocalSelected } from "@/lib/firebase-local-policy";
+import { firebaseConfiguration, firebaseSelected } from "@/lib/firebase-auth-policy";
 
 export function selfServiceEnabled() { return readingGroupsEnabled() && env.SELF_SERVICE_ENABLED === "true"; }
 export function localMail(request: Request) { return env.SELF_SERVICE_LOCAL === "true" && loopback(new URL(request.url)); }
@@ -10,10 +12,14 @@ export function localMail(request: Request) { return env.SELF_SERVICE_LOCAL === 
 export function onboardingConfiguration(request: Request) {
   const local = localMail(request);
   const testPolicy = stagingEmailPolicy(env);
-  const configured = testPolicy.valid && (local || (!!publicHttpsOrigin(env.AUTH_PUBLIC_ORIGIN || "") && !!accountMailConfiguration(env)
+  const firebase = firebaseSelected(env), remote = firebaseConfiguration(env, request.url);
+  const passwordReady = firebase ? !!remote : env.APPLICATION_BRAND !== "Koru" || local || env.STAGING_ENVIRONMENT === "true" || env.PASSWORD_HASH_ITERATIONS === "600000";
+  const providerReady = !firebaseLocalSelected(env) || !!firebaseLocalConfiguration(env, request.url);
+  const configured = providerReady && passwordReady && testPolicy.valid && (local || (!!publicHttpsOrigin(env.AUTH_PUBLIC_ORIGIN || "") && (firebase ? !!remote : !!accountMailConfiguration(env))
     && !!normalizeEmail(env.SUPPORT_EMAIL) && publicHttpsUrl(env.PRIVACY_POLICY_URL) && publicHttpsUrl(env.TERMS_URL) && !!env.TURNSTILE_SITE_KEY && !!env.TURNSTILE_SECRET_KEY));
   return {
     enabled: selfServiceEnabled(), ready: configured, local, restrictedTest: testPolicy.restricted,
+    identityProvider: firebase ? "firebase" : "legacy",
     brand: env.APPLICATION_BRAND || "Okuma Halkası",
     supportEmail: normalizeEmail(env.SUPPORT_EMAIL),
     privacyUrl: publicHttpsUrl(env.PRIVACY_POLICY_URL) ? env.PRIVACY_POLICY_URL! : null,

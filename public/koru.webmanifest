@@ -12,8 +12,8 @@
   "theme_color": "#172d45",
   "categories": ["books", "social"],
   "icons": [
-    { "src": "/brand/koru-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/brand/koru-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/brand/koru-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/brand/koru-192-v2.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/koru-512-v2.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/koru-maskable-512-v2.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

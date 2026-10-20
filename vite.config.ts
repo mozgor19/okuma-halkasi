@@ -32,6 +32,8 @@ const localBindingConfig = {
 export default defineConfig(async ({ command }) => {
   const legacyDevelopment = process.env.OKUMA_GROUPS_DEVELOPMENT === "legacy";
   const groupsDevelopment = process.env.OKUMA_GROUPS_DEVELOPMENT === "1" || legacyDevelopment;
+  const firebaseLocal = process.env.OKUMA_FIREBASE_LOCAL === "1";
+  if (firebaseLocal && (command !== "serve" || !groupsDevelopment || legacyDevelopment || !testRunId.startsWith("firebase-local-"))) throw new Error("Firebase integration is local isolated serve-only.");
   if (groupsDevelopment && command !== "serve") throw new Error("Yerel grup profili build/deploy icin kullanilamaz.");
   const groupSettings = groupsDevelopment ? readGroupsDevelopmentSettings() : null;
   // Use Miniflare's local Request.cf placeholder unless fetching is requested.
@@ -76,6 +78,7 @@ export default defineConfig(async ({ command }) => {
             SELF_SERVICE_LOCAL: "true",
             ...(process.env.OKUMA_APPLICATION_BRAND ? { APPLICATION_BRAND: process.env.OKUMA_APPLICATION_BRAND } : {}),
             ...(process.env.OKUMA_BRAND_ORIGIN ? { AUTH_PUBLIC_ORIGIN: process.env.OKUMA_BRAND_ORIGIN } : {}),
+            ...(firebaseLocal ? { AUTH_PROVIDER: "firebase-local", AUTH_PUBLIC_ORIGIN: testOrigin, FIREBASE_LOCAL_EMULATOR_ORIGIN: process.env.OKUMA_FIREBASE_EMULATOR_ORIGIN } : {}),
             SELF_SERVICE_GROUP_BINDINGS: JSON.stringify(["GROUP_POOL_ONE", "GROUP_POOL_TWO", "GROUP_POOL_THREE"]),
             SESSION_SECRET: groupSettings.sessionSecret,
             MEMBER_CREDENTIALS: JSON.stringify(Object.fromEntries(["demo.multi", "demo.single", "demo.none"].map((name, index) => [name, { memberId: index + 1, password: groupSettings.password }]))),

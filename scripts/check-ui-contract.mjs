@@ -1,7 +1,7 @@
 import fs from "node:fs";
 
 const css = fs.readFileSync("app/themes.css", "utf8");
-const page = fs.readFileSync("app/page.tsx", "utf8");
+const page = fs.readFileSync("components/reading-app.tsx", "utf8");
 const profile = fs.readFileSync("components/profile-view.tsx", "utf8");
 const manifest = fs.readFileSync("public/manifest.webmanifest", "utf8");
 const layout = fs.readFileSync("app/layout.tsx", "utf8");

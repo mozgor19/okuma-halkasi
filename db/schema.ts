@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { blob, check, integer, sqliteTable, text, primaryKey, unique, index } from "drizzle-orm/sqlite-core";
+import { blob, check, integer, sqliteTable, text, primaryKey, unique, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const members = sqliteTable("members", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -54,6 +54,54 @@ export const accountProfiles = sqliteTable("account_profiles", {
   verifiedAt: integer("verified_at").notNull(),
   policyVersion: text("policy_version").notNull(),
 });
+export const firebaseEnvironment = sqliteTable("firebase_environment", {
+  singleton: integer("singleton").primaryKey().notNull(),
+  projectId: text("project_id").notNull(),
+}, (table) => [
+  check("firebase_environment_singleton", sql`${table.singleton} = 1`),
+  check("firebase_environment_project", sql`${table.projectId} = 'koru-951bf'`),
+]);
+export const firebaseRegistrations = sqliteTable("firebase_registrations", {
+  id: text("id").primaryKey().notNull(),
+  projectId: text("project_id").notNull(),
+  firebaseUid: text("firebase_uid"),
+  email: text("email").notNull().unique(),
+  username: text("username").notNull().unique(),
+  name: text("name").notNull(),
+  expiresAt: integer("expires_at").notNull(),
+  memberId: integer("member_id").references(() => members.id),
+  claimMemberId: integer("claim_member_id").references(() => memberAccounts.memberId),
+  claimVersion: integer("claim_version"),
+  consumedAt: integer("consumed_at"),
+}, (table) => [
+  unique().on(table.projectId, table.firebaseUid),
+  check("firebase_registrations_claim", sql`(${table.claimMemberId} IS NULL AND ${table.claimVersion} IS NULL) OR
+    (${table.claimMemberId} IS NOT NULL AND ${table.claimVersion} IS NOT NULL AND ${table.claimMemberId} > 0 AND ${table.claimVersion} >= 0)`),
+]);
+export const firebaseLinks = sqliteTable("firebase_links", {
+  memberId: integer("member_id").primaryKey().notNull().references(() => memberAccounts.memberId),
+  projectId: text("project_id").notNull(),
+  firebaseUid: text("firebase_uid").notNull(),
+  mutationPending: integer("mutation_pending", { mode: "boolean" }).notNull().default(false),
+  mutationStartedAt: integer("mutation_started_at"),
+  mutationValidSince: integer("mutation_valid_since"),
+  mutationKind: text("mutation_kind", { enum: ["password", "reset", "erasure"] }),
+}, (table) => [
+  unique().on(table.projectId, table.firebaseUid),
+  check("firebase_links_mutation_pending", sql`${table.mutationPending} IN (0, 1)`),
+  check("firebase_links_mutation_kind", sql`${table.mutationKind} IN ('password', 'reset', 'erasure')`),
+]);
+export const firebaseSessions = sqliteTable("firebase_sessions", {
+  tokenHash: text("token_hash").primaryKey().notNull(),
+  memberId: integer("member_id").notNull().references(() => memberAccounts.memberId),
+  sessionVersion: integer("session_version").notNull(),
+  projectId: text("project_id").notNull(),
+  firebaseUid: text("firebase_uid").notNull(),
+  authTime: integer("auth_time").notNull(),
+  sealedCredentials: text("sealed_credentials").notNull(),
+  expiresAt: integer("expires_at").notNull(),
+  revokedAt: integer("revoked_at"),
+}, (table) => [index("firebase_sessions_member").on(table.memberId)]);
 export const accountExperience = sqliteTable("account_experience", {
   memberId: integer("member_id").primaryKey().notNull().references(() => memberAccounts.memberId),
   tourVersion: integer("tour_version").notNull(),
@@ -67,6 +115,25 @@ export const accountDeletionRequests = sqliteTable("account_deletion_requests", 
   requestedAt: integer("requested_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
 }, (table) => [index("account_deletion_requests_status").on(table.status, table.requestedAt), check("account_deletion_requests_state", sql`${table.status} IN ('requested', 'processing', 'cancelled', 'completed')`)]);
+export const accountErasureJobs = sqliteTable("account_erasure_jobs", {
+  requestId: text("request_id").primaryKey().notNull(),
+  accountMemberId: integer("account_member_id").notNull().unique(),
+  planJson: text("plan_json").notNull(),
+  planDigest: text("plan_digest").notNull(),
+  completedBindings: text("completed_bindings").notNull().default("[]"),
+  leaseToken: text("lease_token"),
+  frozenAt: integer("frozen_at"),
+  completedAt: integer("completed_at"),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+}, (table) => [
+  check("account_erasure_member_id", sql`${table.accountMemberId} > 0`),
+  check("account_erasure_plan_json", sql`json_valid(${table.planJson})`),
+  check("account_erasure_plan_digest", sql`length(${table.planDigest}) = 64`),
+  check("account_erasure_completed_bindings", sql`json_valid(${table.completedBindings})`),
+  uniqueIndex("account_erasure_single_runner").on(sql`(1)`).where(sql`${table.leaseToken} IS NOT NULL`),
+  uniqueIndex("account_erasure_single_pending").on(sql`(1)`).where(sql`${table.completedAt} IS NULL`),
+]);
 export const pendingRegistrations = sqliteTable("pending_registrations", {
   tokenHash: text("token_hash").primaryKey().notNull(), email: text("email").notNull(),
   username: text("username").notNull(), name: text("name").notNull(),

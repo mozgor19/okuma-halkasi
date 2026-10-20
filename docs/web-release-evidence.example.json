@@ -1,7 +1,7 @@
 {
   "commit": "REPLACE_WITH_REVIEWED_COMMIT",
   "sourceDigest": "REPLACE_WITH_FIXED_SUITE_DIGEST",
-  "publicOrigin": "https://REPLACE_WITH_APPROVED_DOMAIN",
+  "publicOrigin": "https://okuma-halkasi.mustafayapayzeka.workers.dev",
   "checks": {
     "androidPwa": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },
     "iosPwa": { "status": "pending", "reviewer": "", "checkedAt": "", "proofs": [] },

@@ -2,6 +2,7 @@ import { database, faceSchemaMissing, getAuthenticatedMember, profileSchemaMissi
 import { isSuperAdminRole } from "@/lib/types";
 import { readingGroupContext } from "@/db/database";
 import { withReadingGroup } from "@/lib/groups";
+import { faceRecognitionEnabled } from "@/lib/feature-policy";
 
 export const runtime = "edge";
 
@@ -37,6 +38,9 @@ async function handlePOST(request: Request) {
     const form = await request.formData();
     const file = form.get("file");
     const purpose = String(form.get("purpose"));
+    if (purpose === "faceReference" && !faceRecognitionEnabled()) {
+      return Response.json({ error: "Yüz eşleştirme bu ortamda kapalı." }, { status: 403 });
+    }
     if (!(file instanceof File) || !["cover", "photo", "avatar", "faceReference"].includes(purpose)) {
       return Response.json({ error: "Bir fotoğraf seç." }, { status: 400 });
     }

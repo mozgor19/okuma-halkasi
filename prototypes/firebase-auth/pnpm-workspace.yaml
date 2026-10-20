@@ -1,0 +1,13 @@
+# Deliberately independent: no change to the web/native dependency graph.
+packages: []
+minimumReleaseAge: 10080
+minimumReleaseAgeIgnoreMissingTime: false
+trustLockfile: false
+strictDepBuilds: true
+allowBuilds:
+  "@firebase/util": false
+  protobufjs: false
+storeDir: ../../.sites-runtime/firebase-prototype/pnpm-store
+cacheDir: ../../.sites-runtime/firebase-prototype/pnpm-cache
+enableGlobalVirtualStore: false
+packageImportMethod: clone-or-copy

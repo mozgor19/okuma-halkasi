@@ -1,6 +1,6 @@
 # Koru Kurumsal Kimliği
 
-Sürüm 1.0 · 18 Ekim 2026 · Web/PWA önce, yerel mobil uygulamalar sonra.
+Sürüm 1.2 · 20 Ekim 2026 · Web/PWA önce, yerel mobil uygulamalar sonra.
 Bu belge tüm platformların tasarım sözleşmesidir. Yeni bir görsel yön, bu
 belgenin sürümü ve karar kaydı güncellenmeden uygulanmaz. Marka tescili veya
 bağımsız erişilebilirlik sertifikası değildir.
@@ -13,6 +13,13 @@ bağımsız erişilebilirlik sertifikası değildir.
 - Kısa açıklama: Kitaplar, buluşmalar ve okuma grubun.
 - Karakter: sakin, özenli, kültürlü, samimi; resmi kurum dili veya çocukça dil değil.
 - Destek: `koru.destek@gmail.com`. İşletici: Mustafa Özgör.
+- Çalışan eski origin: `https://okuma-halkasi.mustafayapayzeka.workers.dev`.
+  Mustafa'nın satın aldığı ve DNS'ini etkinleştirdiği genel yayın hedefi
+  `https://birkoru.com`. Bu belge alanın uygulamaya bağlandığı iddiası değildir.
+- Ayrı kamusal tanıtım/politika hedefi:
+  `https://koru-public-info.mustafayapayzeka.workers.dev`. Bu adres hesap veya
+  PWA origin'i değildir; mevcut uygulamanın adresini ve marka geometrisini
+  değiştirmez. Yalnız kamusal sayfa dağıtımı ayrıca onaylandı.
 - Ürün adı, yüklenen uygulama adı ve paylaşım kartı **Koru** olarak sabittir.
 - Seçilen grubun adı grup başlıklarında, gezinmede, takvimde ve profilinde
   değişir. Özel grubun adı kamusal paylaşım görseline veya manifestine girmez.
@@ -21,19 +28,26 @@ bağımsız erişilebilirlik sertifikası değildir.
 
 ## Logo Sistemi
 
-Kaynaklar: `public/brand/koru-mark.svg`, `public/brand/koru-icon.svg`,
-`components/brand-mark.tsx`. İşaret, K harfi ile kitap sırtlarının birleşimidir.
+20 Ekim'de Mustafa seçtiği **C: sade sayfa ve yaprak** logosunun entegrasyonunu
+açıkça onayladı. İşaret altta açık kitabın iki sayfasını, üstte üç yaprağı ve
+ortada kitap sırtı/ağaç gövdesini taşıyan negatif alanı birleştirir.
+Eski K/kitap sırtı işareti yeni Koru sürümünde kullanılmaz.
+
+Tek geometri kaynağı: `lib/brand-identity.ts` içindeki `KORU_MARK_PATHS`.
+`components/brand-mark.tsx`, varlık üreticisi ve kamusal bilgi sayfası aynı
+beş dolu path'i kullanır. İnternetsiz ekranın gömülü kopyası birim testinde
+aynı kaynakla karşılaştırılır. Palet ve fontlar bu kararda değiştirilmedi.
 Uygulama içindeki diğer simgeler Hugeicons ailesinde kalır; logo bir araç ikonu değildir.
 
 | Kullanım | Ölçü ve Kural |
 | --- | --- |
-| Tek renk işaret | 64 birimlik kare; mevcut path geometrisi değiştirilmez |
+| Tek renk işaret | 64 birimlik kare; beş path, dolgu `currentColor`, kontur yok |
 | Güvenli boşluk | Her yönde işaret yüksekliğinin en az dörtte biri |
 | En küçük görünür işaret | 20 CSS px; bağımsız marka kullanımında 24 px tercih edilir |
 | Normal kelime markası | Bricolage Grotesque 700, Koru, 20–24 px; harf aralığı 0; Minimal dahil sabit |
 | Kelime/işaret aralığı | 24 px işarette 8 px; büyük uygulamalarda orantılı |
 | Kontrol alanı | İşaret küçük olsa da dokunma alanı en az 44×44 px |
-| Uygulama simgesi | 192 ve 512 PNG; Apple 180 PNG; maskable 512 ayrı çıktı |
+| Uygulama simgesi | `koru-192-v2.png`, `koru-512-v2.png`; Apple 180 ve maskable 512 ayrı çıktı |
 | Apple simgesi | Tam opak kare; köşeyi işletim sistemi maskeler, saydam köşe dağıtılmaz |
 | Maskelenebilir sürüm | Arka plan tamamen dolu; kritik şekil merkezdeki yüzde 80 çaplı güvenli daire içinde |
 | Bildirim rozeti | Saydam zeminli beyaz tek renk 96 PNG |
@@ -125,8 +139,14 @@ halihazırda bu ölçüleri geçtiği anlamına gelmez.
 
 ## Paylaşım ve PWA
 
-- Genel paylaşım görseli: `public/brand/koru-share-v1.png`, 1200×630.
-- Canlı metin ve vektör kaynakları `scripts/generate-brand-assets.mjs` içindedir.
+- Genel paylaşım görseli: `public/brand/koru-share-v2.png`, 1200×630.
+- Vektör ve varlık adresleri `lib/brand-identity.ts`, deterministik çıktı
+  üreticisi `scripts/generate-brand-assets.mjs` içindedir.
+- SVG, Apple, maskable ve bildirim adresleri `v2` sürümlüdür. Eski kurulumların
+  isteyebileceği sürümsüz Koru simgeleri aynı yeni geometriyi taşır; eski webin
+  `favicon.svg` ve `notebook-*` dosyaları değiştirilmez.
+- Offline kabuk önbelleği `v3` oldu; yeni logo çevrimdışı ekrana gömülüdür.
+  SW yalnız bu anonim ekranı saklar, güncelleme açık formu zorla yenilemez.
 - Güvenli dış boşluk en az 64 px. Önizleme dar ve kırpılmışken Koru okunabilmeli.
 - Özel grup adı, ad soyad, e-posta, davet/reset kodu, üye fotoğrafı kullanılmaz.
 - Open Graph ve Twitter kartı aynı marka görselini kullanır; mutlak URL yalnız
@@ -134,6 +154,10 @@ halihazırda bu ölçüleri geçtiği anlamına gelmez.
 - Paylaşım görseli değişince dosya sürümü artırılır; sosyal platform önbelleği
   ayrı kontrol edilir. Tarayıcı ekran görüntüsü gerçek WhatsApp önizleme kanıtı değildir.
 - Uygulama adı Koru; manifest ID `/`, başlangıç `/`. Grup veya token ID'ye eklenmez.
+- Yeni simge adresleri tarayıcıya değişikliği bildirir; önceden kurulu ana ekran
+  simgesinin ne zaman yenileneceğini işletim sistemi belirler. Web içi logo ve
+  offline kabuk güncellemesiyle aynı anda değiştiği varsayılmaz; fiziksel
+  Android/iPhone kabulünde ayrıca incelenir.
 - Ana ekrana ekleme Android tarayıcısında gerçek kurulum olayıyla; iPhone'da
   işletim sisteminin paylaş/ana ekrana ekle akışıyla doğrulanır.
 - Offline destek yalnız genel bağlantı ekranıdır; hesap, API, fotoğraf, kitap

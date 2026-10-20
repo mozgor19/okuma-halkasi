@@ -35,7 +35,10 @@ try {
       for (const temperature of ["cold", "warm"]) {
         await page.goto(origin + (account === "anonymous" ? "/login" : "/"), { waitUntil: "domcontentloaded" });
         assert.equal(await page.locator('script[src*="/@vite/client"]').count(), 0, "Do not report development-server timings as production measurements");
-        if (account === "authenticated") await page.waitForFunction(() => document.querySelector(".person-picker strong")?.textContent?.includes("Demo"));
+        if (account === "authenticated") await page.waitForFunction(() => {
+          const picker = document.querySelector(".person-picker");
+          return picker?.querySelector("strong")?.textContent?.includes("Demo") && Object.keys(picker).some((key) => key.startsWith("__reactProps"));
+        });
         else await page.waitForFunction(() => Object.keys(document.getElementById("username") || {}).some((key) => key.startsWith("__reactProps")));
         const readyMs = await page.evaluate(() => performance.now());
         await page.evaluate(() => document.fonts.ready);

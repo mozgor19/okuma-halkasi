@@ -22,6 +22,8 @@ writeFileSync(config, JSON.stringify({
   d1_databases: groupsBindings,
   vars: {
     APPLICATION_BRAND: "Koru", AUTH_PUBLIC_ORIGIN: "https://koru.example",
+    FACE_RECOGNITION_ENABLED: "false",
+    PASSWORD_HASH_ITERATIONS: "600000",
     READING_GROUPS_ENABLED: "true", READING_GROUP_DB_BINDINGS: JSON.stringify(groupsBindings.filter((item) => item.binding !== "DB").map((item) => item.binding)),
     SELF_SERVICE_ENABLED: "true", SELF_SERVICE_LOCAL: "true",
     SELF_SERVICE_GROUP_BINDINGS: JSON.stringify(["GROUP_POOL_ONE", "GROUP_POOL_TWO", "GROUP_POOL_THREE"]),

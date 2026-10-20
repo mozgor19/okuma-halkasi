@@ -5,6 +5,7 @@ import { chromium } from "playwright";
 import { staging, stagingCredentialsPath, groups, stagingFailure } from "./staging-policy.mjs";
 import { checkGroupTools } from "./group-tools-checks.mjs";
 import { checkFooterLayout } from "./footer-layout-checks.mjs";
+import { KORU_BRAND } from "../lib/brand-identity.ts";
 
 const origin = staging.origin;
 const { accounts } = JSON.parse(readFileSync(stagingCredentialsPath, "utf8"));
@@ -72,7 +73,7 @@ try {
   await page.getByRole("heading", { name: "Koru", exact: true }).waitFor();
   const previewTitle = await page.locator('meta[property="og:title"]').getAttribute("content");
   const previewImage = await page.locator('meta[property="og:image"]').getAttribute("content");
-  check("HTTPS public preview has a stable corporate title and absolute image", () => { assert.equal(previewTitle,"Koru"); assert.equal(previewImage,origin + "/brand/koru-share-v1.png"); });
+  check("HTTPS public preview has a stable corporate title and absolute image", () => { assert.equal(previewTitle,"Koru"); assert.equal(previewImage,origin + KORU_BRAND.socialImage); });
   check("HTTPS login has baseline browser security headers", () => { assert.equal(loginResponse.headers()["x-content-type-options"],"nosniff"); assert.equal(loginResponse.headers()["referrer-policy"],"no-referrer"); assert.equal(loginResponse.headers()["x-frame-options"],"DENY"); });
   const manifest = await request.get(origin + "/koru.webmanifest");
   check("HTTPS manifest is public, correctly typed and independent of membership", () => { assert.equal(manifest.status(),200); assert.match(manifest.headers()["content-type"],/application\/(?:manifest\+)?json/); });

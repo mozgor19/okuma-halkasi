@@ -60,7 +60,7 @@ async function handlePOST(request: Request) {
     const response = NextResponse.json({ ok: true });
     response.cookies.set(
       SESSION_COOKIE,
-      await createSessionToken(member.id, result.sessionVersion),
+      await createSessionToken(member.id, result.sessionVersion, result.firebase),
       {
         httpOnly: true,
         secure: new URL(request.url).protocol === "https:",
@@ -70,8 +70,8 @@ async function handlePOST(request: Request) {
       },
     );
     return response;
-  } catch (error) {
-    console.error("Password change failed", error);
+  } catch {
+    console.error("Password change failed");
     return NextResponse.json({ error: "Şifre değiştirilemedi. Tekrar dene." }, { status: 503 });
   }
 }

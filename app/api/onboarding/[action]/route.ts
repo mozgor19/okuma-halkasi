@@ -4,6 +4,8 @@ import { createReadingGroup, joinReadingGroup, manageInvitations } from "@/db/on
 import { noStore, ReadingGroupError, requireAccountIdentity } from "@/lib/groups";
 import { normalizeEmail } from "@/lib/onboarding-policy";
 import { jsonBody, localMail, onboardingConfiguration, rateLimit, requireSelfService, sameOrigin, verifyChallenge } from "@/lib/onboarding-security";
+import { firebaseSelected } from "@/lib/firebase-auth-policy";
+import { env } from "cloudflare:workers";
 
 export const runtime = "edge";
 type Context = { params: Promise<{ action: string }> };
@@ -41,6 +43,10 @@ export async function POST(request: Request, context: Context) {
     const { action } = await context.params;
     await rateLimit(request, "onboarding-ip", 100);
     const body = await jsonBody(request);
+    if (action === "firebase-action" && firebaseSelected(env)) {
+      await rateLimit(request, "firebase-action", 20);
+      return noStore(Response.json(await (await import("@/db/firebase-accounts")).firebaseEmailAction(body)));
+    }
     if (["register", "forgot-password"].includes(action)) {
       await rateLimit(request, action + "-ip", 15);
       await rateLimit(request, action + "-email", 5, 3600, normalizeEmail(body.email) || "invalid");

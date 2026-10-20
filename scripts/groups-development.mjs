@@ -46,6 +46,11 @@ if (process.argv[1] === resolve("scripts/groups-development.mjs")) {
     execute("DB", resolve("drizzle/0008_reading_groups.sql"));
     execute("DB", resolve("drizzle/0009_self_service.sql"));
     execute("DB", resolve("drizzle/0011_account_experience.sql"));
+    execute("DB", resolve("drizzle/0012_account_erasure_jobs.sql"));
+    if (process.env.OKUMA_FIREBASE_LOCAL === "1") {
+      if (!process.env.OKUMA_TEST_RUN_ID?.startsWith("firebase-local-")) throw new Error("Firebase integration requires a fresh named local fixture.");
+      execute("DB", resolve("prototypes/firebase-auth/local-integration-schema.sql"));
+    }
     execute("DB", resolve("demo/groups-memberships-local.sql"));
     execute("GROUP_SECOND", resolve("demo/groups-second-local.sql"));
     writeFileSync(marker, new Date().toISOString());

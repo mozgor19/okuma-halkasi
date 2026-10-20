@@ -1,4 +1,4 @@
-export const WEB_REQUIRED_STEPS = ["fixtures", "release-unit", "backend-unit", "web-types", "ui-contract", "lint", "web-build", "api", "web-ui", "branding", "legacy", "memberships", "self-service", "web-pwa", "web-experience", "web-experience-extra", "web-updates"];
+export const WEB_REQUIRED_STEPS = ["fixtures", "release-unit", "backend-unit", "web-types", "ui-contract", "lint", "web-build", "password-runtime", "web-production", "api", "web-ui", "branding", "legacy", "memberships", "self-service", "web-pwa", "web-experience", "web-experience-extra", "web-updates"];
 export const WEB_MANUAL_CHECKS = ["androidPwa", "iosPwa", "socialPreviews", "visualReview", "performanceAccessibility", "securityReview", "passwordStorage", "permanentMail", "privacyDeletion", "backupRestore", "capacityMonitoring", "productionMigrationPlan", "rollbackPlan", "operatorApproval"];
 
 export function webReleaseFailures({ suite, audit, evidence, current, now = Date.now(), proofExists = () => false }) {
@@ -15,8 +15,9 @@ export function webReleaseFailures({ suite, audit, evidence, current, now = Date
     || audit.findings.some((item) => item.web && ["high", "critical"].includes(item.severity))) failures.push("A fresh dependency audit with no high/critical web findings is required.");
   try {
     const url = new URL(evidence?.publicOrigin);
-    if (!publicHttpsOrigin(evidence.publicOrigin) || url.hostname.endsWith(".workers.dev")) throw new Error();
-  } catch { failures.push("A reviewed production HTTPS custom domain is required."); }
+    if (!publicHttpsOrigin(evidence.publicOrigin)
+      || (url.hostname.endsWith(".workers.dev") && url.origin !== "https://okuma-halkasi.mustafayapayzeka.workers.dev")) throw new Error();
+  } catch { failures.push("A reviewed production HTTPS origin is required; staging cannot be used for publication."); }
   for (const key of WEB_MANUAL_CHECKS) {
     const item = evidence?.checks?.[key];
     if (item?.status !== "passed" || typeof item.reviewer !== "string" || !item.reviewer.trim() || !fresh(item.checkedAt, 7)

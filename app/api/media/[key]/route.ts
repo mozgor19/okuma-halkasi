@@ -1,6 +1,7 @@
 import { database, faceSchemaMissing, getAuthenticatedMember } from "@/db/store";
 import { isAdminRole } from "@/lib/types";
 import { withReadingGroup } from "@/lib/groups";
+import { faceRecognitionEnabled } from "@/lib/feature-policy";
 export const runtime = "edge";
 
 type MediaRow = { data: number[]; contentType: string };
@@ -24,7 +25,7 @@ async function handleGET(request: Request, context: { params: Promise<{ key: str
     } catch (error) {
       if (!faceSchemaMissing(error)) throw error;
     }
-    if (referenceOwner && !isAdminRole(actor.role) && actor.id !== referenceOwner.id) {
+    if (referenceOwner && (!faceRecognitionEnabled() || (!isAdminRole(actor.role) && actor.id !== referenceOwner.id))) {
       return new Response("Forbidden", { status: 403 });
     }
 

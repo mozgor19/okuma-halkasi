@@ -1,4 +1,9 @@
 import { identityDatabase, readingGroupsEnabled } from "@/db/database";
+import { accountErasureBlocked } from "@/db/account-erasure-state";
+import { env } from "cloudflare:workers";
+import { FIREBASE_MANAGED_HASH, firebaseLocalSelected } from "@/lib/firebase-local-policy";
+import type { FirebaseLocalTokens } from "@/lib/firebase-local";
+import { FIREBASE_MANAGED_PASSWORD, firebaseSelected } from "@/lib/firebase-auth-policy";
 import {
   authenticateLegacyMember,
   legacyUsernameForMember,
@@ -8,6 +13,7 @@ import {
   hashPassword,
   normalizeUsername,
   passwordIterationsSupported,
+  passwordHashIterations,
   passwordValidationIssue,
   verifyPassword,
 } from "@/lib/password";
@@ -23,14 +29,14 @@ type AccountRow = {
   lockedUntil: string | null;
 };
 
-export type AccountSession = { memberId: number; sessionVersion: number };
+export type AccountSession = { memberId: number; sessionVersion: number; firebase?: FirebaseLocalTokens };
 const PASSWORD_REHASH_REQUIRED = "PASSWORD_REHASH_REQUIRED";
 
 export function passwordRehashRequired(error: unknown): boolean {
   return error instanceof Error && error.message === PASSWORD_REHASH_REQUIRED;
 }
 export type ChangePasswordResult =
-  | { ok: true; sessionVersion: number }
+  | { ok: true; sessionVersion: number; firebase?: FirebaseLocalTokens }
   | { ok: false; reason: "invalid-current" | "invalid-new" | "migration-required"; error: string };
 
 const accountSelect = `
@@ -58,20 +64,23 @@ async function accountByMemberId(memberId: number): Promise<AccountRow | null> {
   return identityDatabase().prepare(accountSelect + " WHERE member_id = ?").bind(memberId).first<AccountRow>();
 }
 
-async function replaceAccountPassword(account: AccountRow, password: string): Promise<AccountSession> {
+async function replaceAccountPassword(account: AccountRow, password: string): Promise<AccountSession | null> {
   const passwordRecord = await hashPassword(password);
-  await identityDatabase().prepare(
-    "UPDATE member_accounts SET password_hash = ?, password_salt = ?, password_iterations = ?, failed_attempts = 0, locked_until = NULL, password_changed_at = CURRENT_TIMESTAMP WHERE member_id = ?",
+  const updated = await identityDatabase().prepare(
+    "UPDATE member_accounts SET password_hash = ?, password_salt = ?, password_iterations = ?, failed_attempts = 0, locked_until = NULL, password_changed_at = CURRENT_TIMESTAMP WHERE member_id = ? AND session_version = ? AND password_hash = ? AND password_salt = ? RETURNING session_version AS sessionVersion",
   ).bind(
     passwordRecord.hash,
     passwordRecord.salt,
     passwordRecord.iterations,
     account.memberId,
-  ).run();
-  return { memberId: account.memberId, sessionVersion: account.sessionVersion };
+    account.sessionVersion,
+    account.passwordHash,
+    account.passwordSalt,
+  ).first<{ sessionVersion: number }>();
+  return updated ? { memberId: account.memberId, sessionVersion: updated.sessionVersion } : null;
 }
 
-async function migrateLegacyAccount(username: string, password: string, memberId: number): Promise<AccountSession> {
+async function migrateLegacyAccount(username: string, password: string, memberId: number): Promise<AccountSession | null> {
   const passwordRecord = await hashPassword(password);
   await identityDatabase().prepare(`
     INSERT INTO member_accounts (
@@ -87,12 +96,18 @@ async function migrateLegacyAccount(username: string, password: string, memberId
   ).run();
 
   const account = await accountByMemberId(memberId);
-  if (!account || account.username !== username) throw new Error("Hesap taşınamadı.");
+  if (!account || account.username !== username || (account.lockedUntil && Date.parse(account.lockedUntil) > Date.now())
+    || !await verifyPassword(password, account.passwordHash, account.passwordSalt, account.passwordIterations)) return null;
   return { memberId: account.memberId, sessionVersion: account.sessionVersion };
 }
 
 export async function authenticateAccount(usernameInput: string, password: string): Promise<AccountSession | null> {
   const username = normalizeUsername(usernameInput);
+  if (firebaseSelected(env)) {
+    const remote = await (await import("@/db/firebase-accounts")).authenticateFirebaseAccount(username, password);
+    return remote || authenticateLegacyForFirebase(username, password);
+  }
+  if (firebaseLocalSelected(env)) return (await import("@/db/firebase-local-accounts")).authenticateFirebaseLocal(username, password);
   let account: AccountRow | null;
   let tableAvailable = true;
 
@@ -105,8 +120,11 @@ export async function authenticateAccount(usernameInput: string, password: strin
   }
 
   if (account) {
+    if (account.passwordHash === FIREBASE_MANAGED_HASH || account.passwordHash === FIREBASE_MANAGED_PASSWORD) return null;
+    if (await accountErasureBlocked(account.memberId)) return null;
     if (account.lockedUntil && Date.parse(account.lockedUntil) > Date.now()) return null;
     if (!passwordIterationsSupported(account.passwordIterations)) {
+      if (account.sessionVersion !== 1) throw new Error(PASSWORD_REHASH_REQUIRED);
       const legacyMemberId = await authenticateLegacyMember(username, password);
       if (legacyMemberId !== account.memberId) throw new Error(PASSWORD_REHASH_REQUIRED);
       return replaceAccountPassword(account, password);
@@ -124,6 +142,7 @@ export async function authenticateAccount(usernameInput: string, password: strin
       return null;
     }
 
+    if (account.passwordIterations < passwordHashIterations()) return replaceAccountPassword(account, password);
     if (account.failedAttempts || account.lockedUntil) {
       await identityDatabase().prepare(
         "UPDATE member_accounts SET failed_attempts = 0, locked_until = NULL WHERE member_id = ?",
@@ -134,15 +153,33 @@ export async function authenticateAccount(usernameInput: string, password: strin
 
   const memberId = await authenticateLegacyMember(username, password);
   if (!memberId) return null;
+  if (await accountErasureBlocked(memberId)) return null;
   if (!tableAvailable) return { memberId, sessionVersion: 0 };
   return migrateLegacyAccount(username, password, memberId);
 }
 
+// Existing credentials are verified but never rehashed/imported during the transition.
+export async function authenticateLegacyForFirebase(username: string, password: string): Promise<AccountSession | null> {
+  const account = await accountByUsername(normalizeUsername(username));
+  if (!account || account.passwordHash.startsWith("managed:") || await accountErasureBlocked(account.memberId)
+    || (account.lockedUntil && Date.parse(account.lockedUntil) > Date.now()) || !passwordIterationsSupported(account.passwordIterations)) return null;
+  if (!await verifyPassword(password, account.passwordHash, account.passwordSalt, account.passwordIterations)) {
+    await identityDatabase().prepare("UPDATE member_accounts SET failed_attempts=failed_attempts+1,locked_until=CASE WHEN failed_attempts+1>=5 THEN ? ELSE locked_until END WHERE member_id=?")
+      .bind(new Date(Date.now() + 15 * 60000).toISOString(), account.memberId).run();
+    return null;
+  }
+  if (account.failedAttempts || account.lockedUntil) await identityDatabase().prepare("UPDATE member_accounts SET failed_attempts=0,locked_until=NULL WHERE member_id=?").bind(account.memberId).run();
+  return { memberId: account.memberId, sessionVersion: account.sessionVersion };
+}
+
 export async function sessionAccountIsCurrent(identity: SessionIdentity): Promise<boolean> {
+  if (await accountErasureBlocked(identity.memberId)) return false;
   try {
     const account = await accountByMemberId(identity.memberId);
     return account
       ? account.sessionVersion === identity.sessionVersion
+        && (account.passwordHash !== FIREBASE_MANAGED_HASH || (identity.firebaseLocal === true && firebaseLocalSelected(env)))
+        && (account.passwordHash !== FIREBASE_MANAGED_PASSWORD || (identity.firebase === true && firebaseSelected(env)))
       : identity.sessionVersion === 0;
   } catch (error) {
     if (accountTableMissing(error) && !readingGroupsEnabled()) return identity.sessionVersion === 0;
@@ -155,6 +192,9 @@ export async function changeMemberPassword(
   currentPassword: string,
   newPassword: string,
 ): Promise<ChangePasswordResult> {
+  if (firebaseSelected(env)) return (await import("@/db/firebase-accounts")).changeFirebasePassword(memberId, currentPassword, newPassword);
+  if (firebaseLocalSelected(env)) return (await import("@/db/firebase-local-accounts")).changeFirebaseLocalPassword(memberId, currentPassword, newPassword);
+  if (await accountErasureBlocked(memberId)) return { ok: false, reason: "invalid-current", error: "Mevcut şifre doğrulanamadı." };
   let account: AccountRow | null;
   try {
     account = await accountByMemberId(memberId);
@@ -172,13 +212,14 @@ export async function changeMemberPassword(
   let username: string;
   let nextVersion: number;
   if (account) {
+    if (account.passwordHash === FIREBASE_MANAGED_HASH || account.passwordHash === FIREBASE_MANAGED_PASSWORD) return { ok: false, reason: "migration-required", error: "Bu hesabın kimlik doğrulama hizmeti kullanılamıyor." };
     if (!passwordIterationsSupported(account.passwordIterations)) {
-      const legacyUsername = await legacyUsernameForMember(memberId, currentPassword);
+      const legacyUsername = account.sessionVersion === 1 ? await legacyUsernameForMember(memberId, currentPassword) : null;
       if (legacyUsername !== account.username) {
         return {
           ok: false,
           reason: "migration-required",
-          error: "Bu hesabın parola kaydı güncellenmeli. MEMBER_CREDENTIALS Secret'ını geçici olarak geri ekleyip yeniden giriş yap.",
+          error: "Bu parola kaydı bu ortamda doğrulanamıyor. Şifremi unuttum bağlantısını kullan veya destekle iletişime geç.",
         };
       }
     } else {

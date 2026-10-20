@@ -61,9 +61,9 @@ export async function generateMetadata(): Promise<Metadata> {
         ...(product.origin ? { images: [{ url: product.origin + KORU_BRAND.socialImage, alt: KORU_BRAND.socialImageAlt }] } : {}) },
     } : {}),
     icons: product.koru ? {
-      icon: [{ url: "/brand/koru-icon.svg", type: "image/svg+xml" }, { url: "/brand/koru-192.png", sizes: "192x192", type: "image/png" }],
-      apple: [{ url: "/brand/koru-apple-180.png", sizes: "180x180", type: "image/png" }],
-      shortcut: "/brand/koru-icon.svg",
+      icon: [{ url: KORU_BRAND.icon, type: "image/svg+xml" }, { url: KORU_BRAND.icon192, sizes: "192x192", type: "image/png" }],
+      apple: [{ url: KORU_BRAND.appleIcon, sizes: "180x180", type: "image/png" }],
+      shortcut: KORU_BRAND.icon,
     } : {
       icon: [
         { url: "/favicon.svg", type: "image/svg+xml" },
@@ -94,9 +94,10 @@ export default async function RootLayout({
   const { name, legacy, group } = await presentation();
   const product = applicationPresentation();
   const appearance = group ? { scheme: group.scheme, mode: group.mode } : null;
+  const nonce = (await headers()).get("x-koru-nonce") || undefined;
   return (
     <html lang="tr" data-product={product.koru ? "koru" : undefined} data-scheme={appearance?.scheme} data-mode={appearance?.mode} suppressHydrationWarning>
-      <head><link rel="manifest" href={product.koru ? KORU_BRAND.manifest : legacy ? "/manifest.webmanifest" : "/api/manifest"} crossOrigin={product.koru ? "anonymous" : "use-credentials"} /><script dangerouslySetInnerHTML={{ __html: appearanceScript(appearance) }} /></head>
+      <head><link rel="manifest" href={product.koru ? KORU_BRAND.manifest : legacy ? "/manifest.webmanifest" : "/api/manifest"} crossOrigin={product.koru ? "anonymous" : "use-credentials"} /><script nonce={nonce} dangerouslySetInnerHTML={{ __html: appearanceScript(appearance) }} /></head>
       <body><GroupBrandingProvider name={name} legacy={legacy} applicationName={product.name} koru={product.koru}><AppearanceProvider><PwaLifecycle enabled={product.koru}>{children}</PwaLifecycle></AppearanceProvider></GroupBrandingProvider></body>
     </html>
   );

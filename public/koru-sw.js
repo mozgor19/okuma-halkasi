@@ -1,5 +1,5 @@
 /* Koru public offline shell only. Never store accounts, group pages, API responses or media. */
-const SHELL_CACHE = "koru-public-shell-v2";
+const SHELL_CACHE = "koru-public-shell-v3";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {

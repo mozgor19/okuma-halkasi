@@ -53,6 +53,16 @@ test("only offline send-only tokens for the matching OAuth client are persisted"
   for (const value of [{ access_token: "a" }, { refresh_token: "r" }, {}]) assert.throws(() => validatedAuthorization(client, value, info()));
 });
 
+test("production authorization is separate, send-only, and refuses explicitly time-limited refresh grants", () => {
+  const value = validatedAuthorization(client, tokens(), info(), Date.now(), { production: true });
+  assert.equal(value.environment, "koru-production");
+  assert.equal(value.oauthPublishingStatus, "production");
+  assert.equal(value.expiresAt, null);
+  assert.equal(value.origin, "https://okuma-halkasi.mustafayapayzeka.workers.dev");
+  assert.throws(() => validatedAuthorization(client, { ...tokens(), refresh_token_expires_in: 604800 }, info(), Date.now(), { production: true }), /Sureli/);
+  assert.equal("oauthPublishingStatus" in validatedAuthorization(client, tokens(), info()), false);
+});
+
 test("private authorization storage never overwrites an existing credential or follows a directory symlink", () => temporary((directory) => {
   const path = join(directory, "private", "authorization.json");
   const value = validatedAuthorization(client, tokens(), info());

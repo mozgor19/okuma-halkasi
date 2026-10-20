@@ -37,6 +37,13 @@ test("stale audits, future approvals and a staging domain are rejected", () => {
   value.evidence.publicOrigin = "https://koru-staging.example.workers.dev";
   assert.equal(webReleaseFailures(value).length, 3);
 });
+test("the operator-approved free production origin does not require a paid domain", () => {
+  const value = fixture();
+  value.evidence.publicOrigin = "https://okuma-halkasi.mustafayapayzeka.workers.dev";
+  assert.deepEqual(webReleaseFailures(value), []);
+  value.evidence.publicOrigin = "https://unreviewed.example.workers.dev";
+  assert.ok(webReleaseFailures(value).some((failure) => failure.includes("HTTPS")));
+});
 test("private/placeholder origins and inconsistent passing summaries cannot pass publication", () => {
   for (const origin of ["https://127.0.0.1", "https://10.0.0.1", "https://koru.invalid", "https://koru.test", "https://koru.local", "https://user:secret@app.example.com"]) {
     const value = fixture(); value.evidence.publicOrigin = origin;

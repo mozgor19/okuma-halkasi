@@ -45,7 +45,11 @@ function db(kind) {
       return {
         bind(...args) { values = args; return this; },
         async first() {
-          if (sql.includes("sqlite_master")) return sql.includes("group_provisioning") ? provisioned ? { name: "group_provisioning" } : null : legacyRegistry ? { name: "reading_group_memberships" } : null;
+          if (sql.includes("sqlite_master")) {
+            if (sql.includes("group_provisioning")) return provisioned ? { name: "group_provisioning" } : null;
+            if (sql.includes("reading_group_memberships")) return legacyRegistry ? { name: "reading_group_memberships" } : null;
+            return null;
+          }
           if (sql.includes("FROM group_provisioning")) return provisioned ? { group_id: "second" } : null;
           if (sql.includes("FROM group_database_ownership")) return { groupId: domainOwner };
           if (sql.includes("JOIN reading_groups")) {

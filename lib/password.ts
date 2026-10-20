@@ -1,68 +1,40 @@
-const encoder = new TextEncoder();
-export const PASSWORD_ITERATIONS = 100_000;
-const MIN_PASSWORD_ITERATIONS = 100_000;
-const MAX_PASSWORD_ITERATIONS = 100_000;
+import { pbkdf2, timingSafeEqual } from "node:crypto";
+import { env } from "cloudflare:workers";
+import { PASSWORD_ITERATIONS, passwordIterationsSupported as validWorkFactor } from "@/lib/password-policy";
+
+export {
+  PASSWORD_ITERATIONS,
+  normalizeUsername,
+  passwordValidationIssue,
+} from "@/lib/password-policy";
+
 const PASSWORD_BYTES = 32;
 const SALT_BYTES = 16;
 
-function toHex(value: ArrayBuffer | Uint8Array): string {
-  const bytes = value instanceof Uint8Array ? value : new Uint8Array(value);
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-function fromHex(value: string): ArrayBuffer | null {
-  if (!/^[a-f0-9]+$/.test(value) || value.length % 2 !== 0) return null;
-  const bytes = new Uint8Array(value.length / 2);
-  for (let index = 0; index < value.length; index += 2) {
-    bytes[index / 2] = Number.parseInt(value.slice(index, index + 2), 16);
-  }
-  return bytes.buffer;
-}
-
-async function derivePassword(password: string, salt: ArrayBuffer, iterations: number): Promise<ArrayBuffer> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
-  return crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt, iterations },
-    key,
-    PASSWORD_BYTES * 8,
-  );
-}
-
-export function normalizeUsername(username: string): string {
-  return username.trim().toLowerCase();
+export function passwordHashIterations(): number {
+  if (!env.PASSWORD_HASH_ITERATIONS || env.PASSWORD_HASH_ITERATIONS === "100000") return 100_000;
+  if (env.PASSWORD_HASH_ITERATIONS === String(PASSWORD_ITERATIONS)) return PASSWORD_ITERATIONS;
+  throw new Error("Password work factor requires runtime review.");
 }
 
 export function passwordIterationsSupported(iterations: number): boolean {
-  return Number.isInteger(iterations)
-    && iterations >= MIN_PASSWORD_ITERATIONS
-    && iterations <= MAX_PASSWORD_ITERATIONS;
+  return validWorkFactor(iterations) && iterations <= passwordHashIterations();
 }
 
-export function passwordValidationIssue(password: string, username: string): string | null {
-  if (password.length < 12) return "Yeni şifre en az 12 karakter olmalı.";
-  if (password.length > 200) return "Yeni şifre en fazla 200 karakter olabilir.";
-  if (!/[a-zçğıöşü]/i.test(password) || !/\d/.test(password)) {
-    return "Yeni şifre en az bir harf ve bir rakam içermeli.";
-  }
-
-  const compactUsername = normalizeUsername(username).replace(/[^a-z0-9]/g, "");
-  const compactPassword = password.toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (compactUsername.length >= 4 && compactPassword.includes(compactUsername)) {
-    return "Yeni şifre kullanıcı adını içermemeli.";
-  }
-  return null;
+function derivePassword(password: string, salt: Uint8Array, iterations: number): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    pbkdf2(password, salt, iterations, PASSWORD_BYTES, "sha256", (error, result) => {
+      if (error) reject(error);
+      else resolve(result);
+    });
+  });
 }
 
 export async function hashPassword(password: string): Promise<{ hash: string; salt: string; iterations: number }> {
   const saltBytes = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
-  const hash = await derivePassword(password, saltBytes.buffer, PASSWORD_ITERATIONS);
-  return { hash: toHex(hash), salt: toHex(saltBytes), iterations: PASSWORD_ITERATIONS };
+  const iterations = passwordHashIterations();
+  const hash = await derivePassword(password, saltBytes, iterations);
+  return { hash: hash.toString("hex"), salt: Buffer.from(saltBytes).toString("hex"), iterations };
 }
 
 export async function verifyPassword(
@@ -71,13 +43,10 @@ export async function verifyPassword(
   storedSalt: string,
   iterations: number,
 ): Promise<boolean> {
-  const expected = fromHex(storedHash);
-  const salt = fromHex(storedSalt);
-  if (!expected || expected.byteLength !== PASSWORD_BYTES || !salt || salt.byteLength !== SALT_BYTES) return false;
-  if (!passwordIterationsSupported(iterations)) return false;
+  if (!/^[a-f0-9]{64}$/.test(storedHash) || !/^[a-f0-9]{32}$/.test(storedSalt)
+    || !passwordIterationsSupported(iterations)) return false;
+  const expected = Buffer.from(storedHash, "hex");
+  const salt = Buffer.from(storedSalt, "hex");
   const candidate = await derivePassword(password, salt, iterations);
-  const subtle = crypto.subtle as SubtleCrypto & {
-    timingSafeEqual(a: ArrayBuffer, b: ArrayBuffer): boolean;
-  };
-  return subtle.timingSafeEqual(expected, candidate);
+  return timingSafeEqual(expected, candidate);
 }

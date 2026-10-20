@@ -53,7 +53,23 @@
     "web:images": "node scripts/optimize-web-images.mjs",
     "web:preview:local": "node scripts/preview-local-production.mjs",
     "web:measure": "node scripts/measure-web-performance.mjs",
-    "web:release:check": "node scripts/check-web-release.mjs"
+    "web:release:check": "node scripts/check-web-release.mjs",
+    "web:preflight": "node scripts/web-production-preflight.mjs",
+    "web:auth:preflight": "node scripts/firebase-production-preflight.mjs",
+    "web:backup:drill": "node scripts/backup-production-d1.mjs",
+    "web:migration:rehearse": "node scripts/rehearse-production-migration.mjs",
+    "web:test:production": "node scripts/test-web-production.mjs",
+    "auth:prototype:unit": "corepack pnpm --dir prototypes/firebase-auth test:unit",
+    "auth:prototype:test": "corepack pnpm --dir prototypes/firebase-auth test",
+    "auth:prototype:audit": "corepack pnpm --dir prototypes/firebase-auth run audit",
+    "auth:test:preflight": "node prototypes/firebase-auth/preflight-test-project.mjs",
+    "auth:test:remote": "node prototypes/firebase-auth/remote-test.mjs",
+    "auth:local:dev": "node scripts/firebase-local-integration.mjs",
+    "auth:local:test": "node scripts/firebase-local-integration.mjs --test",
+    "info:build": "node scripts/build-public-info.mjs",
+    "info:test": "node scripts/test-public-info.mjs",
+    "info:deploy": "node scripts/deploy-public-info.mjs",
+    "info:test:https": "node scripts/test-public-info-https.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -70,8 +86,9 @@
     "embla-carousel-react": "^8.6.0",
     "fflate": "0.8.3",
     "input-otp": "^1.4.2",
-    "motion": "^13.4.4",
+    "jose": "6.2.12",
     "mimetext": "3.0.28",
+    "motion": "^13.4.4",
     "next": "16.3.8",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.6.7",
@@ -113,7 +130,9 @@
     "miniflare": {
       "sharp": "0.35.5"
     },
-    "next": { "sharp": "0.35.5" },
+    "next": {
+      "sharp": "0.35.5"
+    },
     "source-map-js": "1.2.2"
   },
   "packageManager": "pnpm@11.25.0"

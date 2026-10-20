@@ -1,10 +1,14 @@
 import { identityDatabase } from "@/db/database";
 import { authenticateAccount } from "@/db/accounts";
+import { accountErasureBlocked } from "@/db/account-erasure-state";
 import { ReadingGroupError } from "@/lib/groups";
 import { cleanName, newToken, normalizeEmail, POLICY_VERSION, TOKEN_PATTERN, tokenHash } from "@/lib/onboarding-policy";
 import { hashPassword, normalizeUsername, passwordValidationIssue } from "@/lib/password";
 import { deliverAccountMail } from "@/lib/account-mail";
 import { requireTestEmail } from "@/lib/onboarding-security";
+import { env } from "cloudflare:workers";
+import { FIREBASE_MANAGED_HASH, firebaseLocalSelected } from "@/lib/firebase-local-policy";
+import { FIREBASE_MANAGED_PASSWORD, firebaseSelected } from "@/lib/firebase-auth-policy";
 
 const invalidToken = () => new ReadingGroupError("INVALID_TOKEN", 400, "Bağlantı geçersiz, süresi dolmuş veya daha önce kullanılmış.");
 const genericMessage = "Bilgiler uygunsa e-posta gönderildi. Gelen kutunu ve spam klasörünü kontrol et.";
@@ -16,6 +20,8 @@ async function cleanup() {
 }
 
 export async function registerAccount(request: Request, body: Record<string, unknown>) {
+  if (firebaseSelected(env)) return (await import("@/db/firebase-accounts")).registerFirebaseAccount(request, body);
+  if (firebaseLocalSelected(env)) return (await import("@/db/firebase-local-accounts")).registerFirebaseLocal(request, body);
   const email = normalizeEmail(body.email);
   const name = cleanName(body.name, 80);
   const username = typeof body.username === "string" ? normalizeUsername(body.username) : "";
@@ -42,6 +48,8 @@ export async function registerAccount(request: Request, body: Record<string, unk
 }
 
 export async function verifyEmail(token: unknown) {
+  if (firebaseSelected(env)) throw invalidToken();
+  if (firebaseLocalSelected(env)) return (await import("@/db/firebase-local-accounts")).verifyFirebaseLocalEmail(token);
   if (typeof token !== "string" || !TOKEN_PATTERN.test(token)) throw invalidToken();
   const db = identityDatabase();
   const hash = await tokenHash(token);
@@ -84,14 +92,16 @@ export async function verifyEmail(token: unknown) {
 }
 
 export async function requestRecovery(request: Request, emailInput: unknown) {
+  if (firebaseSelected(env)) return (await import("@/db/firebase-accounts")).recoverFirebaseAccount(request, emailInput);
+  if (firebaseLocalSelected(env)) return (await import("@/db/firebase-local-accounts")).recoverFirebaseLocal(request, emailInput);
   const email = normalizeEmail(emailInput);
   if (!email) throw new ReadingGroupError("INVALID_EMAIL", 400, "Geçerli bir e-posta adresi gir.");
   requireTestEmail(email);
   await cleanup();
   const db = identityDatabase();
-  const account = await db.prepare(`SELECT a.member_id AS memberId, a.session_version AS sessionVersion FROM account_profiles p
-    JOIN member_accounts a ON a.member_id = p.member_id WHERE p.email = ?`).bind(email).first<{ memberId: number; sessionVersion: number }>();
-  if (account) {
+  const account = await db.prepare(`SELECT a.member_id AS memberId, a.session_version AS sessionVersion, a.password_hash AS passwordHash FROM account_profiles p
+    JOIN member_accounts a ON a.member_id = p.member_id WHERE p.email = ?`).bind(email).first<{ memberId: number; sessionVersion: number; passwordHash: string }>();
+  if (account && account.passwordHash !== FIREBASE_MANAGED_HASH && account.passwordHash !== FIREBASE_MANAGED_PASSWORD && !await accountErasureBlocked(account.memberId)) {
     const token = newToken();
     const hash = await tokenHash(token);
     await db.prepare("INSERT INTO account_recovery_tokens(token_hash, member_id, session_version, expires_at) VALUES (?, ?, ?, ?)")
@@ -103,14 +113,16 @@ export async function requestRecovery(request: Request, emailInput: unknown) {
 }
 
 export async function resetAccountPassword(token: unknown, password: unknown) {
+  if (firebaseSelected(env)) throw invalidToken();
+  if (firebaseLocalSelected(env)) return (await import("@/db/firebase-local-accounts")).resetFirebaseLocalPassword(token, password);
   if (typeof token !== "string" || !TOKEN_PATTERN.test(token) || typeof password !== "string") throw invalidToken();
   const db = identityDatabase();
   const hash = await tokenHash(token);
   const now = Date.now();
-  const account = await db.prepare(`SELECT a.username, p.email FROM member_accounts a JOIN account_recovery_tokens t ON t.member_id = a.member_id
+  const account = await db.prepare(`SELECT a.member_id AS memberId, a.username, a.password_hash AS passwordHash, p.email FROM member_accounts a JOIN account_recovery_tokens t ON t.member_id = a.member_id
     JOIN account_profiles p ON p.member_id = a.member_id
-    WHERE t.token_hash = ? AND t.consumed_at IS NULL AND t.expires_at > ? AND t.session_version = a.session_version`).bind(hash, now).first<{ username: string; email: string }>();
-  if (!account) throw invalidToken();
+    WHERE t.token_hash = ? AND t.consumed_at IS NULL AND t.expires_at > ? AND t.session_version = a.session_version`).bind(hash, now).first<{ memberId: number; username: string; passwordHash: string; email: string }>();
+  if (!account || account.passwordHash === FIREBASE_MANAGED_HASH || account.passwordHash === FIREBASE_MANAGED_PASSWORD || await accountErasureBlocked(account.memberId)) throw invalidToken();
   requireTestEmail(account.email);
   const issue = passwordValidationIssue(password, account.username);
   if (issue) throw new ReadingGroupError("INVALID_PASSWORD", 400, issue);
@@ -133,6 +145,8 @@ export async function verifiedAccount(memberId: number) {
 }
 
 export async function linkAccountEmail(request: Request, memberId: number, body: Record<string, unknown>) {
+  if (firebaseSelected(env)) return (await import("@/db/firebase-accounts")).linkFirebaseAccount(request, memberId, body);
+  if (firebaseLocalSelected(env)) throw new ReadingGroupError("LOCAL_IDENTITY_MIGRATION_CLOSED", 409, "Mevcut hesapları bu yerel sağlayıcıya bağlama henüz açılmadı.");
   const email = normalizeEmail(body.email);
   if (!email || typeof body.password !== "string" || body.password.length > 200) throw new ReadingGroupError("INVALID_EMAIL", 400, "E-posta ve mevcut şifreni kontrol et.");
   requireTestEmail(email);

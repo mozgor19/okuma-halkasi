@@ -12,6 +12,8 @@ export const gmailOAuth = Object.freeze({
   redirectUri: "http://127.0.0.1:53682/oauth/callback",
 });
 export const authorizationPath = resolve(".sites-runtime/koru-staging/gmail-authorization.json");
+export const productionAuthorizationPath = resolve(".sites-runtime/koru-production/gmail-authorization.json");
+export const productionMailOrigin = "https://okuma-halkasi.mustafayapayzeka.workers.dev";
 class SetupError extends Error {}
 
 export function readOAuthClient(path) {
@@ -42,17 +44,19 @@ export function findOAuthClient(input = join(homedir(), "Downloads")) {
   return clients[0];
 }
 
-export function validatedAuthorization(client, tokens, info, now = Date.now()) {
+export function validatedAuthorization(client, tokens, info, now = Date.now(), { production = false } = {}) {
   if (typeof tokens?.refresh_token !== "string" || !tokens.refresh_token || typeof tokens.access_token !== "string" || !tokens.access_token) {
     throw new Error("Cevrimdisi gonderme yetkisi alinamadi. Yeniden izin vermen gerekiyor.");
   }
   if (info?.aud !== client.clientId || !Array.isArray(info.scopes) || info.scopes.length !== 1 || info.scopes[0] !== gmailOAuth.scope
     || !Number.isFinite(info.expiry_date) || info.expiry_date <= now
     || (info.email && info.email.toLowerCase() !== gmailOAuth.sender)) throw new Error("Google yetkisinin istemcisi, hesabi veya kapsami beklenenle eslesmiyor.");
+  if (production && tokens.refresh_token_expires_in !== undefined) throw new Error("Sureli Google yetkisi kalici uretim yetkisi olarak kaydedilmez.");
   return {
-    environment: "koru-staging", intendedSender: gmailOAuth.sender, scope: gmailOAuth.scope,
+    environment: production ? "koru-production" : "koru-staging", intendedSender: gmailOAuth.sender, scope: gmailOAuth.scope,
     clientId: client.clientId, clientSecret: client.clientSecret, refreshToken: tokens.refresh_token,
     authorizedAt: new Date(now).toISOString(),
+    ...(production ? { origin: productionMailOrigin, expiresAt: null, oauthPublishingStatus: "production" } : {}),
     // gmail.send alone does not guarantee that Google returns account identity.
     senderVerified: info.email?.toLowerCase() === gmailOAuth.sender,
   };
@@ -118,7 +122,7 @@ export function createCallbackHandler({ state, browserToken, authorizationUrl, e
   };
 }
 
-export async function authorizeGmail(client, { signal, timeoutMs = 10 * 60_000, onReady = () => {}, destination = authorizationPath } = {}) {
+export async function authorizeGmail(client, { signal, timeoutMs = 10 * 60_000, onReady = () => {}, destination = authorizationPath, production = false } = {}) {
   if (existsSync(destination)) throw new SetupError("Kayitli yetki zaten var. Uzerine yazilmadi; yenileme icin once mevcut yetkiyi incelemeliyiz.");
   const oauth = new OAuth2Client({ ...client, transporterOptions: { timeout: 15_000, retry: false } });
   const state = randomBytes(32).toString("base64url");
@@ -138,7 +142,7 @@ export async function authorizeGmail(client, { signal, timeoutMs = 10 * 60_000, 
     },
     async exchange(code) {
       const { tokens } = await oauth.getToken({ code, codeVerifier, redirect_uri: gmailOAuth.redirectUri });
-      return validatedAuthorization(client, tokens, await oauth.getTokenInfo(tokens.access_token));
+      return validatedAuthorization(client, tokens, await oauth.getTokenInfo(tokens.access_token), Date.now(), { production });
     },
   });
   const server = createServer({ maxHeaderSize: 8192, requestTimeout: 5000, headersTimeout: 5000 }, (request, response) => {
@@ -170,21 +174,24 @@ export async function authorizeGmail(client, { signal, timeoutMs = 10 * 60_000, 
 
 async function main() {
   const args = process.argv.slice(2);
-  if (args.filter((arg) => arg !== "--check").length > 1 || args.some((arg) => arg.startsWith("--") && arg !== "--check")) throw new SetupError("Kullanim: staging:mail:authorize [JSON dosyasi veya klasoru] [--check]");
-  const client = findOAuthClient(args.find((arg) => arg !== "--check"));
+  const flags = ["--check", "--production", "--confirm-google-production"];
+  if (args.filter((arg) => !flags.includes(arg)).length > 1 || args.some((arg) => arg.startsWith("--") && !flags.includes(arg))) throw new SetupError("Kullanim: staging:mail:authorize [JSON dosyasi veya klasoru] [--check] [--production --confirm-google-production]");
+  const production = args.includes("--production");
+  if (production !== args.includes("--confirm-google-production")) throw new SetupError("Uretim yetkisi icin Google Audience durumunu ve politika gerekliliklerini inceleyip --production --confirm-google-production birlikte kullan.");
+  const client = findOAuthClient(args.find((arg) => !flags.includes(arg)));
   if (args.includes("--check")) { console.log("OAuth JSON ve yerel donus adresi dogrulandi. Icerik gizlendi; baglanti kurulmadi."); return; }
   const controller = new AbortController();
   const abort = () => controller.abort();
   process.once("SIGINT", abort); process.once("SIGTERM", abort);
   try {
-    await authorizeGmail(client, { signal: controller.signal, onReady(url) {
+    await authorizeGmail(client, { signal: controller.signal, production, destination: production ? productionAuthorizationPath : authorizationPath, onReady(url) {
       console.log("Bu adresi bu bilgisayardaki tarayicida ac. Adresi veya donus sayfasinin adresini paylasma:");
       console.log(url);
       console.log(`Yalniz ${gmailOAuth.sender} hesabini sec ve yalniz e-posta gonderme iznini onayla. Beklenmeyen bir uygulama veya ek izin gorursen dur.`);
     } });
     console.log("Yetkilendirme kaydedildi. Gizli dosya Git disinda ve 0600 izninde tutuluyor.");
     console.log("Bu komut Cloudflare'e yukleme, e-posta gonderimi veya canli site degisikligi yapmadi.");
-    console.log("Google Testing durumunda yenileme yetkisi 7 gun sonra sona erer. Bu kurulum kalici canli posta kabulunu gecmez.");
+    console.log(production ? "Uretim icin AYRI yetki kaydedildi. Google yayin durumunu bu arac okuyamaz; operator kaniti ve gercek teslim testi hala gereklidir. Token Google tarafindan iptal edilebilir." : "Google Testing durumunda yenileme yetkisi 7 gun sonra sona erer. Bu kurulum kalici canli posta kabulunu gecmez.");
   } finally { process.removeListener("SIGINT", abort); process.removeListener("SIGTERM", abort); }
 }
 

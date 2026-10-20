@@ -13,7 +13,8 @@ const server = createServer((request, response) => {
   response.setHeader("Cache-Control", "no-store");
   if (request.url === "/koru-sw.js") {
     response.setHeader("Content-Type", "text/javascript");
-    response.end(source.replace('"koru-public-shell-v2"', `"koru-public-shell-test-${version}"`));
+    assert.match(source, /const SHELL_CACHE = "koru-public-shell-v\d+";/);
+    response.end(source.replace(/const SHELL_CACHE = "koru-public-shell-v\d+";/, `const SHELL_CACHE = "koru-public-shell-test-${version}";`));
   } else if (request.url === "/offline.html") {
     if (version === "broken") { response.writeHead(503); response.end("Unavailable"); return; }
     response.setHeader("Content-Type", "text/html");

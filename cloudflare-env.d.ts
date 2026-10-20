@@ -11,7 +11,15 @@ declare namespace Cloudflare {
     /** Unassigned, migrated, empty D1 binding names. No automatic cloud provisioning. */
     SELF_SERVICE_GROUP_BINDINGS?: string;
     AUTH_PUBLIC_ORIGIN?: string;
+    /** firebase-local is emulator-only; firebase uses the separately guarded production provider. */
+    AUTH_PROVIDER?: string;
+    FIREBASE_LOCAL_EMULATOR_ORIGIN?: string;
+    FIREBASE_PROJECT_ID?: string;
+    FIREBASE_API_KEY?: string;
     APPLICATION_BRAND?: string;
+    FACE_RECOGNITION_ENABLED?: string;
+    /** 600000 is a candidate only after remote runtime and rollback acceptance. */
+    PASSWORD_HASH_ITERATIONS?: string;
     STAGING_ENVIRONMENT?: string;
     /** Server-only JSON allowlist. Staging self service fails closed without it. */
     SELF_SERVICE_TEST_EMAILS?: string;

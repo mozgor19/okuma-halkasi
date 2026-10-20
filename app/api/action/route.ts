@@ -3,6 +3,7 @@ import { meetingRsvpIsOpen } from "@/lib/meeting-time";
 import { readingGroupContext } from "@/db/database";
 import { ReadingGroupError, readingGroupErrorResponse, readingGroupsEnabled, withReadingGroup } from "@/lib/groups";
 import { isAdminRole, isSuperAdminRole } from "@/lib/types";
+import { faceRecognitionEnabled } from "@/lib/feature-policy";
 
 export const runtime = "edge";
 
@@ -518,6 +519,7 @@ async function handlePOST(request: Request) {
     }
 
     if (input.action === "confirmDetectedAttendance") {
+      if (!faceRecognitionEnabled()) return Response.json({ error: "Yüz eşleştirme bu ortamda kapalı." }, { status: 403 });
       if (!isAdminRole(actor.role)) {
         return fail("Fotoğraftan katılımcı eklemeyi yönetici onaylayabilir.", 403);
       }

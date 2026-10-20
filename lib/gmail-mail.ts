@@ -2,7 +2,7 @@ export const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
 // Three attempts, two requests each, plus 1s/2s backoff stay below waitUntil's 30s.
 export const GMAIL_REQUEST_TIMEOUT_MS = 4000;
 export type GmailCredentials = {
-  environment: "koru-staging";
+  environment: "koru-staging" | "koru-production";
   origin: string;
   intendedSender: string;
   clientId: string;
@@ -10,7 +10,8 @@ export type GmailCredentials = {
   refreshToken: string;
   scope: typeof GMAIL_SEND_SCOPE;
   authorizedAt: string;
-  expiresAt: string;
+  expiresAt: string | null;
+  oauthPublishingStatus?: "production";
 };
 
 export class GmailDeliveryError extends Error {
@@ -38,16 +39,20 @@ function transportFailure(error: unknown, phase: "refresh" | "send", retryable: 
 export function gmailCredentials(value: string | undefined, expected: { origin: string | null; sender: string | null; staging: boolean }, now = Date.now()): GmailCredentials | null {
   try {
     const data = JSON.parse(value || "null");
-    if (!data || !expected.staging || data.environment !== "koru-staging" || !expected.origin || data.origin !== expected.origin
+    const production = !expected.staging && data?.environment === "koru-production"
+      && data.oauthPublishingStatus === "production" && data.expiresAt === null;
+    if (!data || (!production && (!expected.staging || data.environment !== "koru-staging")) || !expected.origin || data.origin !== expected.origin
       || !expected.sender || data.intendedSender !== expected.sender || data.scope !== GMAIL_SEND_SCOPE
       || typeof data.clientId !== "string" || !/^[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/.test(data.clientId)
       || typeof data.clientSecret !== "string" || !data.clientSecret.trim() || data.clientSecret.length > 512 || /[\r\n]/.test(data.clientSecret)
       || typeof data.refreshToken !== "string" || !data.refreshToken.trim() || data.refreshToken.length > 8192 || /[\r\n]/.test(data.refreshToken)
-      || typeof data.authorizedAt !== "string" || typeof data.expiresAt !== "string") return null;
+      || typeof data.authorizedAt !== "string" || (!production && typeof data.expiresAt !== "string")) return null;
     const issued = Date.parse(data.authorizedAt), expires = Date.parse(data.expiresAt);
-    if (!Number.isFinite(issued) || !Number.isFinite(expires) || issued > now + 300_000 || expires <= now || expires <= issued || expires > issued + 7 * 86_400_000) return null;
+    if (!Number.isFinite(issued) || issued > now + 300_000) return null;
+    if (!production && (!Number.isFinite(expires) || expires <= now || expires <= issued || expires > issued + 7 * 86_400_000)) return null;
     return { environment: data.environment, origin: data.origin, intendedSender: data.intendedSender, clientId: data.clientId,
-      clientSecret: data.clientSecret, refreshToken: data.refreshToken, scope: GMAIL_SEND_SCOPE, authorizedAt: data.authorizedAt, expiresAt: data.expiresAt };
+      clientSecret: data.clientSecret, refreshToken: data.refreshToken, scope: GMAIL_SEND_SCOPE, authorizedAt: data.authorizedAt, expiresAt: data.expiresAt,
+      ...(production ? { oauthPublishingStatus: "production" } : {}) };
   } catch { return null; }
 }
 
@@ -56,8 +61,9 @@ type Mail = { recipient: string; replyTo: string; subject: string; text: string 
 export async function sendGmailMail(credentials: GmailCredentials, mail: Mail, fetcher: typeof fetch = fetch): Promise<string> {
   let raw: string;
   try {
-    const expires = Date.parse(credentials.expiresAt);
-    if (!Number.isFinite(expires) || expires <= Date.now() || mail.subject.length > 300 || /[\r\n\0]/.test(mail.subject) || mail.text.length > 65_536) throw new Error();
+    const production = credentials.environment === "koru-production" && credentials.oauthPublishingStatus === "production" && credentials.expiresAt === null;
+    const expires = Date.parse(credentials.expiresAt || "");
+    if ((!production && (!Number.isFinite(expires) || expires <= Date.now())) || mail.subject.length > 300 || /[\r\n\0]/.test(mail.subject) || mail.text.length > 65_536) throw new Error();
     for (const address of [credentials.intendedSender, mail.recipient, mail.replyTo]) {
       if (!/^[^\s<>,;:@]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(address)) throw new Error();
     }

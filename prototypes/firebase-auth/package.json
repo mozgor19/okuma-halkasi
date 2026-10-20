@@ -1,0 +1,19 @@
+{
+  "name": "koru-firebase-auth-local-prototype",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "test": "node run-local.mjs",
+    "test:unit": "node --test contract.test.mjs provider-status.test.mjs test-project.test.mjs remote-test.test.mjs",
+    "test:preflight": "node preflight-test-project.mjs",
+    "audit": "node audit-local.mjs"
+  },
+  "devDependencies": {
+    "firebase": "13.0.0",
+    "firebase-admin": "14.5.0",
+    "firebase-tools": "15.33.0",
+    "jose": "6.2.12"
+  }
+}

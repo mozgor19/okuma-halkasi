@@ -74,6 +74,17 @@ async function server(legacy = false, selfService = false, koru = false) {
   throw new Error("Test server did not become ready.");
 }
 
+async function productionServer() {
+  await freePort(testOrigin);
+  const child = launch(node("scripts/preview-local-production.mjs", "--port=" + new URL(testOrigin).port), {}, "production-server");
+  for (let attempt = 0; attempt < 120; attempt++) {
+    if (child.exitCode !== null) throw new Error("Local production preview exited; inspect its private log.");
+    try { if ((await fetch(testOrigin + "/login", { signal: AbortSignal.timeout(3000) })).ok) return child; } catch { /* Bounded local startup. */ }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error("Local production preview did not become ready.");
+}
+
 for (const signal of ["SIGINT", "SIGTERM"]) process.once(signal, () => {
   report.status = "interrupted"; persist();
   void Promise.all([...children].map(stop)).finally(() => process.exit(130));
@@ -118,6 +129,10 @@ try {
     await run("ui-contract", pnpm("check:ui"));
     await run("lint", pnpm("lint"));
     await run("web-build", pnpm("build"));
+    await run("password-runtime", node("scripts/probe-password-runtime.mjs"));
+    const production = await productionServer();
+    await run("web-production", pnpm("web:test:production"));
+    await stop(production);
     const backend = await server();
     await run("api", pnpm("groups:test"));
     await run("web-ui", pnpm("groups:test:ui"));

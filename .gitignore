@@ -49,6 +49,7 @@ next-env.d.ts
 /mobile/node_modules/
 /mobile/android/
 /mobile/ios/
+/prototypes/firebase-auth/node_modules/
 
 # Biometric reference photos stay local and are never published.
 /humans/

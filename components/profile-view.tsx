@@ -22,7 +22,7 @@ import { AccountDataRequests } from "@/components/account-experience";
 import { useKoruBrand } from "@/components/group-branding";
 import { useOnboardingConfig } from "@/components/onboarding";
 import { groupFetch, groupUrl } from "@/lib/group-client";
-import { passwordValidationIssue } from "@/lib/password";
+import { passwordValidationIssue } from "@/lib/password-policy";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -289,6 +289,15 @@ function FaceReferencePanel({
   const visibleMembers = member.role === "super_admin"
     ? data.members.filter((person) => !person.isGuest)
     : data.members.filter((person) => person.id === member.id);
+
+  if (data.faceRecognitionEnabled === false) return <section className="profile-section face-reference-section">
+    <div className="profile-section-heading"><span className="eyebrow">YÜZ VERİSİ</span><h2>Yüz eşleştirme kapalı</h2><p>Bu ortamda yüz referansı yüklenmez veya işlenmez. Buluşma fotoğrafları ve elle katılımcı ekleme kullanılabilir.</p></div>
+    <div className="face-reference-grid"><Button type="button" variant="outline" disabled={busy || workingId !== null} onClick={async () => {
+      setWorkingId(member.id);
+      try { if (await onClear(member.id)) onNotice("Mevcut yüz verilerin silindi."); }
+      finally { setWorkingId(null); }
+    }}><Trash2 size={17} />Mevcut yüz verilerimi sil</Button></div>
+  </section>;
 
   return (
     <section className="profile-section face-reference-section">

@@ -1,4 +1,7 @@
 import { env } from "cloudflare:workers";
+import { firebaseLocalConfiguration, firebaseLocalSelected } from "@/lib/firebase-local-policy";
+import type { FirebaseLocalTokens } from "@/lib/firebase-local";
+import { firebaseConfiguration, firebaseSelected } from "@/lib/firebase-auth-policy";
 
 export const SESSION_COOKIE = "okuma_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
@@ -22,7 +25,7 @@ export function safeNextPath(value: unknown): string {
 }
 
 type MemberCredential = { memberId: number; password: string };
-export type SessionIdentity = { memberId: number; sessionVersion: number };
+export type SessionIdentity = { memberId: number; sessionVersion: number; firebaseLocal?: true; firebase?: true };
 
 const encoder = new TextEncoder();
 
@@ -88,6 +91,8 @@ async function valuesMatch(secret: string, expected: string, candidate: string):
 }
 
 export function authConfigurationIssue(): string | null {
+  if (firebaseSelected(env) && !firebaseConfiguration(env)) return "Kimlik doğrulama ortamı kullanılamıyor.";
+  if (firebaseLocalSelected(env) && !firebaseLocalConfiguration(env)) return "Yerel kimlik doğrulama ortamı kullanılamıyor.";
   const secret = env.SESSION_SECRET;
   if (!secret) return "SESSION_SECRET Secret'ı Worker çalışma ortamında bulunamadı.";
   if (secret.length < 32) return "SESSION_SECRET en az 32 karakter olmalı.";
@@ -116,7 +121,13 @@ export async function legacyUsernameForMember(memberId: number, password: string
   return entry[0];
 }
 
-export async function createSessionToken(memberId: number, sessionVersion: number): Promise<string> {
+export async function createSessionToken(memberId: number, sessionVersion: number, firebase?: FirebaseLocalTokens): Promise<string> {
+  if (firebaseSelected(env) && firebase) return (await import("@/db/firebase-accounts")).createFirebaseSession(memberId, sessionVersion, firebase);
+  if (firebaseLocalSelected(env)) {
+    if (!firebase) throw new Error("Provider identity required.");
+    return (await import("@/db/firebase-local-accounts")).createFirebaseLocalSession(memberId, sessionVersion, firebase);
+  }
+  if (firebase) throw new Error("Provider identity not enabled.");
   const secret = sessionSecret();
   if (!secret || !Number.isInteger(memberId) || memberId < 1 || !Number.isInteger(sessionVersion) || sessionVersion < 0) {
     throw new Error("Authentication is not configured.");
@@ -126,6 +137,14 @@ export async function createSessionToken(memberId: number, sessionVersion: numbe
 }
 
 export async function sessionIdentity(token: string | undefined): Promise<SessionIdentity | null> {
+  if (firebaseSelected(env)) {
+    if (!firebaseConfiguration(env)) return null;
+    if (token?.startsWith("fb2.")) return (await import("@/db/firebase-accounts")).firebaseSessionIdentity(token);
+  }
+  if (firebaseLocalSelected(env)) {
+    if (!token || !/^fb1\.[a-f0-9]{64}$/.test(token)) return null;
+    return (await import("@/db/firebase-local-accounts")).firebaseLocalSessionIdentity(token);
+  }
   const secret = sessionSecret();
   if (!secret || !token) return null;
   try { token = decodeURIComponent(token); } catch { return null; }

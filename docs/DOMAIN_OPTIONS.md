@@ -1,11 +1,62 @@
 # Koru Alan Adı Seçenekleri
 
-Araştırma: 18 Ekim 2026, 22:48 Türkiye saati. Satın alma yapılmadı.
+İlk araştırma: 18 Ekim 2026, 22:48 Türkiye saati; o tarihte satın alma yapılmamıştı.
 Fiyatlar USD, standart/non-premium adlar içindir; vergi, banka kuru ve
 premium/satış sonrası bedelleri dahil değildir. TL karşılığı ödeme gününün
 kart kuru ve vergileriyle hesaplanır; sabit TL fiyat sözü verilmez.
 
-## Öneri
+## Güncel Karar: birkoru.com
+
+19 Ekim'de Mustafa `birkoru.com` alan adını Turkticaret.net üzerinden satın
+aldığını bildirdi. Ürün adı **Koru** olarak kalır. Aşağıdaki seçenekler ve
+Cloudflare fiyatları geçmiş araştırmadır; satın alınan alanın faturası veya
+Turkticaret yenileme bedeli değildir. Yeni satın alma yapılmayacak.
+
+Yalnız Cloudflare Free DNS kurulumu ve geçiş hazırlığı onaylandı; uygulama
+dağıtımı, veritabanı değişikliği ve ücretli hizmet onayı yoktur.
+[Alan adı geçiş planı ve mevcut durum](DOMAIN_TRANSITION.md).
+
+## 19 Ekim Satın Alma Öncesi Yeniden Kontrol
+
+Mustafa alan adını yeniden değerlendirmek istedi; henüz ad seçmedi ve
+satın alma/ücretli hizmet onayı vermedi. Ücretsiz Workers uygulama ve
+kamusal bilgi adresleri değişmedi. Yalnız araştırma yapıldı.
+
+Cloudflare'ın 19 Ekim canlı standart fiyatları:
+
+| Aday | İlk Yıl | Yıllık Yenileme | Değerlendirme |
+| --- | ---: | ---: | --- |
+| koruoku.com | $10.46 | $10.46 | Kısa, telefonda yazımı kolay; güncel ilk öneri |
+| koruokuma.com | $10.46 | $10.46 | Okuma amacını daha doğrudan anlatır |
+| koru.link | $7.20* | $7.20* | Marka adı yalın; kısa ad/premium kontrolü özellikle gerekli |
+| koruoku.app | $8.20 kampanya | $14.20 | Uygulama kimliğine uygun; yenilemesi .com'dan yüksek |
+| korukulup.com | $10.46 | $10.46 | Grup fikrini vurgulayan alternatif |
+
+Bu beş aday için IANA bootstrap dizinindeki yetkili RDAP servisleri 404
+döndürdü. **Kayıt bulunmaması satın alınabilirlik veya standart fiyat
+garantisi değildir.** Ayrılmış/premium adlar ve nihai toplam ancak arama ve
+ödeme ekranında doğrulanır; yıldızlı fiyat alan adına özel teklif değildir.
+Vergi/kart kuru hariç, kampanyalar ve sonraki yılların fiyatları değişebilir.
+[Cloudflare fiyat listesi](https://pricing.registrar.cloudflare.com/).
+
+Aynı kontrolde `koru.app`, `koru.page`, `koru.club` ve `koru.ink` RDAP 200
+ile kayıtlı çıktı. Ek adaylar `okukoru.com`, `korubook.com`, `korubooks.com`,
+`koruokuma.app`, `koruokuma.club` için kayıt bulunmadı; bunlara da aynı
+müsaitlik/premium sınırlaması uygulanır. Kişisel kayıt sahibi bilgisi
+okunmadı veya saklanmadı.
+
+Domain satın almak mevcut uygulamayı otomatik genel yayına açmaz. Seçimden
+sonra önce kamusal bilgi Worker'ının özel alanı ve Google Branding/Search
+Console adresleri planlanır; asıl hesap/PWA origin geçişi, çerezler,
+Turnstile ve posta bağlantıları ayrıca kontrollü ele alınır. Genel kayıt,
+DB migration'ı ve üretim uygulaması dağıtımı için önceki engeller geçerlidir.
+
+Google'ın son operatör görüntüsü: Verification status, uygulama Testing
+durumunda olduğu için doğrulamanın şu an gerekli olmadığını söylüyor;
+yayın durumu Audience'dan değiştirilir. **In production doğrulanmadı.**
+[Google Audience açıklaması](https://support.google.com/cloud/answer/15549945?hl=en).
+
+## Önceki Araştırma
 
 İlk tercihim **koruokuma.com**: telefonda yazması ve okuma ürünü olduğunu
 anlaması kolay, yenilemesi makul. **koruoku.com** daha kısa bir alternatiftir.

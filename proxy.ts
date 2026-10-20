@@ -9,35 +9,56 @@ import {
 import { noStore, ReadingGroupError, readingGroupErrorResponse, readingGroupsEnabled, resolveReadingGroup, resolveLegacyReadingGroup } from "@/lib/groups";
 import { selfServiceEnabled } from "@/lib/onboarding-security";
 import { browserSecurityHeaders } from "@/lib/web-security";
+import { firebaseLocalConfiguration, firebaseLocalSelected } from "@/lib/firebase-local-policy";
+import { firebaseConfiguration, firebaseSelected } from "@/lib/firebase-auth-policy";
 
 const publicPaths = new Set(["/login", "/design-lab", "/api/auth/login", "/api/auth/logout", "/api/manifest"]);
-const onboardingPublicPaths = new Set(["/register", "/verify-email", "/forgot-password", "/reset-password", "/join", "/support", "/privacy", "/terms", "/api/onboarding/register", "/api/onboarding/verify-email", "/api/onboarding/forgot-password", "/api/onboarding/reset-password"]);
+const onboardingPublicPaths = new Set(["/register", "/verify-email", "/forgot-password", "/reset-password", "/join", "/support", "/privacy", "/terms", "/auth/email", "/api/onboarding/firebase-action", "/api/onboarding/register", "/api/onboarding/verify-email", "/api/onboarding/forgot-password", "/api/onboarding/reset-password"]);
 const publicAsset = /\.(?:css|js|map|svg|png|jpg|jpeg|webp|ico|woff2?)$/i;
 const publicShell = new Set(["/koru.webmanifest", "/offline.html"]);
 
-function enforceLocalBrowserRequests<T extends Response>(response: T): T {
+function enforceSecurity<T extends Response>(response: T, nonce?: string): T {
   if (env.STAGING_ENVIRONMENT === "true") response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
-  for (const [key, value] of Object.entries(browserSecurityHeaders(selfServiceEnabled()))) response.headers.set(key, value);
+  const strict = readingGroupsEnabled() && env.APPLICATION_BRAND === "Koru";
+  for (const [key, value] of Object.entries(browserSecurityHeaders(selfServiceEnabled(), strict ? nonce : undefined, process.env.NODE_ENV === "development"))) response.headers.set(key, value);
+  if (nonce) response.headers.set("Cache-Control", "private, no-store");
   if (readingGroupsEnabled()) noStore(response);
   return response;
 }
 
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  if (pathname === "/api/onboarding/config") return enforceLocalBrowserRequests(NextResponse.next());
-  if (onboardingPublicPaths.has(pathname)) {
-    return enforceLocalBrowserRequests(selfServiceEnabled() ? NextResponse.next() : new NextResponse("Sayfa bulunamadı.", { status: 404 }));
+  const strict = readingGroupsEnabled() && env.APPLICATION_BRAND === "Koru";
+  const nonce = strict && process.env.NODE_ENV !== "development"
+    ? btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(24)))) : undefined;
+  const forwarded = new Headers(request.headers);
+  forwarded.delete("x-koru-nonce");
+  if (nonce) forwarded.set("x-koru-nonce", nonce);
+  forwarded.set("Content-Security-Policy", browserSecurityHeaders(selfServiceEnabled(), strict ? nonce : undefined, process.env.NODE_ENV === "development")["Content-Security-Policy"]);
+  const next = () => NextResponse.next({ request: { headers: forwarded } });
+  const enforceLocalBrowserRequests = <T extends Response>(response: T) => enforceSecurity(response, nonce);
+  if (firebaseSelected(env) && !firebaseConfiguration(env, request.url)) {
+    return enforceLocalBrowserRequests(NextResponse.json({ error: "Kimlik doğrulama ortamı kullanılamıyor." }, { status: 503 }));
   }
-  if (publicShell.has(pathname) || (!pathname.startsWith("/api/") && publicAsset.test(pathname))) return enforceLocalBrowserRequests(NextResponse.next());
-  if (publicPaths.has(pathname) && pathname !== "/login") return enforceLocalBrowserRequests(NextResponse.next());
+  if (firebaseLocalSelected(env) && !firebaseLocalConfiguration(env, request.url)) {
+    return enforceLocalBrowserRequests(NextResponse.json({ error: "Yerel kimlik doğrulama ortamı kullanılamıyor." }, { status: 503 }));
+  }
+  const { pathname } = request.nextUrl;
+  if (pathname === "/api/onboarding/config") return enforceLocalBrowserRequests(next());
+  if (onboardingPublicPaths.has(pathname)) {
+    return enforceLocalBrowserRequests(selfServiceEnabled() ? next() : new NextResponse("Sayfa bulunamadı.", { status: 404 }));
+  }
+  if (publicShell.has(pathname) || (!pathname.startsWith("/api/") && publicAsset.test(pathname))) return enforceLocalBrowserRequests(next());
+  if (publicPaths.has(pathname) && pathname !== "/login") return enforceLocalBrowserRequests(next());
 
   const session = request.cookies.get(SESSION_COOKIE)?.value;
-  const identity = await sessionIdentity(session);
+  let identity;
   let authenticated = false;
   try {
+    identity = await sessionIdentity(session);
     authenticated = !!identity && await sessionAccountIsCurrent(identity);
-  } catch {
+  } catch (error) {
     console.error("Could not validate session account");
+    if (firebaseLocalSelected(env) || firebaseSelected(env)) return enforceLocalBrowserRequests(readingGroupErrorResponse(error));
   }
 
   if (authenticated && !readingGroupsEnabled() && pathname === "/") {
@@ -65,7 +86,7 @@ export async function proxy(request: NextRequest) {
     return enforceLocalBrowserRequests(
       authenticated
         ? NextResponse.redirect(new URL(safeNextPath(request.nextUrl.searchParams.get("next")), request.url))
-        : NextResponse.next(),
+        : next(),
     );
   }
 
@@ -81,7 +102,7 @@ export async function proxy(request: NextRequest) {
     return enforceLocalBrowserRequests(NextResponse.redirect(loginUrl));
   }
 
-  return enforceLocalBrowserRequests(NextResponse.next());
+  return enforceLocalBrowserRequests(next());
 }
 
 export const config = {

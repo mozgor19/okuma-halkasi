@@ -47,6 +47,19 @@ test("Mutations reject missing and cross-site origins, regardless of cookies", (
   assert.doesNotThrow(() => security.sameOrigin(local()));
   for (const headers of [{}, { Origin: "https://evil.example" }, { Origin: "http://127.0.0.1:5184", "Sec-Fetch-Site": "cross-site" }]) assert.throws(() => security.sameOrigin(new Request(local().url, { method: "POST", headers })), /kaynağı/);
 });
+
+test("public Koru cannot register with the legacy or an unknown password work factor", () => {
+  env.APPLICATION_BRAND = "Koru";
+  const remote = new Request("https://app.example.com/api/onboarding/register");
+  try {
+    for (const value of [undefined, "100000", "600001", "invalid"]) {
+      env.PASSWORD_HASH_ITERATIONS = value;
+      assert.equal(security.onboardingConfiguration(remote).ready, false);
+    }
+    env.PASSWORD_HASH_ITERATIONS = "600000";
+    assert.equal(security.onboardingConfiguration(remote).ready, true);
+  } finally { delete env.APPLICATION_BRAND; delete env.PASSWORD_HASH_ITERATIONS; }
+});
 test("staging requires a private exact email allowlist even with working email and Turnstile", () => {
   const remote = new Request("https://app.example.com/api/onboarding/register");
   env.STAGING_ENVIRONMENT = "true";

@@ -11,6 +11,28 @@ izniyle baglandi; tek deneme postasi Gelen Kutusu'nda operatorce dogrulandi.
 Hizmeti sunan Mustafa Ozgor, destek `koru.destek@gmail.com` olarak belirtildi.
 Hukuki sayfalar sinirli deneme kapsamindadir; genel yayin uygunlugu degildir.
 
+19 Ekim: ucretsiz Workers origin'i onaylandi. Canli ayar/tablo semasi salt
+okunur incelendi; yeni hesap/grup/tur tablolarinin eksik oldugu goruldu.
+Konum, yedek/restore veya hukuki uygunluk dogrulanmis sayilmaz. Yeni kod
+100.000 eski parola varsayilanini korur; 600.000 adayini yalniz acik ayarla
+yerelde sinar. Node API de uzak PBKDF2 sinirina tabidir; modern parola
+karari yayini engeller. Genel yayin politikasinda yuz isleme
+sunucuda kapali tutulur; mevcut referanslar otomatik silinmez. Uretim posta
+destegi hazir olsa da Google halen Testing ve uretim yetkisi kurulmus degil.
+Ana ekran ozel veriyi ilk HTML'de de tasir; ayni API yetki/maskeleme,
+no-store ve SW disinda tutma kurallari gecerlidir. Oturumlu HTML CDN/SW'ye
+veya hata raporuna kaydedilmez. Ayrintilar: `WEB_PUBLIC_LAUNCH.md`.
+
+19 Ekim sonraki karar: yalniz sentetik yerel Firebase Authentication
+prototipi ve Spark gecis plani onaylandi. Google yeni kimlik veri isleyicisi
+olacak adaydir; gercek proje/hesap aktarimi veya canli entegrasyon yoktur.
+Kitap/grup/medya D1'de kalir, Firestore kullanilmaz. Bu mimari uygulanirsa
+veri envanteri, dis aktarim/saklama ve hukuki metinler yeniden incelenir.
+[Plan](FIREBASE_AUTH_PLAN.md). Kanonik-only 0012 ile yerel operator silme
+servisi de eklendi: kendi medya/yorum/katilimlarini temizler, ortak FK
+kayitlarini anonim uye iziyle korur. Gunlukteki kimlikler halen takma adli
+kisisel veridir. Bu uretimde silme/restore kabulunu kapatmaz; [sinirlar](ACCOUNT_ERASURE.md).
+
 ## Veri nerede durur?
 
 17 Ekim web kayit eklemesi: kanonik `DB` artik dogrulanmis e-posta,
@@ -165,6 +187,14 @@ otomatik e-posta gonderildigi anlamina da gelmez. Isletici bekleyen
 Bunlar henuz tamamlanmis ozellikler degildir; yayin kapisinda acik engeldir.
 
 ## Yedek, silme ve operasyon
+
+19 Ekim onayli gercek prova: mevcut tek canli D1'in AES-256-GCM yedegi
+diskten cozuldu ve yalniz yeni/unbound uzak D1'e yuklendi. 13 tablo ve 17
+medya kaydinin tum deger/baytlari eslesti; iliskiler ve butunluk temiz.
+Gecici D1 API'den silindi/yoklugu dogrulandi. Yerel sifreli kopya ve ayri
+0600 anahtar `.sites-runtime/koru-production/` altinda; Git'e girmez.
+Bu, cihaz kaybina karsi ayri yedek, otomatik saklama, tum coklu-D1 kurtarma
+ve silme gunlugu replay'i degildir. [Isletim ve kanit](BACKUP_RESTORE.md).
 
 - Her kanonik/ek grup DB'sinin sahibini, planini, bolgesini ve yedek envanterini
   kaydet. Yonetim erisimlerini en az yetki ve 2FA ile sinirla.

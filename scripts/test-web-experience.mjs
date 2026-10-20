@@ -161,6 +161,7 @@ try {
   const { client, username } = await fixture("account");
   const initial = await (await client.request.get(origin + endpoint + "?memberId=1")).json();
   assert.equal(initial.available, true); assert.equal(initial.tourEligible, true); assert.equal(initial.tour, null); assert.equal(initial.deletion, null);
+  const unrelatedTour = sql("SELECT * FROM account_experience WHERE member_id = 1");
   await post(client, { kind: "tour", version: 1, state: "completed" }, 403, { Origin: "https://evil.example" });
   await post(client, { kind: "tour", version: 999, state: "completed" }, 400);
   await post(client, { padding: "x".repeat(9000) }, 413);
@@ -169,7 +170,7 @@ try {
   await post(client, { kind: "tour", version: 1, state: "completed", memberId: 1, groupId: "second" });
   const stored = await (await client.request.get(origin + endpoint, { headers: { "X-Reading-Group": "second" } })).json();
   assert.deepEqual(stored.tour, { version: 1, state: "completed" });
-  assert.equal(sql("SELECT count(*) AS count FROM account_experience WHERE member_id = 1")[0].count, 0);
+  assert.deepEqual(sql("SELECT * FROM account_experience WHERE member_id = 1"), unrelatedTour);
   passed("Tour state belongs to the canonical account, not supplied member/group identifiers");
   for (const name of ["İ".repeat(101), "Koru\u0000Grubu"]) {
     const response = await client.request.post(origin + "/api/onboarding/create-group", { headers: { Origin: origin }, data: { name, requestKey: crypto.randomUUID() } });

@@ -7,6 +7,7 @@ import type { AppData } from "@/lib/types";
 import { groupUrl, useReadingGroup } from "@/lib/group-client";
 import { isNativeApp, nativeNotificationPermission, nativeNotificationsSupported, showNativeNotification } from "@/lib/native-bridge";
 import { useKoruBrand } from "@/components/group-branding";
+import { KORU_BRAND } from "@/lib/brand-identity";
 
 export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
   data: AppData;
@@ -97,8 +98,8 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
         if (!active) return;
         await registration.showNotification(title, {
           body,
-          icon: koru ? "/brand/koru-192.png" : "/icons/notebook-icon-192.png",
-          badge: koru ? "/brand/koru-badge-96.png" : "/icons/notebook-icon-192.png",
+          icon: koru ? KORU_BRAND.icon192 : "/icons/notebook-icon-192.png",
+          badge: koru ? KORU_BRAND.badge : "/icons/notebook-icon-192.png",
           tag: key,
           data: { url },
         });

@@ -59,6 +59,18 @@ test("provider selection preserves legacy Resend and never silently falls back f
   env.ACCOUNT_MAIL_PROVIDER = "unknown"; assert.equal(configuration.accountMailConfiguration(env), null);
 });
 
+test("production mail requires a separate origin-bound production authorization; testing secrets cannot be promoted", () => {
+  const target = { origin: "https://production.example.com", sender, staging: false };
+  const production = { ...credential(), environment: "koru-production", origin: target.origin, expiresAt: null, oauthPublishingStatus: "production" };
+  assert.equal(gmailCredentials(JSON.stringify(production), target).environment, "koru-production");
+  for (const invalid of [
+    { ...production, oauthPublishingStatus: "testing" }, { ...production, oauthPublishingStatus: undefined },
+    { ...production, environment: "koru-staging" }, { ...production, expiresAt: credential().expiresAt },
+    { ...production, origin },
+  ]) assert.equal(gmailCredentials(JSON.stringify(invalid), target), null);
+  assert.equal(gmailCredentials(JSON.stringify(production), { ...target, staging: true }), null);
+});
+
 test("Gmail does not bypass legal, support or Turnstile readiness checks", () => {
   configure();
   assert.equal(security.onboardingConfiguration(new Request(origin)).ready, false);

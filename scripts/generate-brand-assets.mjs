@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
+import { KORU_BRAND, KORU_MARK_PATHS } from "../lib/brand-identity.ts";
 
 const fonts = [
   ["bricolage-latin", "bricolagegrotesque/v9/3y9K6as8bTXq_nANBjzKo3IeZx8z6up5BeSl9D4dj_x9PpZBMlGIInE"],
@@ -12,6 +13,10 @@ const fonts = [
 ];
 mkdirSync("public/fonts", { recursive: true });
 mkdirSync("public/brand", { recursive: true });
+const paths = KORU_MARK_PATHS.map((path) => `<path d="${path}"/>`).join("");
+const mark = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">${paths}</svg>\n`;
+const icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="72" fill="${KORU_BRAND.yellow}"/><g transform="translate(96 96) scale(5)" fill="currentColor" color="${KORU_BRAND.ink}">${paths}</g></svg>\n`;
+for (const [file, svg] of [[KORU_BRAND.mark, mark], [KORU_BRAND.icon, icon], ["/brand/koru-mark.svg", mark], ["/brand/koru-icon.svg", icon]]) writeFileSync("public" + file, svg);
 if (process.argv.includes("--download-fonts")) {
   for (const [name, resource] of fonts) {
     const response = await fetch(`https://fonts.gstatic.com/s/${resource}.woff2`);
@@ -41,15 +46,16 @@ const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({ args: ["--no-sandbox"] });
 try {
   const page = await browser.newPage({ deviceScaleFactor: 1 });
-  const icon = readFileSync("public/brand/koru-icon.svg", "utf8");
-  for (const [name, size, svg] of [
-    ["koru-apple-180", 180, icon.replace('rx="72"', 'rx="0"')], ["koru-192", 192, icon], ["koru-512", 512, icon],
-    ["koru-maskable-512", 512, icon.replace('rx="72"', 'rx="0"')],
-    ["koru-badge-96", 96, readFileSync("public/brand/koru-mark.svg", "utf8").replace('<svg ', '<svg style="color:white" ')],
+  for (const [file, size, svg] of [
+    [KORU_BRAND.appleIcon, 180, icon.replace('rx="72"', 'rx="0"')], [KORU_BRAND.icon192, 192, icon], [KORU_BRAND.icon512, 512, icon],
+    [KORU_BRAND.maskableIcon, 512, icon.replace('rx="72"', 'rx="0"')],
+    [KORU_BRAND.badge, 96, mark.replace('<svg ', '<svg style="color:white" ')],
   ]) {
     await page.setViewportSize({ width: size, height: size });
     await page.setContent(`<style>html,body{margin:0;width:100%;height:100%;background:transparent}svg{width:100%;height:100%;display:block}</style>${svg}`);
-    await page.screenshot({ path: `public/brand/${name}.png`, omitBackground: true });
+    const bytes = await page.screenshot({ path: "public" + file, omitBackground: true });
+    // Older installed manifests may still request the unversioned icon URLs.
+    writeFileSync("public" + file.replace("-v2.png", ".png"), bytes);
   }
   await page.setViewportSize({ width: 1200, height: 630 });
   await page.setContent(`<!doctype html><html lang="tr"><style>
@@ -63,6 +69,6 @@ try {
   </style><main><header><img src="${origin}/icon.svg" alt="">Koru</header><div class="rule"></div><h1>Birlikte oku,<br>düşün, paylaş.</h1><p>Kitaplar, buluşmalar ve okuma grubun.</p></main></html>`);
   await page.evaluate(() => document.fonts.ready);
   if (!(await page.evaluate(() => document.fonts.check('600 76px Bricolage', 'düşün')))) throw new Error("Brand font failed to load");
-  await page.screenshot({ path: "public/brand/koru-share-v1.png" });
-  console.log("Generated Koru icons and 1200x630 social image. Legacy assets preserved.");
+  await page.screenshot({ path: "public" + KORU_BRAND.socialImage });
+  console.log("Generated approved page-and-leaf icons and versioned 1200x630 social image. Legacy app assets preserved.");
 } finally { await browser.close(); await new Promise((resolve) => server.close(resolve)); }

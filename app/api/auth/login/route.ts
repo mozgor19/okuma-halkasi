@@ -66,7 +66,7 @@ async function handlePOST(request: Request) {
     }
     response.cookies.set(
       SESSION_COOKIE,
-      await createSessionToken(member.id, account.sessionVersion),
+      await createSessionToken(member.id, account.sessionVersion, account.firebase),
       {
         httpOnly: true,
         secure: new URL(request.url).protocol === "https:",
@@ -78,7 +78,7 @@ async function handlePOST(request: Request) {
     return response;
   } catch (error) {
     if (error instanceof ReadingGroupError) return readingGroupErrorResponse(error);
-    console.error("Login failed", error);
+    console.error("Login failed");
     if (passwordRehashRequired(error)) {
       return NextResponse.json(
         {
