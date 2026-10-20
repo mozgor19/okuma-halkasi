@@ -9,7 +9,7 @@ export const productionPools = Object.freeze([
   { binding: "GROUP_CREATE_ONE", database_name: "koru-production-group-1" },
   { binding: "GROUP_CREATE_TWO", database_name: "koru-production-group-2" },
 ]);
-export function productionDeploymentConfig(built, pools = [], { maintenance = false, domains = false } = {}) {
+export function productionDeploymentConfig(built, pools = [], { maintenance = false, domains = false, sharedGroups = false, creationPaused = false } = {}) {
   assert.ok(built.main === "index.js" && built.assets?.directory === "../client" && built.no_bundle === true);
   assert.equal(built.compatibility_date, "2026-05-15");
   assert.deepEqual(built.compatibility_flags, ["nodejs_compat"]);
@@ -29,6 +29,12 @@ export function productionDeploymentConfig(built, pools = [], { maintenance = fa
     READING_GROUP_DB_BINDINGS: JSON.stringify(pools.map((pool) => pool.binding)), SELF_SERVICE_GROUP_BINDINGS: JSON.stringify(pools.map((pool) => pool.binding)),
     PRIVACY_POLICY_URL: production.origin + "/privacy", TERMS_URL: production.origin + "/terms", TURNSTILE_SITE_KEY: production.turnstileSiteKey,
     ...(pools.length ? { AUTH_PROVIDER: "firebase", FIREBASE_PROJECT_ID: production.firebaseProjectId } : {}) };
+  if (sharedGroups) {
+    assert.equal(pools.length, productionPools.length, "Keep all existing dedicated bindings during shared rollout");
+    vars.SHARED_GROUPS_ENABLED = "true";
+    vars.SELF_SERVICE_GROUP_BINDINGS = "[]";
+  }
+  if (creationPaused) vars.GROUP_CREATION_DISABLED = "true";
   return { name: production.worker, account_id: production.accountId, main: resolve("dist/server/index.js"), no_bundle: true,
     compatibility_date: built.compatibility_date, compatibility_flags: built.compatibility_flags, rules: built.rules,
     assets: { directory: resolve("dist/client") }, workers_dev: true, preview_urls: false, observability: { enabled: true },

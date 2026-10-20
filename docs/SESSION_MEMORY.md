@@ -826,3 +826,90 @@ manual check passed without the operator/device evidence for that exact revision
 - This follow-up documentation commit does NOT change the deployed application
   source. Read production runtime/version and private cutover state before
   future actions. Existing local preview46603 was not stopped or reset.
+
+## October 20 Architecture Explanation And Gap Inventory
+
+- User asked for a detailed visual explanation of the CURRENT architecture and
+  remaining work, not another deployment or new product implementation.
+- Added docs/ARCHITECTURE_CURRENT.md and offline-viewable docs/architecture/index.html,
+  three editable SVG/PNG diagrams (system, account/group mapping, PWA lifecycle),
+  public login screenshots and a printable PDF. This is a dated snapshot, not a
+  live dashboard or production-readiness certificate. Application code unchanged.
+- Fresh READ-ONLY production settings/schema check at17:49TRT: three correctly
+  bound D1s, zero required runtime/schema blockers. Aggregate-only count at
+  17:52TRT: six accounts, one registered group, both new production pools empty;
+  account inventory eight D1s including five staging DBs. No names/emails/content
+  read. No provider account/mail, deployment/SQL/Secret changes or paid service.
+- Important distinctions documented: default-group content physically shares
+  canonical DB; each new group consumes one prebound DB; no Firestore/R2; new
+  passwords Firebase-managed but pass through Worker memory over HTTPS; roles
+  local to group; appearance per account/group; sync is idle/focus/online +30s
+  polling, not realtime push; PWA only anonymous offline shell/no write queue.
+- R01-R13 backlog separates implemented-but-unverified provider/legacy/group
+  workflows, operator erasure ADC/queue, scheduled off-device multi-DB recovery,
+  quota/monitoring, main/CI/human-gate enforcement, legal/export/support,
+  physical PWA/social/performance/accessibility/security, historical-doc cleanup
+  and deferred native/new features. Do not repeat completed migrations or turn
+  13 pending manual evidence categories into13 known defects.
+- Official D1/Workers/Firebase quota documents checked; limits are plan docs,
+  not remaining project quota measurements. No plan upgrade approved.
+- Static report checked locally at390/1440px; diagram text bounds and image
+  loading verified. These document-rendering checks are NOT app/device acceptance.
+  No commit/push requested for this report task; do not infer publication approval.
+
+## October 20 Shared Group Storage Change
+
+- Latest request: remove the GLOBAL three-group provisioning bottleneck without
+  breaking existing accounts/content. User has not attempted group creation;
+  do not report a reproduced production failure or assume both pools are full.
+- Implemented additive canonical0015 shared_group_storage plus13 scoped domain
+  tables. New groups can share canonical D1 with group_id, composite tenant FKs,
+  scoped read CTEs and explicit scoped insert/update/delete/conflict construction.
+  Raw database() fails inside shared contexts. No SQL rewriting/parser heuristic.
+- Existing default/dedicated groups keep their storage/IDs/roles/media. No DB
+  transfer, reset or staging import. Old in-progress provisioning retries remain
+  supported. Global group-count limit removed in new mode; the existing per-owner
+  three-created-group abuse limit and20 memberships are separate, explicit limits.
+- SHARED_GROUPS_ENABLED is an explicit post-migration rollout flag. To pause new
+  creation retain shared readers and set GROUP_CREATION_DISABLED=true; never
+  revert to a shared-unaware binary or restore over newly created groups.
+- API/state/media/calendar/action and protected account erasure use tenant scope.
+  Erasure checkpoints use unique per-group routing keys, not the physical DB name;
+  unrelated shared groups are excluded. Existing erasure operator/Free quota and
+  real provider acceptance remain operational checks, not newly certified here.
+- New standard-gated web:groups:deploy keeps all production bindings, takes a
+  fresh encrypted export after maintenance/drain, rehearses ONLY0015, verifies
+  every previous schema/typed row/BLOB/sequence, applies atomic DDL and enables
+  shared mode. It refuses first-launch exception flags and missing proof BEFORE
+  authentication/writes; a failed cutover requires explicit journal review.
+- Focused LOCAL SQLite/workerd tests cover8+groups, concurrent duplicate creation,
+  full domain flows, invitations/roles/allappearance values, stale/foreign/revoked
+  access, same media key in separate tenants, tenant erasure, additive preservation
+  and creation pause. Full existing release regression is required too.
+- This entry is PREPARED IMPLEMENTATION, NOT a production deployment. No new live
+  SQL/Worker/Secret/provider account/mail or paid service has been performed.
+  Existing strict release gate still applies; do not reuse the consumed first
+  public launch decision. See SHARED_GROUP_STORAGE.md for rollout/recovery.
+
+## October 20 Shared Update Publication Request
+
+- Mustafa requested publishing this update, then explicitly answered the risk
+  question: "Evet, yalnız bu güncelleme için belirtilen riskleri kabul ederek
+  yayınla". This is NEW one-time authority for the shared-group storage update,
+  not reuse of the consumed first-launch exception or general future authority.
+- Added a separate revision/digest/0015-bound shared-update assessment. Missing
+  manual checks stay PENDING, never passed. Failed automated/audit/manual checks,
+  wrong identities, dirty/unpushed source, dependency changes or unrelated code
+  cannot be waived. Standard release policy itself is unchanged.
+- Mandatory path remains coauthorless commit/push to the WORK branch BEFORE
+  remote writes, clean fixed-revision suite/audit, current runtime/schema checks,
+  verified maintenance/drain, FRESH encrypted backup and offline0015 rehearsal,
+  exact old-data preservation, additive atomic DDL, then enable shared storage.
+  No main push, paid plan, staging import/reset, extra remote synthetic account/
+  Worker/D1/mail. Earlier physical device/operator/provider reviews stay pending.
+- Additional local signed-RS256 Firebase + shared-groups test passed against
+  real workerd D1, including different local/canonical IDs, scoped reads/writes
+  and old-handle rejection after password change. This is synthetic transport,
+  not real production account/mail acceptance.
+- This entry records authorization/preparation, NOT completed deployment. Check
+  the private shared-rollouts journal and live preflight for actual outcome.

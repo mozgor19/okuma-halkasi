@@ -1,6 +1,6 @@
 import { clubSchemaMissing, database, faceSchemaMissing, getAuthenticatedMember, getMember, profileSchemaMissing, rsvpSchemaMissing } from "@/db/store";
 import { meetingRsvpIsOpen } from "@/lib/meeting-time";
-import { readingGroupContext } from "@/db/database";
+import { identityDatabase, readingGroupContext } from "@/db/database";
 import { ReadingGroupError, readingGroupErrorResponse, readingGroupsEnabled, withReadingGroup } from "@/lib/groups";
 import { isAdminRole, isSuperAdminRole } from "@/lib/types";
 import { faceRecognitionEnabled } from "@/lib/feature-policy";
@@ -91,9 +91,7 @@ function bookValues(input: BookInput) {
 async function addBook(input: BookInput) {
   const book = bookValues(input);
   const result = await database()
-    .prepare(
-      "INSERT INTO books (title, author, publisher, pages, isbn, cover_url, source_url) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    )
+    .insert("books", "title, author, publisher, pages, isbn, cover_url, source_url", "?, ?, ?, ?, ?, ?, ?")
     .bind(
       book.title,
       book.author,
@@ -110,7 +108,7 @@ async function addBook(input: BookInput) {
 async function existingBook(bookId: unknown) {
   if (!Number.isInteger(bookId)) return null;
   return database()
-    .prepare("SELECT id FROM books WHERE id = ?")
+    .read("SELECT id FROM books WHERE id = ?")
     .bind(bookId)
     .first<{ id: number }>();
 }
@@ -166,7 +164,7 @@ async function handlePOST(request: Request) {
           return fail("Planı yönetici buluşmaya taşıyabilir.", 403);
         }
         const plan = await database()
-          .prepare("SELECT book_id AS bookId FROM roadmap WHERE id = ? AND deleted_at IS NULL")
+          .read("SELECT book_id AS bookId FROM roadmap WHERE id = ? AND deleted_at IS NULL")
           .bind(input.planId)
           .first<{ bookId: number }>();
         if (!plan) return fail("Planlanan kitap bulunamadı.", 404);
@@ -184,9 +182,7 @@ async function handlePOST(request: Request) {
 
       if (input.action === "createPlan") {
         await database()
-          .prepare(
-            "INSERT INTO roadmap (book_id, planned_date, note, created_by) VALUES (?, ?, ?, ?)",
-          )
+          .insert("roadmap", "book_id, planned_date, note, created_by", "?, ?, ?, ?")
           .bind(
             bookId,
             isAdminRole(actor.role) ? input.date || null : null,
@@ -198,9 +194,7 @@ async function handlePOST(request: Request) {
       }
 
       const insert = database()
-        .prepare(
-          "INSERT INTO meetings (book_id, date, location, map_url, note, reading_scope, book_status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        )
+        .insert("meetings", "book_id, date, location, map_url, note, reading_scope, book_status, created_by", "?, ?, ?, ?, ?, ?, ?, ?")
         .bind(
           bookId,
           input.date,
@@ -214,8 +208,8 @@ async function handlePOST(request: Request) {
       const result = Number.isInteger(input.planId)
         ? (await database().batch([
             insert,
-            database().prepare("DELETE FROM book_votes WHERE roadmap_id = ?").bind(input.planId),
-            database().prepare("DELETE FROM roadmap WHERE id = ?").bind(input.planId),
+            database().delete("book_votes", "roadmap_id = ?").bind(input.planId),
+            database().delete("roadmap", "id = ?").bind(input.planId),
           ]))[0]
         : await insert.run();
       return Response.json({ ok: true, meetingId: result.meta.last_row_id });
@@ -236,7 +230,7 @@ async function handlePOST(request: Request) {
       }
       const meeting = Number.isInteger(meetingId)
         ? await database()
-            .prepare("SELECT b.pages FROM meetings m JOIN books b ON b.id = m.book_id WHERE m.id = ? AND m.deleted_at IS NULL")
+            .read("SELECT b.pages FROM meetings m JOIN books b ON b.id = m.book_id WHERE m.id = ? AND m.deleted_at IS NULL")
             .bind(meetingId)
             .first<{ pages: number | null }>()
         : null;
@@ -252,18 +246,14 @@ async function handlePOST(request: Request) {
       }
       const statements = [
         database()
-          .prepare(
-            "INSERT INTO attendance (meeting_id, member_id, reading_status, current_page) VALUES (?, ?, ?, ?) ON CONFLICT(meeting_id, member_id) DO UPDATE SET reading_status = excluded.reading_status, current_page = excluded.current_page",
-          )
+          .insert("attendance", "meeting_id, member_id, reading_status, current_page", "?, ?, ?, ?", {"conflict":"meeting_id, member_id","update":"reading_status = excluded.reading_status, current_page = excluded.current_page"})
           .bind(meetingId, actor.id, input.readingStatus, currentPage),
         rating === null
           ? database()
-              .prepare("DELETE FROM reviews WHERE meeting_id = ? AND member_id = ?")
+              .delete("reviews", "meeting_id = ? AND member_id = ?")
               .bind(meetingId, actor.id)
           : database()
-              .prepare(
-                "INSERT INTO reviews (meeting_id, member_id, rating, comment) VALUES (?, ?, ?, ?) ON CONFLICT(meeting_id, member_id) DO UPDATE SET rating = excluded.rating, comment = excluded.comment, updated_at = CURRENT_TIMESTAMP",
-              )
+              .insert("reviews", "meeting_id, member_id, rating, comment", "?, ?, ?, ?", {"conflict":"meeting_id, member_id","update":"rating = excluded.rating, comment = excluded.comment, updated_at = CURRENT_TIMESTAMP"})
               .bind(meetingId, actor.id, rating, clean(input.comment, 1000) || null),
       ];
       await database().batch(statements);
@@ -276,13 +266,13 @@ async function handlePOST(request: Request) {
       if (Number.isInteger(meetingId)) {
         try {
           meeting = await database()
-            .prepare("SELECT id, date FROM meetings WHERE id = ? AND deleted_at IS NULL")
+            .read("SELECT id, date FROM meetings WHERE id = ? AND deleted_at IS NULL")
             .bind(meetingId)
             .first<{ id: number; date: string }>();
         } catch (error) {
           if (!clubSchemaMissing(error)) throw error;
           meeting = await database()
-            .prepare("SELECT id, date FROM meetings WHERE id = ?")
+            .read("SELECT id, date FROM meetings WHERE id = ?")
             .bind(meetingId)
             .first<{ id: number; date: string }>();
         }
@@ -293,12 +283,12 @@ async function handlePOST(request: Request) {
       }
       if (input.active) {
         await database()
-          .prepare("INSERT INTO meeting_rsvps (meeting_id, member_id) VALUES (?, ?) ON CONFLICT(meeting_id, member_id) DO UPDATE SET updated_at = CURRENT_TIMESTAMP")
+          .insert("meeting_rsvps", "meeting_id, member_id", "?, ?", {"conflict":"meeting_id, member_id","update":"updated_at = CURRENT_TIMESTAMP"})
           .bind(meeting.id, actor.id)
           .run();
       } else {
         await database()
-          .prepare("DELETE FROM meeting_rsvps WHERE meeting_id = ? AND member_id = ?")
+          .delete("meeting_rsvps", "meeting_id = ? AND member_id = ?")
           .bind(meeting.id, actor.id)
           .run();
       }
@@ -310,14 +300,12 @@ async function handlePOST(request: Request) {
       if (!book) return fail("Kitap bulunamadı.", 404);
       if (input.active) {
         await database()
-          .prepare(
-            "INSERT OR IGNORE INTO favorite_books (member_id, book_id) VALUES (?, ?)",
-          )
+          .insert("favorite_books", "member_id, book_id", "?, ?", {"ignore":true})
           .bind(actor.id, book.id)
           .run();
       } else {
         await database()
-          .prepare("DELETE FROM favorite_books WHERE member_id = ? AND book_id = ?")
+          .delete("favorite_books", "member_id = ? AND book_id = ?")
           .bind(actor.id, book.id)
           .run();
       }
@@ -329,20 +317,18 @@ async function handlePOST(request: Request) {
       const roadmapId = Number(input.roadmapId);
       if (!Number.isInteger(roadmapId)) return fail("Kitap adayı bulunamadı.");
       const candidate = await database()
-        .prepare("SELECT id FROM roadmap WHERE id = ? AND deleted_at IS NULL")
+        .read("SELECT id FROM roadmap WHERE id = ? AND deleted_at IS NULL")
         .bind(roadmapId)
         .first();
       if (!candidate) return fail("Kitap adayı bulunamadı.", 404);
       if (input.active) {
         await database()
-          .prepare(
-            "INSERT INTO book_votes (member_id, roadmap_id) VALUES (?, ?) ON CONFLICT(member_id) DO UPDATE SET roadmap_id = excluded.roadmap_id, created_at = CURRENT_TIMESTAMP",
-          )
+          .insert("book_votes", "member_id, roadmap_id", "?, ?", {"conflict":"member_id","update":"roadmap_id = excluded.roadmap_id, created_at = CURRENT_TIMESTAMP"})
           .bind(actor.id, roadmapId)
           .run();
       } else {
         await database()
-          .prepare("DELETE FROM book_votes WHERE member_id = ? AND roadmap_id = ?")
+          .delete("book_votes", "member_id = ? AND roadmap_id = ?")
           .bind(actor.id, roadmapId)
           .run();
       }
@@ -355,9 +341,7 @@ async function handlePOST(request: Request) {
         return fail("Oylama görünürlüğü geçersiz.");
       }
       await database()
-        .prepare(
-          "INSERT INTO club_settings (key, value) VALUES ('book_vote_visibility', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-        )
+        .insert("club_settings", "key, value", "'book_vote_visibility', ?", {"conflict":"key","update":"value = excluded.value"})
         .bind(input.voteVisibility)
         .run();
       return Response.json({ ok: true });
@@ -365,7 +349,7 @@ async function handlePOST(request: Request) {
 
     if (input.action === "clearBookVotes") {
       if (!isAdminRole(actor.role)) return fail("Oyları yönetici sıfırlayabilir.", 403);
-      await database().prepare("DELETE FROM book_votes").run();
+      await database().delete("book_votes").run();
       return Response.json({ ok: true });
     }
 
@@ -377,23 +361,19 @@ async function handlePOST(request: Request) {
         return fail("Misafir adı ve buluşma gerekli.");
       }
       const meeting = await database()
-        .prepare("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL")
+        .read("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL")
         .bind(meetingId)
         .first();
       if (!meeting) return fail("Buluşma bulunamadı.", 404);
       const colors = ["#5e8b88", "#bd8464", "#769e9a", "#9881a5", "#a08b65", "#6d8eaa"];
       const color = colors[name.length % colors.length];
       const result = await database()
-        .prepare(
-          "INSERT INTO members (name, role, color, is_guest, guest_meeting_id) VALUES (?, 'member', ?, 1, ?)",
-        )
+        .insert("members", "name, role, color, is_guest, guest_meeting_id", "?, 'member', ?, 1, ?")
         .bind(name, color, meetingId)
         .run();
       const guestId = Number(result.meta.last_row_id);
       await database()
-        .prepare(
-          "INSERT INTO attendance (meeting_id, member_id, reading_status) VALUES (?, ?, 'unselected')",
-        )
+        .insert("attendance", "meeting_id, member_id, reading_status", "?, ?, 'unselected'")
         .bind(meetingId, guestId)
         .run();
       return Response.json({ ok: true, memberId: guestId });
@@ -403,7 +383,7 @@ async function handlePOST(request: Request) {
       if (!isAdminRole(actor.role)) return fail("Buluşmayı yönetici silebilir.", 403);
       if (!Number.isInteger(input.meetingId)) return fail("Buluşma bulunamadı.");
       await database()
-        .prepare("UPDATE meetings SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL")
+        .update("meetings", "deleted_at = CURRENT_TIMESTAMP", "id = ? AND deleted_at IS NULL")
         .bind(input.meetingId)
         .run();
       return Response.json({ ok: true });
@@ -417,7 +397,7 @@ async function handlePOST(request: Request) {
       }
       const table = input.trashType === "meeting" ? "meetings" : "roadmap";
       await database()
-        .prepare(`UPDATE ${table} SET deleted_at = NULL WHERE id = ? AND deleted_at IS NOT NULL`)
+        .update(table, "deleted_at = NULL", "id = ? AND deleted_at IS NOT NULL")
         .bind(id)
         .run();
       return Response.json({ ok: true });
@@ -431,46 +411,46 @@ async function handlePOST(request: Request) {
       }
       if (input.trashType === "plan") {
         const plan = await database()
-          .prepare("SELECT id FROM roadmap WHERE id = ? AND deleted_at IS NOT NULL")
+          .read("SELECT id FROM roadmap WHERE id = ? AND deleted_at IS NOT NULL")
           .bind(id)
           .first();
         if (!plan) return fail("Silinen plan bulunamadı.", 404);
         await database().batch([
-          database().prepare("DELETE FROM book_votes WHERE roadmap_id = ?").bind(id),
-          database().prepare("DELETE FROM roadmap WHERE id = ?").bind(id),
+          database().delete("book_votes", "roadmap_id = ?").bind(id),
+          database().delete("roadmap", "id = ?").bind(id),
         ]);
         return Response.json({ ok: true });
       }
 
       const meeting = await database()
-        .prepare("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NOT NULL")
+        .read("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NOT NULL")
         .bind(id)
         .first();
       if (!meeting) return fail("Silinen buluşma bulunamadı.", 404);
       const photoRows = (await database()
-        .prepare("SELECT media_key AS mediaKey FROM photos WHERE meeting_id = ?")
+        .read("SELECT media_key AS mediaKey FROM photos WHERE meeting_id = ?")
         .bind(id)
         .all<{ mediaKey: string }>()).results;
       const guestRows = (await database()
-        .prepare("SELECT id FROM members WHERE is_guest = 1 AND guest_meeting_id = ?")
+        .read("SELECT id FROM members WHERE is_guest = 1 AND guest_meeting_id = ?")
         .bind(id)
         .all<{ id: number }>()).results;
       const statements = [
-        database().prepare("DELETE FROM reviews WHERE meeting_id = ?").bind(id),
-        database().prepare("DELETE FROM attendance WHERE meeting_id = ?").bind(id),
-        database().prepare("DELETE FROM meeting_rsvps WHERE meeting_id = ?").bind(id),
-        database().prepare("DELETE FROM photos WHERE meeting_id = ?").bind(id),
+        database().delete("reviews", "meeting_id = ?").bind(id),
+        database().delete("attendance", "meeting_id = ?").bind(id),
+        database().delete("meeting_rsvps", "meeting_id = ?").bind(id),
+        database().delete("photos", "meeting_id = ?").bind(id),
         ...photoRows.map((photo) =>
-          database().prepare("DELETE FROM media WHERE media_key = ?").bind(photo.mediaKey)
+          database().delete("media", "media_key = ?").bind(photo.mediaKey)
         ),
-        database().prepare("DELETE FROM meetings WHERE id = ?").bind(id),
+        database().delete("meetings", "id = ?").bind(id),
         ...guestRows.flatMap((guest) => [
-          database().prepare("DELETE FROM favorite_books WHERE member_id = ?").bind(guest.id),
-          database().prepare("DELETE FROM book_votes WHERE member_id = ?").bind(guest.id),
+          database().delete("favorite_books", "member_id = ?").bind(guest.id),
+          database().delete("book_votes", "member_id = ?").bind(guest.id),
           ...(!readingGroupsEnabled()
-            ? [database().prepare("DELETE FROM member_accounts WHERE member_id = ?").bind(guest.id)]
+            ? [identityDatabase().prepare("DELETE FROM member_accounts WHERE member_id = ?").bind(guest.id)]
             : []),
-          database().prepare("DELETE FROM members WHERE id = ?").bind(guest.id),
+          database().delete("members", "id = ?").bind(guest.id),
         ]),
       ];
       await database().batch(statements);
@@ -483,13 +463,13 @@ async function handlePOST(request: Request) {
       }
       if (!Number.isInteger(input.photoId)) return fail("Fotoğraf bulunamadı.");
       const photo = await database()
-        .prepare("SELECT media_key AS mediaKey FROM photos WHERE id = ?")
+        .read("SELECT media_key AS mediaKey FROM photos WHERE id = ?")
         .bind(input.photoId)
         .first<{ mediaKey: string }>();
       if (!photo) return fail("Fotoğraf bulunamadı.", 404);
       await database().batch([
-        database().prepare("DELETE FROM photos WHERE id = ?").bind(input.photoId),
-        database().prepare("DELETE FROM media WHERE media_key = ?").bind(photo.mediaKey),
+        database().delete("photos", "id = ?").bind(input.photoId),
+        database().delete("media", "media_key = ?").bind(photo.mediaKey),
       ]);
       return Response.json({ ok: true });
     }
@@ -499,20 +479,18 @@ async function handlePOST(request: Request) {
         return fail("Başka birini yönetici ekleyebilir.", 403);
       }
       const target = Number.isInteger(input.targetId)
-        ? await database().prepare("SELECT id, is_guest AS isGuest FROM members WHERE id = ?").bind(input.targetId).first<{ id: number; isGuest: number }>()
+        ? await database().read("SELECT id, is_guest AS isGuest FROM members WHERE id = ?").bind(input.targetId).first<{ id: number; isGuest: number }>()
         : null;
       if (!target || target.isGuest || !Number.isInteger(input.meetingId)) {
         return fail("Katılımcı veya buluşma bulunamadı.");
       }
       const meeting = await database()
-        .prepare("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL")
+        .read("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL")
         .bind(input.meetingId)
         .first();
       if (!meeting) return fail("Buluşma bulunamadı.", 404);
       await database()
-        .prepare(
-          "INSERT OR IGNORE INTO attendance (meeting_id, member_id, reading_status) VALUES (?, ?, 'unselected')",
-        )
+        .insert("attendance", "meeting_id, member_id, reading_status", "?, ?, 'unselected'", {"ignore":true})
         .bind(input.meetingId, target.id)
         .run();
       return Response.json({ ok: true });
@@ -534,7 +512,7 @@ async function handlePOST(request: Request) {
         return fail("Katılımcı seçimi geçersiz.");
       }
       const [meeting, ...targets] = await Promise.all([
-        database().prepare("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL").bind(input.meetingId).first(),
+        database().read("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL").bind(input.meetingId).first(),
         ...targetIds.map((id) => getMember(id)),
       ]);
       if (!meeting) return fail("Buluşma bulunamadı.", 404);
@@ -542,7 +520,7 @@ async function handlePOST(request: Request) {
       await database().batch(
         targetIds.map((targetId) =>
           database()
-            .prepare("INSERT OR IGNORE INTO attendance (meeting_id, member_id, reading_status) VALUES (?, ?, 'unselected')")
+            .insert("attendance", "meeting_id, member_id, reading_status", "?, ?, 'unselected'", {"ignore":true})
             .bind(input.meetingId, targetId),
         ),
       );
@@ -555,12 +533,12 @@ async function handlePOST(request: Request) {
       if (!Number.isInteger(targetId) || !["admin", "member"].includes(input.role ?? "")) return fail("Üye veya rol geçersiz.");
       if (targetId === actor.id) return fail("Ana yönetici kendi rolünü değiştiremez.", 403);
       const target = await database()
-        .prepare("SELECT id, role, is_guest AS isGuest FROM members WHERE id = ?")
+        .read("SELECT id, role, is_guest AS isGuest FROM members WHERE id = ?")
         .bind(targetId)
         .first<{ id: number; role: string; isGuest: number }>();
       if (!target || target.isGuest) return fail("Üye bulunamadı.", 404);
       if (target.role === "super_admin") return fail("Ana yönetici rolü bu ekrandan değiştirilemez.", 403);
-      await database().prepare("UPDATE members SET role = ? WHERE id = ?").bind(input.role, targetId).run();
+      await database().update("members", "role = ?", "id = ?").bind(input.role, targetId).run();
       return Response.json({ ok: true });
     }
 
@@ -571,18 +549,18 @@ async function handlePOST(request: Request) {
         return fail("Bu yüz referansını kaldıramazsın.", 403);
       }
       const target = await database()
-        .prepare("SELECT id, face_reference_media_key AS faceReferenceMediaKey FROM members WHERE id = ?")
+        .read("SELECT id, face_reference_media_key AS faceReferenceMediaKey FROM members WHERE id = ?")
         .bind(targetId)
         .first<{ id: number; faceReferenceMediaKey: string | null }>();
       if (!target) return fail("Üye bulunamadı.", 404);
       const statements = [
         database()
-          .prepare("UPDATE members SET face_reference_media_key = NULL, face_recognition_consent = 0 WHERE id = ?")
+          .update("members", "face_reference_media_key = NULL, face_recognition_consent = 0", "id = ?")
           .bind(targetId),
       ];
       if (target.faceReferenceMediaKey) {
         statements.push(
-          database().prepare("DELETE FROM media WHERE media_key = ?").bind(target.faceReferenceMediaKey),
+          database().delete("media", "media_key = ?").bind(target.faceReferenceMediaKey),
         );
       }
       await database().batch(statements);
@@ -593,7 +571,7 @@ async function handlePOST(request: Request) {
       if (!isAdminRole(actor.role)) return fail("Planları yönetici değiştirebilir.", 403);
       if (!Number.isInteger(input.planId)) return fail("Plan bulunamadı.");
       await database()
-        .prepare("UPDATE roadmap SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL")
+        .update("roadmap", "deleted_at = CURRENT_TIMESTAMP", "id = ? AND deleted_at IS NULL")
         .bind(input.planId)
         .run();
       return Response.json({ ok: true });
@@ -607,9 +585,7 @@ async function handlePOST(request: Request) {
       }
       const book = bookValues(input.book);
       await database()
-        .prepare(
-          "UPDATE books SET title = ?, author = ?, publisher = ?, pages = ?, isbn = ?, cover_url = ?, source_url = ? WHERE id = ?",
-        )
+        .update("books", "title = ?, author = ?, publisher = ?, pages = ?, isbn = ?, cover_url = ?, source_url = ?", "id = ?")
         .bind(
           book.title,
           book.author,
@@ -638,9 +614,7 @@ async function handlePOST(request: Request) {
         return fail("Harita bağlantısı https:// ile başlamalı.");
       }
       await database()
-        .prepare(
-          "UPDATE meetings SET date = ?, location = ?, map_url = ?, note = ?, reading_scope = ?, book_status = ? WHERE id = ? AND deleted_at IS NULL",
-        )
+        .update("meetings", "date = ?, location = ?, map_url = ?, note = ?, reading_scope = ?, book_status = ?", "id = ? AND deleted_at IS NULL")
         .bind(
           input.date,
           clean(input.location, 180),

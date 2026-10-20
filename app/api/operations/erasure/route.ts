@@ -27,7 +27,8 @@ export async function POST(request: Request) {
     }
     const provider = typeof body.providerAccessToken === "string" ? firebaseErasureAdmin(body.providerAccessToken) : undefined;
     const coordinator = firebaseErasureCoordinator(db, provider, body.action === "execute");
-    const service = accountErasureService(db, erasureBindings(env as unknown as Record<string, unknown>), coordinator, { incremental: true });
+    const service = accountErasureService(db, erasureBindings(env as unknown as Record<string, unknown>), coordinator,
+      { incremental: true, sharedGroups: env.SHARED_GROUPS_ENABLED === "true" });
     if (body.action === "inspect") return noStore(Response.json(await service.inspect(body.requestId, transfers as Record<string, number>)));
     const result = await service.execute(body.requestId, { expectedDigest: body.expectedDigest as string, confirmation: body.confirmation as string,
       writersStopped: true, contentReviewComplete: true, transfers: transfers as Record<string, number> });

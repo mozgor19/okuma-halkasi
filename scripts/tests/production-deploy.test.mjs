@@ -32,3 +32,15 @@ test("new domain databases have only empty domain tables and no canonical creden
     assert.ok(!canonicalProductionBatch().batch.some((item) => /DROP TABLE|DELETE FROM|ALTER TABLE.*member_accounts/i.test(item.sql)));
   } finally { db.close(); }
 });
+
+test("shared rollout keeps every existing production binding but stops consuming finite empty creation pools", () => {
+  const config = productionDeploymentConfig(built, pools, { domains: true, sharedGroups: true });
+  assert.equal(config.vars.SHARED_GROUPS_ENABLED, "true");
+  assert.equal(config.vars.SELF_SERVICE_GROUP_BINDINGS, "[]");
+  assert.deepEqual(config.d1_databases.map((db) => db.binding), ["DB", "GROUP_CREATE_ONE", "GROUP_CREATE_TWO"]);
+  const bindings = [...config.d1_databases.map((db) => ({ type: "d1", name: db.binding, database_id: db.database_id })),
+    ...Object.entries(config.vars).map(([name, text]) => ({ type: "plain_text", name, text })),
+    ...["SESSION_SECRET", "TURNSTILE_SECRET_KEY", "FIREBASE_API_KEY", "ERASURE_OPERATOR_SECRET"].map((name) => ({ name, type: "secret_text" }))];
+  assert.deepEqual(productionBindingFailures(bindings), []);
+  assert.equal(productionDeploymentConfig(built, pools, { sharedGroups: true, creationPaused: true }).vars.GROUP_CREATION_DISABLED, "true");
+});

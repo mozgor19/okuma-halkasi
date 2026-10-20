@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { blob, check, integer, sqliteTable, text, primaryKey, unique, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { blob, check, foreignKey, integer, sqliteTable, text, primaryKey, unique, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const members = sqliteTable("members", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -276,3 +276,85 @@ export const clubSettings = sqliteTable("club_settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
 });
+
+export const sharedGroupStorage = sqliteTable("shared_group_storage", {
+  groupId: text("group_id").primaryKey().notNull().references(() => readingGroups.id),
+}, (t) => [check("shared_group_not_default", sql`${t.groupId} <> 'default'`)]);
+const sharedGroupId = () => text("group_id").notNull().references(() => sharedGroupStorage.groupId);
+const sharedId = () => integer("id").primaryKey({ autoIncrement: true }).notNull();
+const createdAt = () => text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`);
+export const sharedMembers = sqliteTable("shared_members", {
+  id: sharedId(), groupId: sharedGroupId(), name: text("name").notNull(),
+  role: text("role").notNull().default("member"), color: text("color").notNull().default("#5e8b88"),
+  avatarMediaKey: text("avatar_media_key"), faceReferenceMediaKey: text("face_reference_media_key"),
+  faceRecognitionConsent: integer("face_recognition_consent").notNull().default(0),
+  isGuest: integer("is_guest").notNull().default(0), guestMeetingId: integer("guest_meeting_id"),
+}, (t) => [unique().on(t.groupId, t.id), check("shared_member_role", sql`${t.role} IN ('member', 'admin', 'super_admin')`),
+  check("shared_member_guest", sql`${t.isGuest} IN (0, 1)`), check("shared_member_consent", sql`${t.faceRecognitionConsent} IN (0, 1)`)]);
+export const sharedBooks = sqliteTable("shared_books", {
+  id: sharedId(), groupId: sharedGroupId(), title: text("title").notNull(), author: text("author").notNull(),
+  publisher: text("publisher"), pages: integer("pages"), isbn: text("isbn"), coverUrl: text("cover_url"), sourceUrl: text("source_url"),
+}, (t) => [unique().on(t.groupId, t.id)]);
+export const sharedMeetings = sqliteTable("shared_meetings", {
+  id: sharedId(), groupId: sharedGroupId(), bookId: integer("book_id").notNull(), date: text("date").notNull(),
+  location: text("location").notNull(), mapUrl: text("map_url"), note: text("note"), readingScope: text("reading_scope"),
+  bookStatus: text("book_status").notNull().default("completed"), createdBy: integer("created_by").notNull(),
+  createdAt: createdAt(), deletedAt: text("deleted_at"),
+}, (t) => [unique().on(t.groupId, t.id),
+  foreignKey({ columns: [t.groupId, t.bookId], foreignColumns: [sharedBooks.groupId, sharedBooks.id] }),
+  foreignKey({ columns: [t.groupId, t.createdBy], foreignColumns: [sharedMembers.groupId, sharedMembers.id] }),
+  index("shared_meetings_group_date").on(t.groupId, t.deletedAt, t.date)]);
+export const sharedAttendance = sqliteTable("shared_attendance", {
+  groupId: sharedGroupId(), meetingId: integer("meeting_id").notNull(), memberId: integer("member_id").notNull(),
+  readingStatus: text("reading_status").notNull().default("unselected"), currentPage: integer("current_page"),
+}, (t) => [primaryKey({ columns: [t.groupId, t.meetingId, t.memberId] }),
+  foreignKey({ columns: [t.groupId, t.meetingId], foreignColumns: [sharedMeetings.groupId, sharedMeetings.id] }),
+  foreignKey({ columns: [t.groupId, t.memberId], foreignColumns: [sharedMembers.groupId, sharedMembers.id] })]);
+export const sharedMeetingRsvps = sqliteTable("shared_meeting_rsvps", {
+  groupId: sharedGroupId(), meetingId: integer("meeting_id").notNull(), memberId: integer("member_id").notNull(),
+  createdAt: createdAt(), updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (t) => [primaryKey({ columns: [t.groupId, t.meetingId, t.memberId] }),
+  foreignKey({ columns: [t.groupId, t.meetingId], foreignColumns: [sharedMeetings.groupId, sharedMeetings.id] }),
+  foreignKey({ columns: [t.groupId, t.memberId], foreignColumns: [sharedMembers.groupId, sharedMembers.id] })]);
+export const sharedReviews = sqliteTable("shared_reviews", {
+  groupId: sharedGroupId(), meetingId: integer("meeting_id").notNull(), memberId: integer("member_id").notNull(),
+  rating: integer("rating").notNull(), comment: text("comment"), updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (t) => [primaryKey({ columns: [t.groupId, t.meetingId, t.memberId] }),
+  foreignKey({ columns: [t.groupId, t.meetingId], foreignColumns: [sharedMeetings.groupId, sharedMeetings.id] }),
+  foreignKey({ columns: [t.groupId, t.memberId], foreignColumns: [sharedMembers.groupId, sharedMembers.id] })]);
+export const sharedMedia = sqliteTable("shared_media", {
+  groupId: sharedGroupId(), mediaKey: text("media_key").notNull(), contentType: text("content_type").notNull(),
+  data: blob("data", { mode: "buffer" }).notNull(), createdAt: createdAt(),
+}, (t) => [primaryKey({ columns: [t.groupId, t.mediaKey] })]);
+export const sharedPhotos = sqliteTable("shared_photos", {
+  id: sharedId(), groupId: sharedGroupId(), meetingId: integer("meeting_id").notNull(), mediaKey: text("media_key").notNull(),
+  uploadedBy: integer("uploaded_by").notNull(), createdAt: createdAt(),
+}, (t) => [unique().on(t.groupId, t.id),
+  foreignKey({ columns: [t.groupId, t.meetingId], foreignColumns: [sharedMeetings.groupId, sharedMeetings.id] }),
+  foreignKey({ columns: [t.groupId, t.uploadedBy], foreignColumns: [sharedMembers.groupId, sharedMembers.id] }),
+  index("shared_photos_group_member").on(t.groupId, t.uploadedBy)]);
+export const sharedRoadmap = sqliteTable("shared_roadmap", {
+  id: sharedId(), groupId: sharedGroupId(), bookId: integer("book_id").notNull(), plannedDate: text("planned_date"),
+  note: text("note"), createdBy: integer("created_by").notNull(), createdAt: createdAt(), deletedAt: text("deleted_at"),
+}, (t) => [unique().on(t.groupId, t.id),
+  foreignKey({ columns: [t.groupId, t.bookId], foreignColumns: [sharedBooks.groupId, sharedBooks.id] }),
+  foreignKey({ columns: [t.groupId, t.createdBy], foreignColumns: [sharedMembers.groupId, sharedMembers.id] }),
+  index("shared_roadmap_group_date").on(t.groupId, t.deletedAt, t.plannedDate)]);
+export const sharedFavoriteBooks = sqliteTable("shared_favorite_books", {
+  groupId: sharedGroupId(), memberId: integer("member_id").notNull(), bookId: integer("book_id").notNull(), createdAt: createdAt(),
+}, (t) => [primaryKey({ columns: [t.groupId, t.memberId, t.bookId] }),
+  foreignKey({ columns: [t.groupId, t.memberId], foreignColumns: [sharedMembers.groupId, sharedMembers.id] }),
+  foreignKey({ columns: [t.groupId, t.bookId], foreignColumns: [sharedBooks.groupId, sharedBooks.id] })]);
+export const sharedBookVotes = sqliteTable("shared_book_votes", {
+  groupId: sharedGroupId(), memberId: integer("member_id").notNull(), roadmapId: integer("roadmap_id").notNull(), createdAt: createdAt(),
+}, (t) => [primaryKey({ columns: [t.groupId, t.memberId] }),
+  foreignKey({ columns: [t.groupId, t.memberId], foreignColumns: [sharedMembers.groupId, sharedMembers.id] }),
+  foreignKey({ columns: [t.groupId, t.roadmapId], foreignColumns: [sharedRoadmap.groupId, sharedRoadmap.id] })]);
+export const sharedClubSettings = sqliteTable("shared_club_settings", {
+  groupId: sharedGroupId(), key: text("key").notNull(), value: text("value").notNull(),
+}, (t) => [primaryKey({ columns: [t.groupId, t.key] })]);
+export const sharedGroupAccountLinks = sqliteTable("shared_group_account_links", {
+  groupId: sharedGroupId(), accountMemberId: integer("account_member_id").notNull().references(() => members.id), memberId: integer("member_id").notNull(),
+}, (t) => [primaryKey({ columns: [t.groupId, t.accountMemberId] }), unique().on(t.groupId, t.memberId),
+  index("shared_group_account_links_account").on(t.accountMemberId, t.groupId),
+  foreignKey({ columns: [t.groupId, t.memberId], foreignColumns: [sharedMembers.groupId, sharedMembers.id] })]);

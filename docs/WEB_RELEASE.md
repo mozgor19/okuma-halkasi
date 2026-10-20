@@ -173,3 +173,15 @@ The tool never creates a Firebase user or sends mail. Physical phone PWA,
 production mail, provider/admin erasure, independent legal review, sustained
 capacity and full multi-DB recovery remain separately evidenced operational
 work. Do not describe these as verified merely because the site opens.
+
+## Shared Group Update: Explicit One-Time Decision
+
+Later October20 Mustafa separately replied: "Evet, yalnız bu güncelleme için
+belirtilen riskleri kabul ederek yayınla" after being told the13 manual criteria
+remain unproven. This supersedes the strict-gate-only hold for THIS update, not
+for future work. `shared-update-policy.mjs` accepts only a new revision/digest/
+0015-migration-bound decision, exact pending list, real operator proof, a clean
+pushed work branch, the fixed baseline, allowlisted shared-storage paths and an
+unchanged package/dependency graph. Technical failures and failed manual evidence
+remain blocking. The standard gate is unchanged and continues to report missing
+manual checks. Never relabel them passed or reuse the consumed first-launch decision.

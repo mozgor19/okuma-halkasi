@@ -1,5 +1,9 @@
 # Koru Üretim Firebase Hazırlığı
 
+20 Ekim ek çalışma: [ortak grup depolaması](SHARED_GROUP_STORAGE.md) toplam üç
+grup darboğazını kaldırmak için yerelde uygulandı. Bu, aşağıdaki çalışan sürümün
+değiştiği anlamına gelmez; 0015 ve ortak grup bayrağı henüz canlıya uygulanmadı.
+
 ## Yayın Gerçekleşti: 20 Ekim 2026
 
 `https://birkoru.com` genel erişime açıldı; `www` ve eski workers.dev adresi

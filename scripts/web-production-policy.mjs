@@ -30,10 +30,12 @@ export function productionBindingFailures(bindings) {
   if (bindings.some((item) => ["FIREBASE_LOCAL_EMULATOR_ORIGIN", "FIREBASE_AUTH_EMULATOR_HOST", "GMAIL_CREDENTIALS", "RESEND_API_KEY", "MEMBER_CREDENTIALS"].includes(item.name)))
     failures.push("Emulator, legacy bootstrap or unrelated mail credentials cannot be promoted to production Firebase.");
   if (bindings.some((item) => item.name === "SELF_SERVICE_TEST_EMAILS")) failures.push("A staging email allowlist cannot remain on the public production Worker.");
+  const shared = value("SHARED_GROUPS_ENABLED") === "true";
+  if (![undefined, "false", "true"].includes(value("SHARED_GROUPS_ENABLED"))) failures.push("Shared group storage configuration requires review.");
   for (const name of ["READING_GROUP_DB_BINDINGS", "SELF_SERVICE_GROUP_BINDINGS"]) {
     try {
       const names = JSON.parse(value(name) || "null");
-      if (!Array.isArray(names) || !names.length || new Set(names).size !== names.length
+      if (!Array.isArray(names) || (!names.length && !shared) || new Set(names).size !== names.length
         || names.some((item) => typeof item !== "string" || item === "DB" || !databases.some((db) => db.name === item))) throw new Error();
       if (name === "SELF_SERVICE_GROUP_BINDINGS") {
         const allowed = JSON.parse(value("READING_GROUP_DB_BINDINGS") || "null");

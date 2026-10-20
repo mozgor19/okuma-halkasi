@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc" color="#172d45">
+  <title id="title">PWA senkronizasyonu, çevrimdışı davranış ve güncelleme</title>
+  <desc id="desc">Çevrimiçi işlem sunucu onayından sonra görünür. Diğer cihazlar uygun boş durumda yenileme yapar. Çevrimdışı yazma kuyruğu yoktur. Yeni service worker açık formları zorla yenilemez.</desc>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="currentColor"/></marker></defs>
+  <style>text{font-family:Arial,sans-serif;fill:currentColor;letter-spacing:0}.title{font-size:30px;font-weight:700}.h{font-size:21px;font-weight:700}.p{font-size:18px}.small{font-size:16px;fill:#526474}.box{fill:#fff;stroke:#b6c3ca;stroke-width:2}.line{fill:none;stroke:currentColor;stroke-width:2;marker-end:url(#arrow)}</style>
+  <rect width="1200" height="650" fill="#fffdf7"/><text x="40" y="48" class="title">03 / Kurulabilir web uygulaması; tam offline veritabanı değil</text>
+  <text x="40" y="80" class="p">Tarayıcı ve ana ekrana eklenen PWA aynı backend'i kullanır. Gerçek zamanlı push senkronizasyonu yoktur.</text>
+  <rect x="40" y="120" width="240" height="115" rx="4" class="box"/><text x="60" y="157" class="h">Hesap işlemi</text><text x="60" y="188" class="p">Yorum, RSVP, plan...</text><text x="60" y="216" class="small">HTTPS / aynı origin</text>
+  <rect x="330" y="120" width="240" height="115" rx="4" class="box"/><text x="350" y="157" class="h">Yetki kontrolü</text><text x="350" y="188" class="p">Oturum + grup + rol</text><text x="350" y="216" class="small">İlgili D1'e yazma</text>
+  <rect x="620" y="120" width="240" height="115" rx="4" class="box"/><text x="640" y="157" class="h">Sunucu onaylar</text><text x="640" y="188" class="p">Başarı / hata yanıtı</text><text x="640" y="216" class="small">Onaysız kayıt tamam değil</text>
+  <rect x="910" y="120" width="250" height="115" rx="4" fill="#edf1e8" stroke="#176550" stroke-width="2"/><text x="930" y="157" class="h">Diğer cihaz yeniler</text><text x="930" y="188" class="p">Odak / online / boş an</text><text x="930" y="216" class="small">~30 sn / boş-an kontrolü</text>
+  <path d="M280 178H325" class="line"/><path d="M570 178H615" class="line"/><path d="M860 178H905" class="line"/>
+  <text x="40" y="282" class="small">Yazılan form veya açık diyalog, arka plan yenilemesiyle ezilmesin diye uygun boş durum beklenir. 30 sn kesin teslim süresi değildir.</text>
+  <rect x="40" y="335" width="530" height="185" rx="4" class="box"/><rect x="40" y="335" width="530" height="6" fill="#ec543f"/>
+  <text x="60" y="375" class="h">Uçak modu / bağlantı yok</text><text x="60" y="410" class="p">Yeni açılış: genel bağlantı ekranı</text><text x="60" y="444" class="p">Özel grup verisi SW cache'ine yazılmaz</text><text x="60" y="478" class="p">Offline kayıt kuyruğu ve otomatik tekrar yok</text><text x="60" y="506" class="small">Açık sayfanın son verisi bellekte kalabilir</text>
+  <rect x="630" y="335" width="530" height="185" rx="4" class="box"/><rect x="630" y="335" width="530" height="6" fill="#e2c63f"/>
+  <text x="650" y="375" class="h">Yeni sürüm geldiğinde</text><text x="650" y="410" class="p">Yeni service worker kurulur ve bekleyebilir</text><text x="650" y="444" class="p">Açık form zorla yeniden yüklenmez</text><text x="650" y="478" class="p">Eski pencereler kapanınca etkinleşir</text><text x="650" y="506" class="small">Ana ekran simgesinin yenilenmesini OS belirler</text>
+  <text x="40" y="574" class="p">Otomatik tarayıcı kanıtı var; fiziksel Android ve iPhone kurulum/klavye/güncelleme kabulü hâlâ bekliyor.</text>
+  <text x="40" y="612" class="small">Farklı tarayıcı / PWA çerez depoları ayrı olabilir. Aynı hesaba yeniden giriş, sunucudaki aynı kayıtlara bağlanır.</text>
+</svg>

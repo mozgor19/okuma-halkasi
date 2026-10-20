@@ -24,9 +24,7 @@ async function handleGET(
   if (!Number.isInteger(meetingId)) return new Response("Buluşma bulunamadı.", { status: 404 });
 
   const meeting = await database()
-    .prepare(
-      "SELECT m.id, m.date, m.location, m.note, m.reading_scope AS readingScope, b.title, b.author FROM meetings m JOIN books b ON b.id = m.book_id WHERE m.id = ? AND m.deleted_at IS NULL",
-    )
+    .read("SELECT m.id, m.date, m.location, m.note, m.reading_scope AS readingScope, b.title, b.author FROM meetings m JOIN books b ON b.id = m.book_id WHERE m.id = ? AND m.deleted_at IS NULL")
     .bind(meetingId)
     .first<{
       id: number;

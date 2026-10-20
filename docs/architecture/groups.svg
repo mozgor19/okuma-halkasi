@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc" color="#172d45">
+  <title id="title">Tek hesap ile birden fazla okuma grubunun ilişkisi</title>
+  <desc id="desc">Temsili hesap 42, A grubunda yönetici ve B grubunda katılımcıdır. Yerel üye kimliği, rol, tema ve içerik gruba göre değişir. Hesabın parolası ve kimliği değişmez.</desc>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="currentColor"/></marker></defs>
+  <style>text{font-family:Arial,sans-serif;fill:currentColor;letter-spacing:0}.title{font-size:30px;font-weight:700}.h{font-size:22px;font-weight:700}.p{font-size:19px}.small{font-size:16px;fill:#526474}.line{fill:none;stroke:currentColor;stroke-width:2;marker-end:url(#arrow)}</style>
+  <rect width="1200" height="650" fill="#fffdf7"/>
+  <text x="40" y="48" class="title">02 / Grup değişir, hesap değişmez</text><text x="40" y="80" class="p">Aşağıdaki kimlikler örnektir; gerçek kişi veya hesap kaydı gösterilmez.</text>
+  <rect x="400" y="115" width="400" height="110" rx="4" fill="#edf1e8" stroke="#176550" stroke-width="2"/>
+  <text x="425" y="151" class="h">Tek Koru hesabı / örnek ID 42</text><text x="425" y="182" class="p">Kullanıcı adı + doğrulanmış e-posta</text><text x="425" y="209" class="small">Üyelik haritası kanonik D1'de tutulur</text>
+  <path d="M520 225V265H300V310" class="line"/><path d="M680 225V265H900V310" class="line"/>
+  <text x="145" y="292" class="small">Hesap 42 → A grubunun yerel üyesi 7</text><text x="745" y="292" class="small">Hesap 42 → B grubunun yerel üyesi 3</text>
+  <rect x="60" y="315" width="480" height="210" rx="4" fill="#fff" stroke="#b6c3ca" stroke-width="2"/>
+  <rect x="60" y="315" width="480" height="6" fill="#e2c63f"/>
+  <text x="85" y="355" class="h">Grup A</text><text x="85" y="391" class="p">Rol: yönetici</text><text x="85" y="425" class="p">Görünüm: Notebook / koyu</text><text x="85" y="459" class="p">A'nın kitapları, buluşmaları, fotoğrafları</text><text x="85" y="498" class="small">Yetki ilgili grubun members kaydından okunur</text>
+  <rect x="660" y="315" width="480" height="210" rx="4" fill="#fff" stroke="#b6c3ca" stroke-width="2"/>
+  <rect x="660" y="315" width="480" height="6" fill="#ec543f"/>
+  <text x="685" y="355" class="h">Grup B</text><text x="685" y="391" class="p">Rol: katılımcı</text><text x="685" y="425" class="p">Görünüm: Minimal / açık</text><text x="685" y="459" class="p">B'nin kitapları, buluşmaları, fotoğrafları</text><text x="685" y="498" class="small">A'daki yöneticilik B'ye taşınmaz</text>
+  <text x="60" y="571" class="p">0 grup → grup kur veya davetle katıl · 1 grup → doğrudan açılır · Birden fazla → seçim ekranı</text>
+  <text x="60" y="606" class="small">Profilde grup değiştirme, grup adını / rolü / tercihi / veri bağlamını değiştirir. Sunucu her istekte üyeliği yeniden doğrular.</text>
+  <text x="60" y="632" class="small">Çerezde grup seçmek tek başına yetki vermez; eski grubun açık formundan yanlış gruba yazma 409 ile reddedilir.</text>
+</svg>

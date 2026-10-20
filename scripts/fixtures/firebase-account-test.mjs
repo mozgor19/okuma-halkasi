@@ -17,12 +17,12 @@ export function firebaseAccountFixture() {
     return { statement, get values() { return values; }, bind(...args) { values = args; return this; },
       async first() { return sql.prepare(statement).get(...values) ?? null; },
       async all() { return { results: sql.prepare(statement).all(...values) }; },
-      async run() { return { meta: { changes: Number(sql.prepare(statement).run(...values).changes) } }; } };
+      async run() { const result = sql.prepare(statement).run(...values); return { meta: { changes: Number(result.changes), last_row_id: Number(result.lastInsertRowid) } }; } };
   }, async batch(statements) {
     if (hooks.failBatch) throw Error("Synthetic D1 failure");
     sql.exec("BEGIN IMMEDIATE");
     try {
-      const results = statements.map((statement) => ({ results: [], meta: { changes: Number(sql.prepare(statement.statement).run(...statement.values).changes) } }));
+      const results = statements.map((statement) => { const result = sql.prepare(statement.statement).run(...statement.values); return { results: [], meta: { changes: Number(result.changes), last_row_id: Number(result.lastInsertRowid) } }; });
       sql.exec("COMMIT"); return results;
     } catch (error) { sql.exec("ROLLBACK"); throw error; }
   } };

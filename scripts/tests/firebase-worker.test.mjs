@@ -10,6 +10,9 @@ const { Miniflare } = toolchain("miniflare"), { build } = toolchain("esbuild");
 const { outputFiles } = await build({
   stdin: { resolveDir: process.cwd(), sourcefile: "firebase-worker-test.ts", contents: `
     import * as accounts from "./db/firebase-accounts.ts";
+    import { createReadingGroup } from "./db/onboarding-groups.ts";
+    import { GET as state } from "./app/api/state/route.ts";
+    import { POST as mutate } from "./app/api/action/route.ts";
     import { POST as operator } from "./app/api/operations/erasure/route.ts";
     import { drain } from "next/server";
     export default { async fetch(request) {
@@ -21,6 +24,12 @@ const { outputFiles } = await build({
           identity: () => accounts.firebaseSessionIdentity(...args),
           change: () => accounts.changeFirebasePassword(...args),
           revoke: () => accounts.revokeFirebaseSession(...args), flush: drain,
+          createGroup: () => createReadingGroup(args[0], args[1]),
+          state: () => state(new Request("https://birkoru.com/api/state", { headers: {
+            Cookie: "okuma_session=" + args[0] + "; okuma_group=" + args[1], "X-Reading-Group": args[2] || args[1] } })),
+          mutate: () => mutate(new Request("https://birkoru.com/api/action", { method: "POST", headers: {
+            Cookie: "okuma_session=" + args[0] + "; okuma_group=" + args[1], "X-Reading-Group": args[1],
+            Origin: "https://birkoru.com", "Content-Type": "application/json" }, body: JSON.stringify(args[2]) })),
           operator: () => operator(new Request("https://birkoru.com/api/operations/erasure", { method: "POST",
             headers: { "Content-Type": "application/json", Authorization: "Bearer " + "a".repeat(64), ...args[1] }, body: JSON.stringify(args[0]) })) };
         if (!Object.hasOwn(allowed, action)) return new Response(null, { status: 404 });
@@ -37,7 +46,7 @@ const { outputFiles } = await build({
   } }],
 });
 
-async function fixture() {
+async function fixture({ shared = false } = {}) {
   const keys = await generateKeyPair("RS256"), publicKey = await exportJWK(keys.publicKey);
   publicKey.kid = "synthetic-worker-key"; publicKey.alg = "RS256";
   const users = new Map(), messages = [], visited = [], hooks = { unavailable: false, wrongAudience: false, redirectApi: false, redirectKeys: false, providerDeleteFails: false };
@@ -58,6 +67,7 @@ async function fixture() {
     d1Databases: ["DB"], bindings: { AUTH_PROVIDER: "firebase", FIREBASE_PROJECT_ID: "koru-951bf", FIREBASE_API_KEY: "AIza" + "x".repeat(35),
       AUTH_PUBLIC_ORIGIN: "https://birkoru.com", APPLICATION_BRAND: "Koru", SESSION_SECRET: "Synthetic-local-worker-key-longer-than-32",
       SELF_SERVICE_ENABLED: "true", SELF_SERVICE_LOCAL: "false", READING_GROUPS_ENABLED: "true", STAGING_ENVIRONMENT: "false",
+      ...(shared ? { SHARED_GROUPS_ENABLED: "true", READING_GROUP_DB_BINDINGS: "[]", SELF_SERVICE_GROUP_BINDINGS: "[]" } : {}),
       MAINTENANCE_MODE: "true", ERASURE_OPERATOR_SECRET: "a".repeat(64) },
     async outboundService(request) {
       const url = new URL(request.url); visited.push(url.hostname + url.pathname);
@@ -104,7 +114,7 @@ async function fixture() {
     },
   });
   const db = await worker.getD1Database("DB");
-  for (const file of [...legacyMigrations, ...canonicalMigrations]) {
+  for (const file of [...legacyMigrations, ...canonicalMigrations, ...(shared ? ["0015_shared_group_storage"] : [])]) {
     const sql = readFileSync(new URL(`../../drizzle/${file}.sql`, import.meta.url), "utf8");
     for (const statement of sql.split("--> statement-breakpoint").filter((part) => part.trim())) await db.prepare(statement.trim()).run();
   }
@@ -140,6 +150,38 @@ test("production Firebase accounts execute with actual workerd D1, RS256/JWKS an
     assert.deepEqual((await f.db.prepare("PRAGMA foreign_key_check").all()).results, []);
     assert.equal((await f.db.prepare("SELECT count(*) AS n FROM reading_group_memberships").first()).n, 0);
     assert.ok(f.visited.some((url) => url.startsWith("www.googleapis.com/")));
+  } finally { await f.worker.dispose(); }
+});
+
+test("verified Firebase sessions create and switch shared groups through real protected Worker endpoints without mixing canonical and local member IDs", async () => {
+  const f = await fixture({ shared: true }), password = "Synthetic-Worker-Password-5829";
+  try {
+    await f.call("register", { email: "worker@example.test", username: "worker.reader", name: "Synthetic Reader", password, acceptedPolicy: true });
+    await f.call("flush"); f.users.get("worker@example.test").verified = true;
+    const signed = (await f.call("login", "worker.reader", password)).body;
+    assert.ok(signed.memberId);
+    const handle = (await f.call("session", signed.memberId, signed.sessionVersion, signed.firebase)).body;
+    const groups = [];
+    for (const name of ["Alpha", "Beta"]) {
+      const created = await f.call("createGroup", signed.memberId, { name, requestKey: crypto.randomUUID() });
+      assert.equal(created.status, 200); assert.equal(created.body.group.role, "super_admin");
+      groups.push(created.body.group);
+    }
+    const [a, b] = groups;
+    const action = await f.call("mutate", handle, a.id, { action: "createPlan", book: { title: "Only Alpha", author: "Synthetic" } });
+    assert.equal(action.status, 200);
+    const alpha = await f.call("state", handle, a.id), beta = await f.call("state", handle, b.id);
+    assert.equal(alpha.status, 200); assert.equal(beta.status, 200);
+    assert.equal(alpha.body.books[0].title, "Only Alpha"); assert.equal(beta.body.books.length, 0);
+    assert.notEqual(alpha.body.currentMemberId, beta.body.currentMemberId);
+    assert.equal(alpha.body.members.length, 1); assert.equal(beta.body.members.length, 1);
+    assert.equal((await f.call("state", handle, a.id, b.id)).status, 409);
+    const changed = await f.call("change", signed.memberId, password, "Next-Synthetic-Worker-Password-7834");
+    assert.equal(changed.body.ok, true);
+    assert.equal((await f.call("state", handle, a.id)).status, 401);
+    assert.equal((await f.db.prepare("SELECT count(*) AS n FROM shared_group_storage").first()).n, 2);
+    assert.equal((await f.db.prepare("SELECT count(*) AS n FROM members").first()).n, 1);
+    assert.deepEqual((await f.db.prepare("PRAGMA foreign_key_check").all()).results, []);
   } finally { await f.worker.dispose(); }
 });
 

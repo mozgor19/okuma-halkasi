@@ -10,6 +10,10 @@ declare namespace Cloudflare {
     SELF_SERVICE_LOCAL?: string;
     /** Unassigned, migrated, empty D1 binding names. No automatic cloud provisioning. */
     SELF_SERVICE_GROUP_BINDINGS?: string;
+    /** New groups use canonical tenant tables after migration 0015. Existing groups keep their storage. */
+    SHARED_GROUPS_ENABLED?: string;
+    /** Emergency creation stop; existing shared group access/invites remain available. */
+    GROUP_CREATION_DISABLED?: string;
     AUTH_PUBLIC_ORIGIN?: string;
     /** firebase-local is emulator-only; firebase uses the separately guarded production provider. */
     AUTH_PROVIDER?: string;

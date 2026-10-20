@@ -41,6 +41,10 @@ for (const database of databases) {
   const result = await read(`${root}/d1/database/${database.database_id}/query`, database.database_id);
   const tables = result[0]?.results || [];
   const missing = [...domainTables, ...(database.name === "DB" ? canonicalTables : [])].filter((name) => !tables.some((item) => item.name === name));
+  if (database.name === "DB" && bindings.some((item) => item.name === "SHARED_GROUPS_ENABLED" && item.text === "true")) {
+    missing.push(...["shared_group_storage", ...domainTables.filter((name) => name !== "group_database_ownership").map((name) => "shared_" + name)]
+      .filter((name) => !tables.some((item) => item.name === name)));
+  }
   if (missing.length) blockers.push(`Missing reviewed schema on ${database.name}: ${missing.join(", ")}`);
   schemas.push({ binding: database.name, databaseId: database.database_id, tables, missing });
 }

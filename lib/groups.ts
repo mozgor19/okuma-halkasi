@@ -6,13 +6,14 @@ import {
   runWithReadingGroup,
   type ReadingGroupContext,
 } from "@/db/database";
+import { DomainDatabase, sharedRoutingKey } from "@/db/domain-sql";
 import { SESSION_MAX_AGE, sessionIdentity, sessionTokenFromRequest } from "@/lib/auth";
 import type { Member, ReadingGroup, ReadingGroupMembership, ReadingGroupMode, ReadingGroupScheme } from "@/lib/types";
 
 export { readingGroupsEnabled } from "@/db/database";
 export const READING_GROUP_COOKIE = "okuma_group";
 
-type MembershipRow = ReadingGroup & { memberId: number; bindingName: string };
+type MembershipRow = ReadingGroup & { memberId: number; bindingName: string; sharedGroupId?: string };
 type ResolvedGroup = { context: ReadingGroupContext; group: ReadingGroupMembership };
 
 export class ReadingGroupError extends Error {
@@ -87,8 +88,9 @@ async function membershipsForAccount(accountMemberId: number, allowEmpty = false
   if (!member) throw new ReadingGroupError("GROUP_ACCESS_DENIED", 403, "Bu okuma grubuna erişimin yok.");
   const { results } = await db.prepare(`
     SELECT g.id, g.name, g.binding_name AS bindingName, m.member_id AS memberId,
-      m.scheme, m.color_mode AS mode
+      m.scheme, m.color_mode AS mode${env.SHARED_GROUPS_ENABLED === "true" ? ", s.group_id AS sharedGroupId" : ""}
     FROM reading_group_memberships m JOIN reading_groups g ON g.id = m.group_id
+    ${env.SHARED_GROUPS_ENABLED === "true" ? "LEFT JOIN shared_group_storage s ON s.group_id = g.id" : ""}
     WHERE m.account_member_id = ? AND m.is_active = 1 ORDER BY g.name, g.id
   `).bind(accountMemberId).all<MembershipRow>();
   if (!results.length && !allowEmpty) throw new ReadingGroupError("GROUP_ACCESS_DENIED", 403, "Henüz erişebildiğin bir okuma grubu yok.");
@@ -99,6 +101,12 @@ export function groupDatabase(group: MembershipRow): D1Database {
   if (!validGroupId(group.id) || !validGroupScheme(group.scheme) || !validGroupMode(group.mode)
     || !Number.isSafeInteger(group.memberId) || group.memberId < 1) {
     throw new ReadingGroupError("GROUP_UNAVAILABLE", 503, "Okuma grubu yapılandırması geçersiz.");
+  }
+  if (group.sharedGroupId) {
+    if (env.SHARED_GROUPS_ENABLED !== "true" || group.sharedGroupId !== group.id || group.bindingName !== sharedRoutingKey(group.id)) {
+      throw new ReadingGroupError("GROUP_UNAVAILABLE", 503, "Ortak grup veri bağlantısı doğrulanamadı.");
+    }
+    return identityDatabase();
   }
   if (group.id === "default" && group.bindingName === "DB") return identityDatabase();
   if (group.id === "default" || group.bindingName === "DB") {
@@ -124,14 +132,14 @@ export function groupDatabase(group: MembershipRow): D1Database {
 
 async function resolveMembership(accountMemberId: number, membership: MembershipRow): Promise<ResolvedGroup> {
   const db = groupDatabase(membership);
-  if (membership.id !== "default") {
+  if (membership.id !== "default" && !membership.sharedGroupId) {
     const registry = await identityDatabase().prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'group_provisioning'").first<{ name: string }>();
     if (registry?.name === "group_provisioning" && await identityDatabase().prepare("SELECT group_id FROM group_provisioning WHERE group_id = ?").bind(membership.id).first()) {
       const owner = await db.prepare("SELECT group_id AS groupId FROM group_database_ownership WHERE singleton = 1").first<{ groupId: string }>();
       if (owner?.groupId !== membership.id) throw new ReadingGroupError("GROUP_UNAVAILABLE", 503, "Okuma grubunun veri bağlantısı doğrulanamadı.");
     }
   }
-  const member = await db.prepare("SELECT role FROM members WHERE id = ? AND is_guest = 0")
+  const member = await new DomainDatabase(db, membership.sharedGroupId).read("SELECT role FROM members WHERE id = ? AND is_guest = 0")
     .bind(membership.memberId).first<{ role: Member["role"] }>();
   if (!member || !["member", "admin", "super_admin"].includes(member.role)) {
     throw new ReadingGroupError("GROUP_ACCESS_DENIED", 403, "Bu okuma grubuna erişimin yok.");
@@ -139,7 +147,7 @@ async function resolveMembership(accountMemberId: number, membership: Membership
   const { id, name, scheme, mode } = membership;
   const group = { id, name, scheme, mode };
   return {
-    context: { db, accountMemberId, memberId: membership.memberId, group },
+    context: { db, accountMemberId, memberId: membership.memberId, group, sharedGroupId: membership.sharedGroupId || undefined },
     group: { ...group, role: member.role },
   };
 }

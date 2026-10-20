@@ -56,6 +56,7 @@
     "web:release:check": "node scripts/check-web-release.mjs",
     "web:preflight": "node scripts/web-production-preflight.mjs",
     "web:deploy": "node scripts/deploy-production.mjs",
+    "web:groups:deploy": "node scripts/deploy-shared-groups.mjs",
     "web:auth:preflight": "node scripts/firebase-production-preflight.mjs",
     "web:backup:drill": "node scripts/backup-production-d1.mjs",
     "web:migration:rehearse": "node scripts/rehearse-production-migration.mjs",

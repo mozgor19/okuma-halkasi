@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="730" viewBox="0 0 1200 730" role="img" aria-labelledby="title desc" color="#172d45">
+  <title id="title">Koru: yayındaki sistem mimarisi</title>
+  <desc id="desc">Telefon veya bilgisayar HTTPS ile Cloudflare Worker'a bağlanır. Worker Firebase Authentication, kanonik D1 ve seçilen grubun D1 bağlantısını kullanır. Eski grubun içeriği kanonik veritabanında kalır.</desc>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="currentColor"/></marker></defs>
+  <style>text{font-family:Arial,sans-serif;fill:currentColor;letter-spacing:0}.title{font-size:30px;font-weight:700}.h{font-size:21px;font-weight:700}.p{font-size:17px}.small{font-size:15px;fill:#526474}.box{fill:#fff;stroke:#b6c3ca;stroke-width:2}.line{fill:none;stroke:currentColor;stroke-width:2;marker-end:url(#arrow)}</style>
+  <rect width="1200" height="730" fill="#fffdf7"/>
+  <text x="40" y="48" class="title">01 / Bir uygulama, merkezi hesap, ayrı grup verileri</text>
+  <text x="40" y="80" class="p">Mevcut web/PWA mimarisi · 20 Ekim 2026 · Native mağaza uygulaması bu şemada yok</text>
+  <rect x="40" y="120" width="275" height="110" rx="4" class="box"/>
+  <text x="60" y="152" class="h">Telefon / bilgisayar</text><text x="60" y="182" class="p">Tarayıcı veya kurulu PWA</text><text x="60" y="209" class="small">Aynı hesap, aynı sunucu kayıtları</text>
+  <rect x="355" y="120" width="240" height="110" rx="4" class="box"/>
+  <text x="375" y="152" class="h">birkoru.com</text><text x="375" y="182" class="p">Cloudflare DNS + TLS</text><text x="375" y="209" class="small">www / eski adres yönlenir</text>
+  <rect x="635" y="120" width="525" height="110" rx="4" fill="#edf1e8" stroke="#176550" stroke-width="2"/>
+  <text x="655" y="152" class="h">Cloudflare Worker: okuma-halkasi</text><text x="655" y="182" class="p">React + vinext · sayfalar, API, oturum ve grup/rol kontrolü</text><text x="655" y="209" class="small">Statik JS/CSS/font/simge dosyaları da Cloudflare'dan sunulur</text>
+  <path d="M315 175H350" class="line"/><path d="M595 175H630" class="line"/>
+  <path d="M895 230V300M190 300H995" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M190 300V360" class="line"/><text x="80" y="284" class="small">Parola, doğrulama, güncel hesap durumu</text>
+  <path d="M570 300V360" class="line"/><text x="410" y="338" class="small">Hesap / üyelik</text>
+  <path d="M995 300V360" class="line"/><text x="1010" y="338" class="small">Yalnız seçili grup</text>
+  <rect x="40" y="365" width="300" height="185" rx="4" class="box"/>
+  <rect x="40" y="365" width="300" height="6" fill="#e2c63f"/>
+  <text x="60" y="401" class="h">Firebase Auth</text><text x="60" y="432" class="p">Üretim: koru-951bf / Spark</text><text x="60" y="462" class="p">Yeni hesapların parolaları</text><text x="60" y="492" class="p">Doğrulama / sıfırlama postası</text><text x="60" y="525" class="small">Kitaplar burada değil; Firestore yok</text>
+  <rect x="390" y="365" width="360" height="220" rx="4" class="box"/>
+  <text x="410" y="401" class="h">Kanonik D1 / DB</text><text x="410" y="432" class="p">Hesap, e-posta ve Firebase eşlemesi</text><text x="410" y="462" class="p">Üyelik, grup tercihi, davet, silme talebi</text><path d="M410 480H730" stroke="#b6c3ca"/>
+  <text x="410" y="510" class="h">+ mevcut grubun içerikleri</text><text x="410" y="540" class="p">Eski kitaplar, buluşmalar, fotoğraflar</text><text x="410" y="566" class="small">Geçişte aynı fiziksel DB korundu</text>
+  <rect x="800" y="365" width="360" height="220" rx="4" class="box"/>
+  <text x="820" y="401" class="h">Yeni grupların D1 havuzu</text><text x="820" y="432" class="p">GROUP_CREATE_ONE</text><text x="820" y="462" class="p">GROUP_CREATE_TWO</text><path d="M820 480H1140" stroke="#b6c3ca"/>
+  <text x="820" y="510" class="p">Her yeni grup bir DB kullanır</text><text x="820" y="540" class="p">Üyeler, roller, kitaplar ve medya</text><text x="820" y="566" class="small">Merkezi hesap parolası kopyalanmaz</text>
+  <rect x="40" y="580" width="300" height="90" rx="4" fill="#eef2f5" stroke="#b6c3ca"/>
+  <text x="60" y="611" class="h">Diğer bağlantılar</text><text x="60" y="637" class="small">Turnstile: güvenlik · Gmail: destek</text><text x="60" y="660" class="small">Open Library: arama ve kapaklar</text>
+  <text x="390" y="635" class="p">Staging: ayrı Worker ve beş ayrı test D1'i.</text><text x="390" y="665" class="p">İçerik ve fotoğraflar D1'de; R2/S3 kullanılmıyor.</text>
+  <text x="40" y="708" class="small">Güven sınırı: istemci doğrudan D1'e erişmez. Firebase tokenları tarayıcı localStorage'ına yazılmaz. Uçtan uca şifreleme yoktur.</text>
+</svg>

@@ -1,9 +1,10 @@
 import { sessionAccountIsCurrent } from "@/db/accounts";
-import { database, identityDatabase, readingGroupContext, readingGroupsEnabled } from "@/db/database";
+import { domainDatabase as database, identityDatabase, readingGroupContext, readingGroupsEnabled } from "@/db/database";
+import { DomainDatabase } from "@/db/domain-sql";
 import { sessionIdentity, sessionTokenFromRequest } from "@/lib/auth";
 import type { AppData, Member } from "@/lib/types";
 
-export { database } from "@/db/database";
+export { domainDatabase as database } from "@/db/database";
 
 export function profileSchemaMissing(error: unknown): boolean {
   return /(?:no such table:\s*favorite_books|(?:no such column:|has no column named).*?(?:avatar_media_key|reading_scope|book_status))/i
@@ -29,8 +30,8 @@ export async function getMember(id: unknown, db?: D1Database): Promise<Member | 
   const context = readingGroupContext();
   const domainFilter = !db && context?.group.id === "default"
     ? " AND (is_guest = 1 OR id IN (SELECT member_id FROM reading_group_memberships WHERE group_id = 'default'))" : "";
-  const member = await (db ?? database())
-    .prepare((readingGroupsEnabled() || context
+  const member = await (db ? new DomainDatabase(db) : database())
+    .read((readingGroupsEnabled() || context
       ? "SELECT id, name, role, color, is_guest AS isGuest FROM members WHERE id = ?"
       : "SELECT id, name, role, color FROM members WHERE id = ?") + domainFilter)
     .bind(id)
@@ -117,7 +118,7 @@ async function runStateQueries(extended: boolean, faceRecognition: boolean, club
   }
 
   const results = await Promise.all(
-    queries.map(async (query) => (await database().prepare(query).all()).results),
+    queries.map(async (query) => (await database().read(query).all()).results),
   );
   const [memberRows, books, meetings, attendance, reviews, photos, roadmap] = results;
   const members = (memberRows as Array<Record<string, unknown>>).map((member) => ({

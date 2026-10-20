@@ -1,3 +1,5 @@
+import { DomainDatabase, sharedRoutingKey, type DomainTable } from "@/db/domain-sql";
+
 type BindingMap = Readonly<Record<string, D1Database>>;
 type Counts = Record<string, number>;
 type GroupStep = {
@@ -18,7 +20,7 @@ type IdentityCoordinator = {
 type Job = { accountId: number; plan: string; digest: string; completedBindings: string; lease: string | null; completedAt: number | null };
 type MemberRow = { id: number; role: string; avatar_media_key: string | null; face_reference_media_key: string | null };
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
-const personalTables = ["attendance", "meeting_rsvps", "reviews", "favorite_books", "book_votes"];
+const personalTables: DomainTable[] = ["attendance", "meeting_rsvps", "reviews", "favorite_books", "book_votes"];
 function fail(code: string): never { throw new Error(code); }
 
 async function digest(plan: ErasurePlan) {
@@ -28,10 +30,11 @@ async function digest(plan: ErasurePlan) {
 
 // Operator-only service. No public endpoint or remote CLI invokes this module.
 // Execution requires independently stopped writers and a reviewed, exact dry-run plan.
-export function accountErasureService(canonical: D1Database, bindings: BindingMap, identity?: IdentityCoordinator, options: { incremental?: boolean } = {}) {
+export function accountErasureService(canonical: D1Database, bindings: BindingMap, identity?: IdentityCoordinator, options: { incremental?: boolean; sharedGroups?: boolean } = {}) {
   if (bindings.DB !== canonical || Object.values(bindings).some((db) => !db || typeof db.prepare !== "function" || typeof db.batch !== "function")
     || new Set(Object.values(bindings)).size !== Object.keys(bindings).length
     || Object.keys(bindings).some((name) => !/^[A-Z][A-Z0-9_]{0,63}$/.test(name))) fail("ERASURE_BINDING_MISMATCH");
+  const stores: Record<string, DomainDatabase> = Object.fromEntries(Object.entries(bindings).map(([key, db]) => [key, new DomainDatabase(db)]));
 
   async function job(requestId: string) {
     return canonical.prepare(`SELECT account_member_id AS accountId, plan_json AS plan, plan_digest AS digest,
@@ -50,7 +53,7 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
         || !Number.isSafeInteger(plan.identity.count) || plan.identity.count < 0 || plan.identity.count > 4))
       || !Array.isArray(plan.steps) || !plan.steps.length
       || plan.steps.some((step) => !step || typeof step.groupId !== "string" || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(step.groupId)
-        || !Object.hasOwn(bindings, step.binding) || !positive(step.memberId)
+        || (!Object.hasOwn(bindings, step.binding) && step.binding !== sharedRoutingKey(step.groupId)) || !positive(step.memberId)
         || !((step.successorAccountId === null && step.successorMemberId === null)
           || (positive(step.successorAccountId) && positive(step.successorMemberId)))
         || !step.counts || typeof step.counts !== "object" || Array.isArray(step.counts)
@@ -61,27 +64,38 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
       || new Set(completed).size !== completed.length || await digest(plan) !== stored.digest) fail("ERASURE_JOURNAL_INVALID");
     return plan;
   }
-  async function registry() {
-    const { results } = await canonical.prepare("SELECT id, binding_name AS binding FROM reading_groups ORDER BY binding_name").all<{ id: string; binding: string }>();
-    if (results.some((row) => !Object.hasOwn(bindings, row.binding) || (row.id === "default") !== (row.binding === "DB"))
+  async function registry(accountId: number) {
+    const shared = options.sharedGroups === true;
+    const { results } = await canonical.prepare(`SELECT g.id, g.binding_name AS binding${shared ? ", s.group_id AS sharedGroupId" : ""}
+      FROM reading_groups g ${shared ? `LEFT JOIN shared_group_storage s ON s.group_id = g.id
+        WHERE s.group_id IS NULL OR s.group_id IN (
+          SELECT group_id FROM shared_group_account_links WHERE account_member_id = ?
+          UNION SELECT group_id FROM reading_group_memberships WHERE account_member_id = ?)` : ""} ORDER BY g.binding_name`)
+      .bind(...(shared ? [accountId, accountId] : []))
+      .all<{ id: string; binding: string; sharedGroupId?: string }>();
+    if (results.some((row) => (row.sharedGroupId
+      ? row.sharedGroupId !== row.id || row.binding !== sharedRoutingKey(row.id) || Object.hasOwn(bindings, row.binding)
+      : !Object.hasOwn(bindings, row.binding)) || (row.id === "default") !== (row.binding === "DB"))
       || new Set(results.map((row) => row.binding)).size !== results.length) fail("ERASURE_REGISTRY_MISMATCH");
-    for (const row of results) if (row.binding !== "DB") {
+    for (const row of results) if (row.sharedGroupId) {
+      stores[row.binding] = new DomainDatabase(canonical, row.sharedGroupId);
+    } else if (row.binding !== "DB") {
       const owner = await bindings[row.binding].prepare("SELECT group_id FROM group_database_ownership WHERE singleton = 1").first<{ group_id: string }>();
       if (owner?.group_id !== row.id) fail("ERASURE_GROUP_OWNERSHIP_MISMATCH");
     }
     return results;
   }
-  async function ownedMedia(db: D1Database, member: MemberRow) {
-    const { results } = await db.prepare("SELECT media_key FROM photos WHERE uploaded_by = ?").bind(member.id).all<{ media_key: string }>();
+  async function ownedMedia(db: DomainDatabase, member: MemberRow) {
+    const { results } = await db.read("SELECT media_key FROM photos WHERE uploaded_by = ?").bind(member.id).all<{ media_key: string }>();
     return new Set([member.avatar_media_key, member.face_reference_media_key, ...results.map((row) => row.media_key)].filter((key): key is string => !!key));
   }
-  async function sharedMedia(db: D1Database, member: MemberRow, keys: Set<string>) {
+  async function sharedMedia(db: DomainDatabase, member: MemberRow, keys: Set<string>) {
     if (!keys.size) return false;
-    const others = await db.prepare("SELECT avatar_media_key, face_reference_media_key FROM members WHERE id <> ?").bind(member.id).all<{ avatar_media_key: string | null; face_reference_media_key: string | null }>();
+    const others = await db.read("SELECT avatar_media_key, face_reference_media_key FROM members WHERE id <> ?").bind(member.id).all<{ avatar_media_key: string | null; face_reference_media_key: string | null }>();
     if (others.results.some((row) => (row.avatar_media_key && keys.has(row.avatar_media_key)) || (row.face_reference_media_key && keys.has(row.face_reference_media_key)))) return true;
-    const photos = await db.prepare("SELECT media_key FROM photos WHERE uploaded_by <> ?").bind(member.id).all<{ media_key: string }>();
+    const photos = await db.read("SELECT media_key FROM photos WHERE uploaded_by <> ?").bind(member.id).all<{ media_key: string }>();
     if (photos.results.some((row) => keys.has(row.media_key))) return true;
-    const books = await db.prepare("SELECT cover_url FROM books WHERE cover_url IS NOT NULL").all<{ cover_url: string }>();
+    const books = await db.read("SELECT cover_url FROM books WHERE cover_url IS NOT NULL").all<{ cover_url: string }>();
     return books.results.some((row) => {
       try { const path = decodeURIComponent(new URL(row.cover_url, "https://local.invalid").pathname); return [...keys].some((key) => path === "/api/media/" + key); }
       catch { return true; }
@@ -110,24 +124,24 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
     if (!request || !["requested", "processing"].includes(request.status)) fail("ERASURE_REQUEST_NOT_ACTIVE");
     const accountId = request!.accountId;
     if (!await canonical.prepare("SELECT member_id FROM member_accounts WHERE member_id = ?").bind(accountId).first()) fail("ERASURE_ACCOUNT_MISSING");
-    const groups = await registry();
+    const groups = await registry(accountId);
     if (Object.keys(transfers).some((groupId) => !groups.some((row) => row.id === groupId))) fail("ERASURE_INVALID_SUCCESSOR");
     const steps: GroupStep[] = [], blockers: string[] = [];
     let providerIdentity: ErasurePlan["identity"];
     if (identity) providerIdentity = await identity.inspect(accountId);
     else if (await needsFirebaseCoordination(accountId)) blockers.push("FIREBASE_ERASURE_COORDINATION_REQUIRED");
-    for (const binding of Object.keys(bindings).sort()) {
-      const db = bindings[binding];
+    for (const binding of Object.keys(stores).sort()) {
+      const db = stores[binding];
       const group = groups.find((row) => row.binding === binding);
-      const link = binding === "DB" ? { memberId: accountId } : await db.prepare("SELECT member_id AS memberId FROM group_account_links WHERE account_member_id = ?").bind(accountId).first<{ memberId: number }>();
+      const link = binding === "DB" ? { memberId: accountId } : await db.read("SELECT member_id AS memberId FROM group_account_links WHERE account_member_id = ?").bind(accountId).first<{ memberId: number }>();
       const membership = group ? await canonical.prepare("SELECT member_id AS memberId FROM reading_group_memberships WHERE account_member_id = ? AND group_id = ?").bind(accountId, group.id).first<{ memberId: number }>() : null;
       if (!link && !membership) continue;
       if (!group || (membership && link && membership.memberId !== link.memberId) || (binding !== "DB" && !link)) fail("ERASURE_MEMBER_MAPPING_MISMATCH");
       const memberId = link!.memberId;
-      const member = await db.prepare("SELECT id, role, avatar_media_key, face_reference_media_key FROM members WHERE id = ?").bind(memberId).first<MemberRow>();
+      const member = await db.read("SELECT id, role, avatar_media_key, face_reference_media_key FROM members WHERE id = ?").bind(memberId).first<MemberRow>();
       if (!member) fail("ERASURE_MEMBER_MISSING");
       const counts: Counts = {};
-      const personal = await db.prepare(`SELECT ${personalTables.map((table) => `(SELECT count(*) FROM ${table} WHERE member_id=?) AS ${table}`).join(",")},
+      const personal = await db.read(`SELECT ${personalTables.map((table) => `(SELECT count(*) FROM ${table} WHERE member_id=?) AS ${table}`).join(",")},
         (SELECT count(*) FROM photos WHERE uploaded_by=?) AS photos`)
         .bind(...personalTables.map(() => memberId), memberId).first<Counts>();
       if (!personal) fail("ERASURE_MEMBER_MISSING");
@@ -136,7 +150,7 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
       counts.media = keys.size;
       if (await sharedMedia(db, member!, keys)) blockers.push("SHARED_MEDIA_REVIEW:" + group!.id);
       const owner = await canonical.prepare("SELECT owner_id FROM group_provisioning WHERE group_id = ?").bind(group!.id).first<{ owner_id: number }>();
-      const owners = await db.prepare("SELECT id, role FROM members WHERE id <> ? AND is_guest = 0 AND role IN ('admin', 'super_admin') ORDER BY id").bind(memberId).all<{ id: number; role: string }>();
+      const owners = await db.read("SELECT id, role FROM members WHERE id <> ? AND is_guest = 0 AND role IN ('admin', 'super_admin') ORDER BY id").bind(memberId).all<{ id: number; role: string }>();
       const active = await canonical.prepare("SELECT account_member_id AS accountId, member_id AS memberId FROM reading_group_memberships WHERE group_id = ? AND is_active = 1 AND account_member_id <> ?").bind(group!.id, accountId).all<{ accountId: number; memberId: number }>();
       const eligible = owners.results.flatMap((other) => active.results.filter((row) => row.memberId === other.id).map((row) => ({ ...row, role: other.role })));
       const transferNeeded = owner?.owner_id === accountId || (member!.role === "super_admin" && !eligible.some((row) => row.role === "super_admin"));
@@ -171,7 +185,7 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
       if (checked.fingerprint !== plan.identity.fingerprint || checked.count !== plan.identity.count) fail("ERASURE_PROVIDER_PLAN_CHANGED");
     } else if (inspected.resuming && await needsFirebaseCoordination(plan.accountId)) fail("ERASURE_FIREBASE_COORDINATION_REQUIRED");
     if (inspected.resuming) {
-      const currentRegistry = await registry();
+      const currentRegistry = await registry(plan.accountId);
       if (plan.steps.some((step) => !currentRegistry.some((row) => row.id === step.groupId && row.binding === step.binding))) fail("ERASURE_REGISTRY_MISMATCH");
     }
     const now = Date.now();
@@ -215,20 +229,20 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
       const completed: string[] = JSON.parse(persisted.completedBindings);
       for (const step of plan.steps) {
         if (completed.includes(step.binding)) continue;
-        const db = bindings[step.binding];
-        const member = await db.prepare("SELECT id, role, avatar_media_key, face_reference_media_key FROM members WHERE id = ?").bind(step.memberId).first<MemberRow>();
+        const db = stores[step.binding];
+        const member = await db.read("SELECT id, role, avatar_media_key, face_reference_media_key FROM members WHERE id = ?").bind(step.memberId).first<MemberRow>();
         if (!member) fail("ERASURE_MEMBER_MISSING");
         const keys = await ownedMedia(db, member!);
         if (await sharedMedia(db, member!, keys)) fail("ERASURE_SHARED_MEDIA_REVIEW");
-        const statements = personalTables.map((table) => db.prepare(`DELETE FROM ${table} WHERE member_id = ?`).bind(step.memberId));
-        if (step.successorMemberId !== null) statements.push(db.prepare("UPDATE members SET role = 'super_admin' WHERE id = ? AND role IN ('admin', 'super_admin') AND is_guest = 0").bind(step.successorMemberId));
+        const statements = personalTables.map((table) => db.delete(table, "member_id = ?").bind(step.memberId));
+        if (step.successorMemberId !== null) statements.push(db.update("members", "role = 'super_admin'", "id = ? AND role IN ('admin', 'super_admin') AND is_guest = 0").bind(step.successorMemberId));
         statements.push(
-          db.prepare(`DELETE FROM media WHERE media_key IN (SELECT avatar_media_key FROM members WHERE id = ?
+          db.delete("media", `media_key IN (SELECT avatar_media_key FROM members WHERE id = ?
             UNION SELECT face_reference_media_key FROM members WHERE id = ? UNION SELECT media_key FROM photos WHERE uploaded_by = ?)`)
             .bind(step.memberId, step.memberId, step.memberId),
-          db.prepare("DELETE FROM photos WHERE uploaded_by = ?").bind(step.memberId),
-          db.prepare("UPDATE members SET name = 'Silinen hesap', role = 'member', color = '#808080', avatar_media_key = NULL, face_reference_media_key = NULL, face_recognition_consent = 0, is_guest = 1, guest_meeting_id = NULL WHERE id = ?").bind(step.memberId),
-          db.prepare("DELETE FROM group_account_links WHERE account_member_id = ? AND member_id = ?").bind(plan.accountId, step.memberId),
+          db.delete("photos", "uploaded_by = ?").bind(step.memberId),
+          db.update("members", "name = 'Silinen hesap', role = 'member', color = '#808080', avatar_media_key = NULL, face_reference_media_key = NULL, face_recognition_consent = 0, is_guest = 1, guest_meeting_id = NULL", "id = ?").bind(step.memberId),
+          db.delete("group_account_links", "account_member_id = ? AND member_id = ?").bind(plan.accountId, step.memberId),
         );
         await db.batch(statements);
         completed.push(step.binding);

@@ -65,7 +65,7 @@ async function handlePOST(request: Request) {
       purpose === "photo"
       && (
         !Number.isInteger(meetingId)
-        || !(await database().prepare("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL").bind(meetingId).first())
+        || !(await database().read("SELECT id FROM meetings WHERE id = ? AND deleted_at IS NULL").bind(meetingId).first())
       )
     ) {
       return Response.json({ error: "Buluşma bulunamadı." }, { status: 404 });
@@ -74,7 +74,7 @@ async function handlePOST(request: Request) {
     const targetMemberId = Number(form.get("targetMemberId"));
     const faceTarget = purpose === "faceReference" && Number.isInteger(targetMemberId)
       ? await database()
-          .prepare("SELECT id, face_reference_media_key AS faceReferenceMediaKey FROM members WHERE id = ?")
+          .read("SELECT id, face_reference_media_key AS faceReferenceMediaKey FROM members WHERE id = ?")
           .bind(targetMemberId)
           .first<{ id: number; faceReferenceMediaKey: string | null }>()
       : null;
@@ -94,35 +94,33 @@ async function handlePOST(request: Request) {
     const key = crypto.randomUUID();
     const db = database();
     const mediaInsert = db
-      .prepare("INSERT INTO media (media_key, content_type, data) VALUES (?, ?, ?)")
+      .insert("media", "media_key, content_type, data", "?, ?, ?")
       .bind(key, kind, bytes);
 
     if (purpose === "photo") {
       await db.batch([
         mediaInsert,
         db
-          .prepare(
-            "INSERT INTO photos (meeting_id, media_key, uploaded_by) VALUES (?, ?, ?)",
-          )
+          .insert("photos", "meeting_id, media_key, uploaded_by", "?, ?, ?")
           .bind(meetingId, key, actor.id),
       ]);
     } else if (purpose === "avatar") {
       await db.batch([
         mediaInsert,
         db
-          .prepare("UPDATE members SET avatar_media_key = ? WHERE id = ?")
+          .update("members", "avatar_media_key = ?", "id = ?")
           .bind(key, actor.id),
       ]);
     } else if (purpose === "faceReference" && faceTarget) {
       await db.batch([
         mediaInsert,
         db
-          .prepare("UPDATE members SET face_reference_media_key = ?, face_recognition_consent = 1 WHERE id = ?")
+          .update("members", "face_reference_media_key = ?, face_recognition_consent = 1", "id = ?")
           .bind(key, faceTarget.id),
       ]);
       if (faceTarget.faceReferenceMediaKey) {
         await db
-          .prepare("DELETE FROM media WHERE media_key = ?")
+          .delete("media", "media_key = ?")
           .bind(faceTarget.faceReferenceMediaKey)
           .run();
       }

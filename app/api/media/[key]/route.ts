@@ -19,7 +19,7 @@ async function handleGET(request: Request, context: { params: Promise<{ key: str
     let referenceOwner: ReferenceOwner | null = null;
     try {
       referenceOwner = await database()
-        .prepare("SELECT id FROM members WHERE face_reference_media_key = ?")
+        .read("SELECT id FROM members WHERE face_reference_media_key = ?")
         .bind(key)
         .first<ReferenceOwner>();
     } catch (error) {
@@ -30,7 +30,7 @@ async function handleGET(request: Request, context: { params: Promise<{ key: str
     }
 
     const media = await database()
-      .prepare("SELECT data, content_type AS contentType FROM media WHERE media_key = ?")
+      .read("SELECT data, content_type AS contentType FROM media WHERE media_key = ?")
       .bind(key)
       .first<MediaRow>();
     if (!media || !Array.isArray(media.data)) return new Response("Not found", { status: 404 });
