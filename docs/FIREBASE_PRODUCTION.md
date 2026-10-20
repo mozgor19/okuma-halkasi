@@ -1,5 +1,53 @@
 # Koru Üretim Firebase Hazırlığı
 
+## Yayın Gerçekleşti: 20 Ekim 2026
+
+`https://birkoru.com` genel erişime açıldı; `www` ve eski workers.dev adresi
+aynı HTTPS adrese yönleniyor. Çalışan kaynak commit'i
+`1c1b235d75e0162a1c1bd3b6387bb07ce5eececf`, Cloudflare sürümü
+`7a93d173-3973-45e3-a05b-0691abad4c6e` (%100). Main'e dokunulmadı; kaynak
+coauthor olmadan çalışma dalına commit/push edildikten sonra dağıtıldı.
+
+Kanonik D1 değişmedi. Taze şifreli yedekten çevrimdışı geri yükleme/prova,
+atomik 0008-0014 güncellemesi ve eski/yeni satırların tip/değer/medya/sıra
+karşılaştırması tamamlandı: altı eski hesap, 13 eski tablo ve 75 satır
+korundu, 21 yeni tablo eklendi. İki KALICI boş üretim grup D1'i hazırlandı;
+staging aktarılmadı/değişmedi. Hesaplar Firebase'e otomatik ithal edilmedi;
+eski hesap kanıtı ve doğrulanmış yeni UID ile sahiplik akışı geçerli.
+
+Üretim Firebase/Turnstile/işletim Secret'ları ve güvenli bayrakları yerinde;
+eski bootstrap kaldırıldı, SESSION_SECRET korundu. Biyometri kapalı.
+Üç D1 için salt okunur üretim önkontrolü sıfır engel bildirdi. Ücretli plan,
+ek uzak test hesabı, geçici test veritabanı veya test postası oluşturulmadı.
+
+Temiz kaynak regresyonu21/21 ve güncel web bağımlılık taraması geçti;
+web high/critical bulgusu yok, düşük/orta bulgular ve ertelenen mobil uyarılar
+sürüyor. Gerçek HTTPS üzerinde anonim Chromium smoke14/14: sayfalar, nonce
+CSP/no-store, yetkisiz erişim reddi, onaylı C simge/paylaşım görselinin birebir
+eşleşmesi, 390/1440 açık/koyu görünüm, anonim önbellek ve offline/online dönüşü.
+DNS100117 çakışmasında operatör yalnız eski A/www kayıtlarını sildi; DNS
+API403 kısıtı aşılmadı. Genel DNS yeni Cloudflare NS/IP'lerini doğruladı.
+Sistem önbellekleri eski/NXDOMAIN verdiğinden son tarayıcı testinde güncel
+genel DNS kullanıldı; normal hostname/TLS doğrulaması kapatılmadı. Bu durum
+raporda açık, ilk sistem-DNS hata raporu da tutuluyor.
+
+**Bu standart yayın kapısı geçti demek değildir.** Mustafa ilk açılışı altı
+hesapla sınırlamak yerine kamuya açık istedi; ayrı, sürüme bağlı risk kararı
+kaydedildi. 13 elle kabul başlığı beklemede kaldı. Gerçek üretim hesabı/parolası,
+doğrulama/reset postası, fiziksel Android/iPhone kurulumu, ayrıcalıklı Firebase
+silme, tam çoklu-DB geri dönüş, sürekli kapasite izleme ve bağımsız hukuki/
+güvenlik değerlendirmesi başarılı gösterilmedi. Sonraki sürümler standart
+yayın kapısını kullanmalı. Varsayılan Firebase e-posta Action URL'si korunur;
+yeni özel eylem URL'si/posta teslimi ayrıca kabul gerektirir.
+
+Kanıtlar (Git dışı): `outputs/release-tests/web-launch-1c1b235/suite-report.json`,
+`outputs/web-acceptance/9d83690/production-smoke.json`,
+`.sites-runtime/koru-production/cutover.json`, `preflight.json`.
+Taze yedek kimliği `774e0dff-cc70-42e7-958e-5afc6f8648cb`; anahtar ve kullanıcı
+verisi Git'e girmez. Aşağıdaki bölümler önceki hazırlık sürecinin tarihçesidir.
+
+## Önceki Hazırlık Kaydı
+
 20 Ekim 2026. Mustafa ayrı ücretsiz üretim projesini oluşturdu; Spark ve
 Email/Password Enabled durumlarını panelden teyit etti. Proje `koru-951bf`,
 web uygulaması `1:605673770248:web:7ccfda11ed8fed8273b0bd`, hedef `birkoru.com`.

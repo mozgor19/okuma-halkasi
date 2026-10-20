@@ -776,3 +776,53 @@ manual check passed without the operator/device evidence for that exact revision
 - This entry describes prepared code, NOT completed production operations.
   Read private cutover.json/remote preflight for actual status before claiming
   published. Preserve earlier private preview46603 and its data.
+
+## October 20 Public Launch Completed
+
+- Actual public app is https://birkoru.com. www and legacy workers.dev redirect
+  to canonical HTTPS; foreign/old-origin mutations require resubmission. Code
+  revision1c1b235d75e0162a1c1bd3b6387bb07ce5eececf was committed/pushed WITHOUT
+  coauthor to work/koru-web-pwa-20261019 BEFORE deployment. Main untouched.
+  Worker version7a93d173-3973-45e3-a05b-0691abad4c6e at100%.
+- Maintenance/drain, fresh encrypted export-only backup774e0dff-cc70-42e7-958e-5afc6f8648cb,
+  authenticated disk decrypt/local restore, exact offline rehearsal, atomic
+  canonical0008-0014 and remote exact verification completed. Six old accounts,
+  13tables/75rows, original roles/hashes/IDs/versions/media/sequences preserved.
+  21tables added; no automatic Firebase imports or guessed email assignment.
+- Two PERMANENT production group D1 pools created, schema-verified empty, bound
+  as GROUP_CREATE_ONE/TWO. Never staging/test copies. Total account D1 count8;
+  only two new-group slots initially, NOT unlimited self-service capacity.
+  Staging/public-info settings unchanged. No paid plan or refused remote test
+  resource/account/mail. Preserved SESSION_SECRET and Turnstile; installed
+  Firebase API/erasure operator Secrets, removed obsolete MEMBER_CREDENTIALS
+  only after all non-guest accounts proved persisted. Biometric processing off.
+- Cloudflare100117 blocked root/www Custom Domain because old A/CNAME existed.
+  DNS exact-name reads403; no scope bypass. Operator confirmed deleting only
+  old root A/www CNAME. Domain deploy then succeeded; both enabled/correct Worker.
+  Temporary DNS-wait maintenance config is NOT current public configuration.
+  cutover.json phase opened; schema/runtime preflight now zero blockers.
+- Clean suite outputs/release-tests/web-launch-1c1b235/suite-report.json passed
+  21/21 (252root unit,211layout,35branding,22onboarding,59PWA,27+8experience,
+  4updates). Matching dependency audit passed; web low/moderate and deferred
+  mobile high findings remain. Do not claim no vulnerabilities.
+- Actual HTTPS anonymous Chromium smoke14checks passed, screenshots inspected:
+  live pages/CSP/no-store, approved C assets byte-identical, exact Firebase/
+  Turnstile public config, unauthenticated access/foreign and empty signup denial,
+  canonical redirects, public social metadata,390/1440light/dark, actual deployed
+  anonymous-only SW caches/offline fallback/reconnect. No real account/password/
+  provider email or erasure used. System DNS initially gave old/NXDOMAIN answers;
+  Google public DNS confirmed assigned Cloudflare NS/current CF IPs. Smoke used
+  those fresh DNS answers with unchanged hostname/TLS verification; separate
+  system-DNS failed report retained. Some user resolvers may still propagate.
+- First public launch is an OPERATOR-ACCEPTED EXCEPTION, not strict gate success.
+  All13 missing manual criteria remain PENDING. Physical devices/real production
+  mail/provider workflows/privileged erasure/complete multi-DB recovery/ongoing
+  monitoring/independent legal and security review were NOT certified. Next
+  releases require standard gate. Never reuse test-project mail evidence.
+- Keep Firebase default hosted email action URL until separately accepted.
+  Real erasure still needs explicit reviewed request, stopped/drained writers,
+  content/succession review and operator Google user ADC (not installed here).
+  No service-account key in Worker/browser. Never rerun migration/reset data.
+- This follow-up documentation commit does NOT change the deployed application
+  source. Read production runtime/version and private cutover state before
+  future actions. Existing local preview46603 was not stopped or reset.

@@ -8,6 +8,7 @@
 - Preserve the Koru identity on every platform. Update the identity document and project session memory when an approved brand decision changes.
 - Missing release evidence blocks publication. Do not turn a passing local suite into a production-readiness claim.
 - Exception recorded October 20, 2026: Mustafa explicitly requested the first public birkoru.com launch with best-effort safeguards instead of a six-account opening. Use the separate revision-bound first-launch decision; keep outstanding manual checks pending. Never waive failing automated checks, audit, origin, data-preservation or security configuration. This does not relax the standard gate for later releases.
+- That first-launch exception was consumed by the October 20 birkoru.com deployment (source `1c1b235`). It is not standing approval for subsequent deployments. See the latest launch outcome in `docs/SESSION_MEMORY.md` and `docs/FIREBASE_PRODUCTION.md`; do not rerun completed production migrations.
 
 ## Icons
 
