@@ -28,7 +28,7 @@ function fixture() {
 test("production migration plan is deterministic and scopes new account tables to the canonical DB", () => {
   const first = productionMigrationPlan();
   assert.deepEqual(productionMigrationPlan(), first);
-  assert.deepEqual(first.files.map((item) => item.name.slice(0, 4)), ["0008", "0009", "0010", "0011", "0012", "0013"]);
+  assert.deepEqual(first.files.map((item) => item.name.slice(0, 4)), ["0008", "0009", "0010", "0011", "0012", "0013", "0014"]);
   assert.equal(first.seed[0].params[0], LEGACY_GROUP_NAME);
   assert.doesNotMatch(first.files.map((item) => item.sql).join("\n"), /DROP TABLE|DELETE FROM|ALTER TABLE.*member_accounts/i);
 });
@@ -39,7 +39,7 @@ test("offline migration preserves all legacy bytes, hashes, roles, IDs, session 
     const result = await rehearseProductionMigration(db);
     assert.equal(result.status, "passed");
     assert.equal(result.preserved.length, 13);
-    assert.equal(result.addedTables.length, 20);
+    assert.equal(result.addedTables.length, 21);
     assert.equal(result.defaultMemberships, 3);
     assert.deepEqual(result.legacyAccounts, { total: 2, knownLegacyHashFormat: 2, verifiedEmailProfiles: 0, automaticFirebaseImports: 0 });
     const after = describeSnapshot(db);

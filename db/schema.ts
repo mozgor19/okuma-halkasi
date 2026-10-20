@@ -134,6 +134,16 @@ export const accountErasureJobs = sqliteTable("account_erasure_jobs", {
   uniqueIndex("account_erasure_single_runner").on(sql`(1)`).where(sql`${table.leaseToken} IS NOT NULL`),
   uniqueIndex("account_erasure_single_pending").on(sql`(1)`).where(sql`${table.completedAt} IS NULL`),
 ]);
+export const accountErasureProviderCheckpoints = sqliteTable("account_erasure_provider_checkpoints", {
+  requestId: text("request_id").notNull().references(() => accountErasureJobs.requestId),
+  projectId: text("project_id").notNull(),
+  uidDigest: text("uid_digest").notNull(),
+  deletedAt: integer("deleted_at"),
+}, (table) => [
+  primaryKey({ columns: [table.requestId, table.projectId, table.uidDigest] }),
+  check("account_erasure_provider_project", sql`${table.projectId} = 'koru-951bf'`),
+  check("account_erasure_provider_digest", sql`length(${table.uidDigest}) = 64`),
+]);
 export const pendingRegistrations = sqliteTable("pending_registrations", {
   tokenHash: text("token_hash").primaryKey().notNull(), email: text("email").notNull(),
   username: text("username").notNull(), name: text("name").notNull(),

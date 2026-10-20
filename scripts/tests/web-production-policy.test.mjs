@@ -8,14 +8,15 @@ function bindings() {
     { type: "d1", name: "GROUP_NEW", database_id: "synthetic-group-id" },
     { type: "plain_text", name: "FACE_RECOGNITION_ENABLED", text: "false" },
     { type: "plain_text", name: "PASSWORD_HASH_ITERATIONS", text: "100000" },
+    { type: "plain_text", name: "MAINTENANCE_MODE", text: "false" },
     ...Object.entries({ AUTH_PROVIDER: "firebase", FIREBASE_PROJECT_ID: production.firebaseProjectId, APPLICATION_BRAND: "Koru", AUTH_PUBLIC_ORIGIN: production.origin, READING_GROUPS_ENABLED: "true", SELF_SERVICE_ENABLED: "true", SELF_SERVICE_LOCAL: "false", STAGING_ENVIRONMENT: "false", SUPPORT_EMAIL: "koru.destek@gmail.com", PRIVACY_POLICY_URL: production.origin + "/privacy", TERMS_URL: production.origin + "/terms", TURNSTILE_SITE_KEY: production.turnstileSiteKey, READING_GROUP_DB_BINDINGS: '["GROUP_NEW"]', SELF_SERVICE_GROUP_BINDINGS: '["GROUP_NEW"]' }).map(([name, text]) => ({ type: "plain_text", name, text })),
-    ...["SESSION_SECRET", "TURNSTILE_SECRET_KEY", "FIREBASE_API_KEY"].map((name) => ({ type: "secret_text", name })),
+    ...["SESSION_SECRET", "TURNSTILE_SECRET_KEY", "FIREBASE_API_KEY", "ERASURE_OPERATOR_SECRET"].map((name) => ({ type: "secret_text", name })),
   ];
 }
 test("public runtime policy requires exact origin, real secret bindings and mapped group capacity", () => {
   assert.deepEqual(productionBindingFailures(bindings()), []);
   assert.equal(production.origin, "https://birkoru.com");
-  for (const key of ["AUTH_PROVIDER", "FIREBASE_PROJECT_ID", "AUTH_PUBLIC_ORIGIN", "STAGING_ENVIRONMENT", "SELF_SERVICE_LOCAL", "PRIVACY_POLICY_URL", "TURNSTILE_SECRET_KEY", "GROUP_NEW", "FIREBASE_API_KEY"]) assert.ok(productionBindingFailures(bindings().filter((item) => item.name !== key)).length > 0, key);
+  for (const key of ["AUTH_PROVIDER", "FIREBASE_PROJECT_ID", "AUTH_PUBLIC_ORIGIN", "STAGING_ENVIRONMENT", "SELF_SERVICE_LOCAL", "PRIVACY_POLICY_URL", "TURNSTILE_SECRET_KEY", "GROUP_NEW", "FIREBASE_API_KEY", "ERASURE_OPERATOR_SECRET", "MAINTENANCE_MODE"]) assert.ok(productionBindingFailures(bindings().filter((item) => item.name !== key)).length > 0, key);
 });
 test("Firebase production cannot fall back to legacy hashing, test identities, emulator or staging mail/bootstrap secrets", () => {
   for (const [name, text] of [["AUTH_PROVIDER", "legacy"], ["FIREBASE_PROJECT_ID", "koru-auth-test"], ["AUTH_PUBLIC_ORIGIN", production.legacyOrigin], ["PASSWORD_HASH_ITERATIONS", "600000"], ["TURNSTILE_SITE_KEY", "synthetic-staging-site"]]) {

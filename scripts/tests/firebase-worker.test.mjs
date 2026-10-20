@@ -10,6 +10,7 @@ const { Miniflare } = toolchain("miniflare"), { build } = toolchain("esbuild");
 const { outputFiles } = await build({
   stdin: { resolveDir: process.cwd(), sourcefile: "firebase-worker-test.ts", contents: `
     import * as accounts from "./db/firebase-accounts.ts";
+    import { POST as operator } from "./app/api/operations/erasure/route.ts";
     import { drain } from "next/server";
     export default { async fetch(request) {
       try {
@@ -19,9 +20,12 @@ const { outputFiles } = await build({
           session: () => accounts.createFirebaseSession(...args),
           identity: () => accounts.firebaseSessionIdentity(...args),
           change: () => accounts.changeFirebasePassword(...args),
-          revoke: () => accounts.revokeFirebaseSession(...args), flush: drain };
+          revoke: () => accounts.revokeFirebaseSession(...args), flush: drain,
+          operator: () => operator(new Request("https://birkoru.com/api/operations/erasure", { method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + "a".repeat(64), ...args[1] }, body: JSON.stringify(args[0]) })) };
         if (!Object.hasOwn(allowed, action)) return new Response(null, { status: 404 });
-        return Response.json(await allowed[action]() ?? null);
+        const result = await allowed[action]();
+        return result instanceof Response ? result : Response.json(result ?? null);
       } catch (error) { return Response.json({ code: error.code || "TEST_FAILURE" }, { status: error.status || 500 }); }
     } };` },
   bundle: true, write: false, format: "esm", platform: "browser", target: "es2022",
@@ -36,7 +40,7 @@ const { outputFiles } = await build({
 async function fixture() {
   const keys = await generateKeyPair("RS256"), publicKey = await exportJWK(keys.publicKey);
   publicKey.kid = "synthetic-worker-key"; publicKey.alg = "RS256";
-  const users = new Map(), messages = [], visited = [], hooks = { unavailable: false, wrongAudience: false, redirectApi: false, redirectKeys: false };
+  const users = new Map(), messages = [], visited = [], hooks = { unavailable: false, wrongAudience: false, redirectApi: false, redirectKeys: false, providerDeleteFails: false };
   let clock = Math.floor(Date.now() / 1000) - 120;
   async function tokens(user) {
     const idToken = await new SignJWT({ email: user.email, email_verified: user.verified,
@@ -53,7 +57,8 @@ async function fixture() {
   const worker = new Miniflare({ modules: true, script: outputFiles[0].text, compatibilityDate: "2026-05-15", compatibilityFlags: ["nodejs_compat"],
     d1Databases: ["DB"], bindings: { AUTH_PROVIDER: "firebase", FIREBASE_PROJECT_ID: "koru-951bf", FIREBASE_API_KEY: "AIza" + "x".repeat(35),
       AUTH_PUBLIC_ORIGIN: "https://birkoru.com", APPLICATION_BRAND: "Koru", SESSION_SECRET: "Synthetic-local-worker-key-longer-than-32",
-      SELF_SERVICE_ENABLED: "true", SELF_SERVICE_LOCAL: "false", READING_GROUPS_ENABLED: "true", STAGING_ENVIRONMENT: "false" },
+      SELF_SERVICE_ENABLED: "true", SELF_SERVICE_LOCAL: "false", READING_GROUPS_ENABLED: "true", STAGING_ENVIRONMENT: "false",
+      MAINTENANCE_MODE: "true", ERASURE_OPERATOR_SECRET: "a".repeat(64) },
     async outboundService(request) {
       const url = new URL(request.url); visited.push(url.hostname + url.pathname);
       if (hooks.unavailable) return Response.json({}, { status: 503 });
@@ -62,6 +67,19 @@ async function fixture() {
         assert.equal(request.method, "GET"); return Response.json({ keys: [publicKey] });
       }
       assert.equal(url.origin, "https://identitytoolkit.googleapis.com", "No outbound request may reach a real provider");
+      if (url.pathname.startsWith("/v1/projects/")) {
+        assert.match(url.pathname, /^\/v1\/projects\/koru-951bf\/accounts:(lookup|delete)$/);
+        assert.equal(request.headers.get("Authorization"), "Bearer synthetic-google-admin-access-token");
+        const body = await request.json(), uid = Array.isArray(body.localId) ? body.localId[0] : body.localId;
+        const user = [...users.values()].find((user) => user.uid === uid);
+        if (url.pathname.endsWith(":lookup")) {
+          assert.equal(url.searchParams.get("fields"), "users(localId,tenantId)");
+          return Response.json(user ? { users: [{ localId: user.uid }] } : {});
+        }
+        if (hooks.providerDeleteFails) return Response.json({}, { status: 503 });
+        if (user) users.delete(user.email);
+        return Response.json({});
+      }
       assert.equal(url.searchParams.get("key"), "AIza" + "x".repeat(35));
       assert.equal(request.method, "POST"); assert.equal(request.headers.get("X-Firebase-Locale"), "tr");
       if (hooks.redirectApi) return new Response(null, { status: 307, headers: { Location: "https://never-follow.example.test/private" } });
@@ -156,4 +174,34 @@ test("Worker Firebase API and signing-key redirects never forward credentials or
       assert.equal((await f.db.prepare("SELECT count(*) AS n FROM member_accounts").first()).n, 0);
     } finally { await f.worker.dispose(); }
   }
+});
+
+test("protected operator endpoint executes coordinated provider and real D1 erasure; provider failure preserves data and resumes safely", async () => {
+  const f = await fixture(), password = "Synthetic-Worker-Password-5829", requestId = "11111111-1111-4111-8111-111111111111";
+  try {
+    const anonymous = await f.call("operator", { action: "queue" }, { Authorization: "" }); assert.equal(anonymous.status, 404);
+    await f.call("register", { email: "worker@example.test", username: "worker.reader", name: "Synthetic Reader", password, acceptedPolicy: true });
+    await f.call("flush"); f.users.get("worker@example.test").verified = true;
+    const signed = (await f.call("login", "worker.reader", password)).body;
+    const handle = (await f.call("session", signed.memberId, signed.sessionVersion, signed.firebase)).body;
+    await f.db.prepare("INSERT INTO account_deletion_requests(id,member_id,requested_at,updated_at) VALUES(?,?,1,1)").bind(requestId, signed.memberId).run();
+    const inspected = await f.call("operator", { action: "inspect", requestId }); assert.equal(inspected.status, 200);
+    assert.equal(inspected.body.plan.identity.count, 1); assert.deepEqual(inspected.body.plan.blockers, []);
+    const command = { action: "execute", requestId, expectedDigest: inspected.body.digest, confirmation: inspected.body.plan.confirmation,
+      writersStopped: true, contentReviewComplete: true, providerAccessToken: "synthetic-google-admin-access-token" };
+    f.hooks.providerDeleteFails = true;
+    assert.equal((await f.call("operator", command)).body.phase, "frozen");
+    assert.equal((await f.call("operator", command)).status, 503);
+    assert.equal((await f.call("identity", handle)).body, null);
+    assert.equal((await f.db.prepare("SELECT count(*) AS n FROM member_accounts").first()).n, 1);
+    assert.equal((await f.db.prepare("SELECT name FROM members WHERE id=?").bind(signed.memberId).first()).name, "Synthetic Reader");
+    f.hooks.providerDeleteFails = false;
+    const finished = await f.call("operator", command); assert.equal(finished.status, 200); assert.equal(finished.body.completed, true);
+    assert.equal(f.users.size, 0);
+    assert.equal((await f.db.prepare("SELECT count(*) AS n FROM member_accounts").first()).n, 0);
+    assert.equal((await f.db.prepare("SELECT count(*) AS n FROM firebase_sessions").first()).n, 0);
+    assert.ok((await f.db.prepare("SELECT deleted_at FROM account_erasure_provider_checkpoints").first()).deleted_at);
+    assert.deepEqual((await f.db.prepare("PRAGMA foreign_key_check").all()).results, []);
+    assert.equal((await f.call("operator", command)).body.alreadyCompleted, true);
+  } finally { await f.worker.dispose(); }
 });

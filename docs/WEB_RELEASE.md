@@ -144,3 +144,32 @@ operatör bunu atlayarak panelden dağıtım yapmamalıdır.
 5. Üretim yedeği ve salt okunur şema incelemesini onayla; migration/rollback planını değerlendir.
 6. Yayın kapısını çalıştır, operatörün ayrı açık dağıtım onayını al.
 7. Kontrollü canlı dağıtım, gerçek HTTPS smoke testi, izleme ve destek nöbeti.
+# First Public Launch Decision: October 20, 2026
+
+Mustafa explicitly declined the proposed six-account restricted opening and
+requested public access with best-effort safeguards. This is NOT a passing
+standard release gate. `first-public-launch-policy.mjs` records the exception
+separately, pinned to the exact clean commit/source digest and dated operator
+proof. Outstanding manual criteria remain pending; failed criteria cannot be
+waived. Automated suite, dependency audit, exact origin, account preservation,
+schema/backup/runtime policy and operator approval stay mandatory. Later
+releases continue to use the existing strict gate.
+
+`scripts/deploy-production.mjs` separates preflight, maintenance, migrate and
+open. Writes require `--confirm=koru-public-production`; maintenance/open also
+require revision-matching `--suite=`, `--evidence=` and `--decision=` artifacts.
+No main push, staging import, synthetic remote account/mail, fee or paid plan.
+First deploy blocks application requests. After drain, export-only encrypted
+backup + offline restore/rehearsal precede atomic reviewed 0008-0014 SQL.
+Every original table/row/type/media/sequence and exact new seed is compared.
+Two permanent empty production group DBs are created, never reused staging DBs.
+Only root/www Custom Domains are configured; mail DNS is not managed by this
+tool. Runtime secrets remain Worker Secrets. Existing accounts retain IDs,
+hashes/roles/content and must prove ownership to link to Firebase, never import
+by guessed email. On migration failure keep maintenance and fix forward; never
+restore an old backup over subsequent writes automatically.
+
+The tool never creates a Firebase user or sends mail. Physical phone PWA,
+production mail, provider/admin erasure, independent legal review, sustained
+capacity and full multi-DB recovery remain separately evidenced operational
+work. Do not describe these as verified merely because the site opens.

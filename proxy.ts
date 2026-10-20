@@ -11,6 +11,7 @@ import { selfServiceEnabled } from "@/lib/onboarding-security";
 import { browserSecurityHeaders } from "@/lib/web-security";
 import { firebaseLocalConfiguration, firebaseLocalSelected } from "@/lib/firebase-local-policy";
 import { firebaseConfiguration, firebaseSelected } from "@/lib/firebase-auth-policy";
+import { productionOriginRedirect } from "@/lib/production-origin";
 
 const publicPaths = new Set(["/login", "/design-lab", "/api/auth/login", "/api/auth/logout", "/api/manifest"]);
 const onboardingPublicPaths = new Set(["/register", "/verify-email", "/forgot-password", "/reset-password", "/join", "/support", "/privacy", "/terms", "/auth/email", "/api/onboarding/firebase-action", "/api/onboarding/register", "/api/onboarding/verify-email", "/api/onboarding/forgot-password", "/api/onboarding/reset-password"]);
@@ -27,6 +28,13 @@ function enforceSecurity<T extends Response>(response: T, nonce?: string): T {
 }
 
 export async function proxy(request: NextRequest) {
+  const canonical = productionOriginRedirect(request.url, env);
+  if (canonical) {
+    // Mutations and credentials must be submitted again at the canonical origin.
+    return enforceSecurity(["GET", "HEAD"].includes(request.method)
+      ? NextResponse.redirect(canonical, 308)
+      : NextResponse.json({ code: "ORIGIN_MOVED", error: "Koru'ya birkoru.com adresinden yeniden giriş yap." }, { status: 409 }));
+  }
   const strict = readingGroupsEnabled() && env.APPLICATION_BRAND === "Koru";
   const nonce = strict && process.env.NODE_ENV !== "development"
     ? btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(24)))) : undefined;
@@ -36,13 +44,22 @@ export async function proxy(request: NextRequest) {
   forwarded.set("Content-Security-Policy", browserSecurityHeaders(selfServiceEnabled(), strict ? nonce : undefined, process.env.NODE_ENV === "development")["Content-Security-Policy"]);
   const next = () => NextResponse.next({ request: { headers: forwarded } });
   const enforceLocalBrowserRequests = <T extends Response>(response: T) => enforceSecurity(response, nonce);
+  const { pathname } = request.nextUrl;
+  // This route authenticates a separate operator Secret, never a group role.
+  if (pathname === "/api/operations/erasure") return enforceLocalBrowserRequests(next());
+  if (env.MAINTENANCE_MODE === "true" && !publicShell.has(pathname) && !(!pathname.startsWith("/api/") && publicAsset.test(pathname))) {
+    const response = pathname.startsWith("/api/")
+      ? NextResponse.json({ code: "MAINTENANCE", error: "Koru kısa süreli bakımda. Biraz sonra yeniden dene." }, { status: 503 })
+      : new NextResponse("Koru kısa süreli bakımda. Biraz sonra yeniden dene. Destek: koru.destek@gmail.com", { status: 503 });
+    response.headers.set("Retry-After", "60");
+    return enforceLocalBrowserRequests(response);
+  }
   if (firebaseSelected(env) && !firebaseConfiguration(env, request.url)) {
     return enforceLocalBrowserRequests(NextResponse.json({ error: "Kimlik doğrulama ortamı kullanılamıyor." }, { status: 503 }));
   }
   if (firebaseLocalSelected(env) && !firebaseLocalConfiguration(env, request.url)) {
     return enforceLocalBrowserRequests(NextResponse.json({ error: "Yerel kimlik doğrulama ortamı kullanılamıyor." }, { status: 503 }));
   }
-  const { pathname } = request.nextUrl;
   if (pathname === "/api/onboarding/config") return enforceLocalBrowserRequests(next());
   if (onboardingPublicPaths.has(pathname)) {
     return enforceLocalBrowserRequests(selfServiceEnabled() ? next() : new NextResponse("Sayfa bulunamadı.", { status: 404 }));

@@ -34,7 +34,7 @@ const databases = bindings.filter((item) => item.type === "d1");
 if (!databases.some((item) => item.name === "DB" && item.database_id === production.canonicalDatabaseId)) throw new Error("Production identity mismatch; no database query was sent.");
 const blockers = productionBindingFailures(bindings);
 const schemas = [];
-const canonicalTables = ["member_accounts", "reading_groups", "reading_group_memberships", "account_profiles", "pending_registrations", "account_recovery_tokens", "account_email_verifications", "security_rate_limits", "group_provisioning", "group_invitations", "group_invitation_redemptions", "account_experience", "account_deletion_requests", "account_erasure_jobs", "firebase_environment", "firebase_registrations", "firebase_links", "firebase_sessions"];
+const canonicalTables = ["member_accounts", "reading_groups", "reading_group_memberships", "account_profiles", "pending_registrations", "account_recovery_tokens", "account_email_verifications", "security_rate_limits", "group_provisioning", "group_invitations", "group_invitation_redemptions", "account_experience", "account_deletion_requests", "account_erasure_jobs", "firebase_environment", "firebase_registrations", "firebase_links", "firebase_sessions", "account_erasure_provider_checkpoints"];
 const domainTables = ["members", "books", "meetings", "attendance", "reviews", "photos", "media", "roadmap", "favorite_books", "book_votes", "club_settings", "meeting_rsvps", "group_account_links", "group_database_ownership"];
 for (const database of databases) {
   if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(database.name) || !/^[a-f0-9-]{36}$/.test(database.database_id)) throw new Error("Unexpected production database metadata");

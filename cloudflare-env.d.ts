@@ -33,5 +33,9 @@ declare namespace Cloudflare {
     GMAIL_CREDENTIALS?: string;
     TURNSTILE_SITE_KEY?: string;
     TURNSTILE_SECRET_KEY?: string;
+    /** Separate 256-bit operator credential; never a member/group role. */
+    ERASURE_OPERATOR_SECRET?: string;
+    /** Barrier for new HTTP requests; drain existing writers before erasure. */
+    MAINTENANCE_MODE?: string;
   }
 }

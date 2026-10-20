@@ -29,7 +29,7 @@ function setup() {
         statement, get values() { return values; },
         bind(...args) { values = args; return this; },
         async first() { hooks.beforeRun(statement); return sql.prepare(statement).get(...values) ?? null; },
-        async all() { return { results: sql.prepare(statement).all(...values) }; },
+        async all() { hooks.beforeRun(statement); return { results: sql.prepare(statement).all(...values) }; },
         async run() { hooks.beforeRun(statement); const r = sql.prepare(statement).run(...values); return { meta: { changes: Number(r.changes) } }; },
       };
     }, async batch(statements) {
@@ -120,6 +120,26 @@ test("dry run finds active, inactive and orphaned local mappings without writing
     assert.equal(ctx.root.sql.prepare("SELECT count(*) AS n FROM account_erasure_jobs").get().n, 0);
     assert.equal(ctx.root.sql.prepare("SELECT session_version FROM member_accounts WHERE member_id=1").get().session_version, 1);
     assert.doesNotMatch(JSON.stringify(inspected), /target@example|Target Name|password_hash|Synthetic private/);
+  } finally { ctx.close(); }
+});
+test("incremental erasure bounds SDK calls for three group databases and resumes without repeating completed purges", async () => {
+  const ctx = setup();
+  try {
+    let calls = 0;
+    for (const store of Object.values(ctx.stores)) {
+      store.hooks.beforeRun = () => { calls++; };
+      store.hooks.beforeBatch = () => { calls++; };
+    }
+    const approved = await ctx.approval(), service = ctx.create(ctx.root.db, ctx.bindings, undefined, { incremental: true }), samples = [];
+    let result;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      calls = 0; result = await service.execute(requestId, approved); samples.push(calls);
+      if (result.completed) break;
+      assert.equal(result.inProgress, true);
+    }
+    assert.equal(result.completed, true);
+    assert.equal(samples.length, 4);
+    assert.ok(samples.every((count) => count <= 48), "SDK calls per phase: " + samples.join(","));
   } finally { ctx.close(); }
 });
 test("Firebase identities and pending claims block legacy erasure before freezing or deleting any domain data", async () => {

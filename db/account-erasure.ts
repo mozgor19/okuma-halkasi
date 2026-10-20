@@ -7,6 +7,13 @@ type GroupStep = {
 type ErasurePlan = {
   version: 1; requestId: string; accountId: number; steps: GroupStep[];
   blockers: string[]; confirmation: string;
+  identity?: { fingerprint: string; count: number };
+};
+type IdentityCoordinator = {
+  inspect(accountId: number): Promise<{ fingerprint: string; count: number }>;
+  erase(accountId: number, requestId: string, fingerprint: string): Promise<boolean | void>;
+  freeze?(accountId: number): D1PreparedStatement[];
+  cleanup(accountId: number, requestId: string, fingerprint: string): Promise<D1PreparedStatement[]>;
 };
 type Job = { accountId: number; plan: string; digest: string; completedBindings: string; lease: string | null; completedAt: number | null };
 type MemberRow = { id: number; role: string; avatar_media_key: string | null; face_reference_media_key: string | null };
@@ -21,7 +28,7 @@ async function digest(plan: ErasurePlan) {
 
 // Operator-only service. No public endpoint or remote CLI invokes this module.
 // Execution requires independently stopped writers and a reviewed, exact dry-run plan.
-export function accountErasureService(canonical: D1Database, bindings: BindingMap) {
+export function accountErasureService(canonical: D1Database, bindings: BindingMap, identity?: IdentityCoordinator, options: { incremental?: boolean } = {}) {
   if (bindings.DB !== canonical || Object.values(bindings).some((db) => !db || typeof db.prepare !== "function" || typeof db.batch !== "function")
     || new Set(Object.values(bindings)).size !== Object.keys(bindings).length
     || Object.keys(bindings).some((name) => !/^[A-Z][A-Z0-9_]{0,63}$/.test(name))) fail("ERASURE_BINDING_MISMATCH");
@@ -39,6 +46,8 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
     if (!plan || plan.version !== 1 || plan.requestId !== requestId || plan.accountId !== stored.accountId || !positive(plan.accountId)
       || plan.confirmation !== `ERASE:${requestId}:${plan.accountId}`
       || !Array.isArray(plan.blockers) || plan.blockers.some((value) => typeof value !== "string")
+      || (plan.identity !== undefined && (!plan.identity || !/^[a-f0-9]{64}$/.test(plan.identity.fingerprint)
+        || !Number.isSafeInteger(plan.identity.count) || plan.identity.count < 0 || plan.identity.count > 4))
       || !Array.isArray(plan.steps) || !plan.steps.length
       || plan.steps.some((step) => !step || typeof step.groupId !== "string" || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(step.groupId)
         || !Object.hasOwn(bindings, step.binding) || !positive(step.memberId)
@@ -96,7 +105,7 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
   async function inspect(requestId: string, transfers: Readonly<Record<string, number>> = {}) {
     if (!uuid.test(requestId)) fail("ERASURE_INVALID_REQUEST");
     const existing = await job(requestId);
-    if (existing) return { plan: await journalPlan(requestId, existing), digest: existing.digest, completed: existing.completedAt !== null };
+    if (existing) return { plan: await journalPlan(requestId, existing), digest: existing.digest, completed: existing.completedAt !== null, resuming: true };
     const request = await canonical.prepare("SELECT member_id AS accountId, status FROM account_deletion_requests WHERE id = ?").bind(requestId).first<{ accountId: number; status: string }>();
     if (!request || !["requested", "processing"].includes(request.status)) fail("ERASURE_REQUEST_NOT_ACTIVE");
     const accountId = request!.accountId;
@@ -104,7 +113,9 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
     const groups = await registry();
     if (Object.keys(transfers).some((groupId) => !groups.some((row) => row.id === groupId))) fail("ERASURE_INVALID_SUCCESSOR");
     const steps: GroupStep[] = [], blockers: string[] = [];
-    if (await needsFirebaseCoordination(accountId)) blockers.push("FIREBASE_ERASURE_COORDINATION_REQUIRED");
+    let providerIdentity: ErasurePlan["identity"];
+    if (identity) providerIdentity = await identity.inspect(accountId);
+    else if (await needsFirebaseCoordination(accountId)) blockers.push("FIREBASE_ERASURE_COORDINATION_REQUIRED");
     for (const binding of Object.keys(bindings).sort()) {
       const db = bindings[binding];
       const group = groups.find((row) => row.binding === binding);
@@ -116,8 +127,11 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
       const member = await db.prepare("SELECT id, role, avatar_media_key, face_reference_media_key FROM members WHERE id = ?").bind(memberId).first<MemberRow>();
       if (!member) fail("ERASURE_MEMBER_MISSING");
       const counts: Counts = {};
-      for (const table of personalTables) counts[table] = (await db.prepare(`SELECT count(*) AS n FROM ${table} WHERE member_id = ?`).bind(memberId).first<{ n: number }>())!.n;
-      counts.photos = (await db.prepare("SELECT count(*) AS n FROM photos WHERE uploaded_by = ?").bind(memberId).first<{ n: number }>())!.n;
+      const personal = await db.prepare(`SELECT ${personalTables.map((table) => `(SELECT count(*) FROM ${table} WHERE member_id=?) AS ${table}`).join(",")},
+        (SELECT count(*) FROM photos WHERE uploaded_by=?) AS photos`)
+        .bind(...personalTables.map(() => memberId), memberId).first<Counts>();
+      if (!personal) fail("ERASURE_MEMBER_MISSING");
+      Object.assign(counts, personal);
       const keys = await ownedMedia(db, member!);
       counts.media = keys.size;
       if (await sharedMedia(db, member!, keys)) blockers.push("SHARED_MEDIA_REVIEW:" + group!.id);
@@ -134,8 +148,9 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
         || await canonical.prepare("SELECT 1 FROM account_erasure_jobs WHERE account_member_id = ?").bind(successor.accountId).first())) fail("ERASURE_SUCCESSOR_UNAVAILABLE");
       steps.push({ groupId: group!.id, binding, memberId, counts, successorAccountId: successor?.accountId ?? null, successorMemberId: successor?.memberId ?? null });
     }
-    const plan: ErasurePlan = { version: 1, requestId, accountId, steps, blockers, confirmation: `ERASE:${requestId}:${accountId}` };
-    return { plan, digest: await digest(plan), completed: false };
+    const plan: ErasurePlan = { version: 1, requestId, accountId, steps, blockers, confirmation: `ERASE:${requestId}:${accountId}`,
+      ...(providerIdentity ? { identity: providerIdentity } : {}) };
+    return { plan, digest: await digest(plan), completed: false, resuming: false };
   }
 
   async function execute(requestId: string, approval: {
@@ -150,9 +165,15 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
     const plan = inspected.plan;
     // Recheck persisted plans too: a claim may have appeared after inspection.
     // Never erase domain data before provider deletion is durably coordinated.
-    if (await needsFirebaseCoordination(plan.accountId)) fail("ERASURE_FIREBASE_COORDINATION_REQUIRED");
-    const currentRegistry = await registry();
-    if (plan.steps.some((step) => !currentRegistry.some((row) => row.id === step.groupId && row.binding === step.binding))) fail("ERASURE_REGISTRY_MISMATCH");
+    if (inspected.resuming && plan.identity) {
+      if (!identity) fail("ERASURE_FIREBASE_COORDINATION_REQUIRED");
+      const checked = await identity.inspect(plan.accountId);
+      if (checked.fingerprint !== plan.identity.fingerprint || checked.count !== plan.identity.count) fail("ERASURE_PROVIDER_PLAN_CHANGED");
+    } else if (inspected.resuming && await needsFirebaseCoordination(plan.accountId)) fail("ERASURE_FIREBASE_COORDINATION_REQUIRED");
+    if (inspected.resuming) {
+      const currentRegistry = await registry();
+      if (plan.steps.some((step) => !currentRegistry.some((row) => row.id === step.groupId && row.binding === step.binding))) fail("ERASURE_REGISTRY_MISMATCH");
+    }
     const now = Date.now();
     try {
       await canonical.prepare(`INSERT INTO account_erasure_jobs(request_id, account_member_id, plan_json, plan_digest, created_at, updated_at)
@@ -184,7 +205,13 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
           OR email = (SELECT email FROM account_profiles WHERE member_id = ?)`).bind(plan.accountId, plan.accountId, plan.accountId),
         canonical.prepare("UPDATE group_invitations SET revoked_at = COALESCE(revoked_at, ?) WHERE created_by = ?").bind(now, plan.accountId),
         canonical.prepare("UPDATE account_erasure_jobs SET frozen_at = COALESCE(frozen_at, ?), updated_at = ? WHERE request_id = ? AND lease_token = ?").bind(now, now, requestId, lease),
+        ...(plan.identity ? identity?.freeze?.(plan.accountId) ?? [] : []),
       ]);
+      if (options.incremental && !inspected.resuming) return { completed: false, inProgress: true, phase: "frozen" };
+      if (plan.identity) {
+        if (!identity) fail("ERASURE_FIREBASE_COORDINATION_REQUIRED");
+        if (await identity.erase(plan.accountId, requestId, plan.identity.fingerprint) === false) return { completed: false, inProgress: true, phase: "identity" };
+      }
       const completed: string[] = JSON.parse(persisted.completedBindings);
       for (const step of plan.steps) {
         if (completed.includes(step.binding)) continue;
@@ -206,8 +233,10 @@ export function accountErasureService(canonical: D1Database, bindings: BindingMa
         await db.batch(statements);
         completed.push(step.binding);
         await canonical.prepare("UPDATE account_erasure_jobs SET completed_bindings = ?, updated_at = ? WHERE request_id = ? AND lease_token = ?").bind(JSON.stringify(completed), Date.now(), requestId, lease).run();
+        if (options.incremental && completed.length < plan.steps.length) return { completed: false, inProgress: true, phase: "groups" };
       }
       const final = [];
+      if (plan.identity) final.push(...await identity!.cleanup(plan.accountId, requestId, plan.identity.fingerprint));
       for (const step of plan.steps) if (step.successorAccountId !== null) final.push(canonical.prepare("UPDATE group_provisioning SET owner_id = ? WHERE group_id = ? AND owner_id = ?").bind(step.successorAccountId, step.groupId, plan.accountId));
       final.push(
         canonical.prepare("DELETE FROM reading_group_memberships WHERE account_member_id = ?").bind(plan.accountId),

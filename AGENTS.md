@@ -7,6 +7,7 @@
 - Current priority is mobile-first web/PWA launch. Native Android/iOS work is deferred until web acceptance.
 - Preserve the Koru identity on every platform. Update the identity document and project session memory when an approved brand decision changes.
 - Missing release evidence blocks publication. Do not turn a passing local suite into a production-readiness claim.
+- Exception recorded October 20, 2026: Mustafa explicitly requested the first public birkoru.com launch with best-effort safeguards instead of a six-account opening. Use the separate revision-bound first-launch decision; keep outstanding manual checks pending. Never waive failing automated checks, audit, origin, data-preservation or security configuration. This does not relax the standard gate for later releases.
 
 ## Icons
 

@@ -24,7 +24,8 @@ export function productionBindingFailures(bindings) {
     PASSWORD_HASH_ITERATIONS: "100000",
     PRIVACY_POLICY_URL: production.origin + "/privacy", TERMS_URL: production.origin + "/terms",
   })) if (value(name) !== expected) failures.push("Runtime configuration requires review: " + name);
-  for (const secret of ["SESSION_SECRET", "TURNSTILE_SECRET_KEY", "FIREBASE_API_KEY"]) if (!bindings.some((item) => item.name === secret && item.type === "secret_text")) failures.push("Required secret binding absent: " + secret);
+  for (const secret of ["SESSION_SECRET", "TURNSTILE_SECRET_KEY", "FIREBASE_API_KEY", "ERASURE_OPERATOR_SECRET"]) if (!bindings.some((item) => item.name === secret && item.type === "secret_text")) failures.push("Required secret binding absent: " + secret);
+  if (value("MAINTENANCE_MODE") !== "false") failures.push("Public opening requires maintenance mode explicitly off.");
   if (value("TURNSTILE_SITE_KEY") !== production.turnstileSiteKey) failures.push("Production Turnstile site key absent or mismatched.");
   if (bindings.some((item) => ["FIREBASE_LOCAL_EMULATOR_ORIGIN", "FIREBASE_AUTH_EMULATOR_HOST", "GMAIL_CREDENTIALS", "RESEND_API_KEY", "MEMBER_CREDENTIALS"].includes(item.name)))
     failures.push("Emulator, legacy bootstrap or unrelated mail credentials cannot be promoted to production Firebase.");

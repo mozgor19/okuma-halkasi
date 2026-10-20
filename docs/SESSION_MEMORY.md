@@ -752,3 +752,27 @@ manual check passed without the operator/device evidence for that exact revision
   private backups/keys/configs/user data/.sites-runtime/outputs remain ignored.
   Then run clean fixed-revision suite/audit and actual release gate. Do not
   manufacture missing device/social/security/privacy/operations evidence.
+# October 20 First Public Cutover In Progress
+
+- Latest Mustafa instruction: public first opening, no six-account restriction;
+  best-effort checks. Keep missing manual evidence pending. Separate explicit
+  first-launch exception does NOT weaken standard later-release gate or permit
+  failed automated/audit/data/security checks. Coauthorless commit/push to work
+  branch before deploy remains mandatory; main untouched. Native deferred.
+- Added resumable Firebase erasure coordination + protected Secret-only operator
+  API/CLI, canonical0014 provider checkpoints, incremental D1 phases, explicit
+  maintenance/writer-drain/third-party-content preconditions. No real erasure or
+  extra remote test account/mail/Worker/D1. Google user ADC is not yet configured;
+  privileged deletion must fail closed without it. No service-account key.
+- Canonical production migration now0008-0014 (21newtables), exact legacy bytes
+  preserved in tests. Public privacy/terms now disclose actual Firebase/D1 flow;
+  staging keeps previous disclosure. Approved C logo unchanged.
+- Production script uses fixed account/Worker/canonicalID/origin, explicit
+  maintenance, fresh encrypted export-only backup/offline restore/rehearsal,
+  atomic additive D1 batch + exact old/new verification, two PERMANENT empty
+  Free group pools, Firebase/Turnstile/erasure Secrets and root/www domains.
+  No secrets/user data in Git. Old origin redirects read requests to birkoru.com;
+  mutations require resubmission there. No cookie/token forwarding.
+- This entry describes prepared code, NOT completed production operations.
+  Read private cutover.json/remote preflight for actual status before claiming
+  published. Preserve earlier private preview46603 and its data.

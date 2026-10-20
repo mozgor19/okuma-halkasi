@@ -57,7 +57,8 @@ async function readLimited(response, max) {
 
 async function run() {
   const args = process.argv.slice(2);
-  assert.ok(args[0] === "--confirm=production-backup-and-isolated-restore" && args.length <= 2, "Explicit approved backup/isolated restore confirmation required");
+  const exportOnly = args[0] === "--confirm=production-backup-export-only";
+  assert.ok((exportOnly || args[0] === "--confirm=production-backup-and-isolated-restore") && args.length <= 2, "Explicit approved backup confirmation required");
   const backupId = args[1]?.replace(/^--backup-id=/, "");
   if (backupId !== undefined) assert.ok(args[1].startsWith("--backup-id=") && /^[a-f0-9-]{36}$/.test(backupId), "Invalid existing backup identifier");
   const runId = randomUUID(), name = "koru-restore-drill-" + runId;
@@ -65,7 +66,7 @@ async function run() {
   const directory = join(base, "backups", runId);
   await privateDirectory(directory);
   const reportPath = join(directory, "report.json");
-  const report = { runId, checkedAt: new Date().toISOString(), scope: "approved-production-backup-isolated-d1-restore-only",
+  const report = { runId, checkedAt: new Date().toISOString(), scope: exportOnly ? "approved-production-export-and-offline-restore-only" : "approved-production-backup-isolated-d1-restore-only",
     sourceDatabaseId: production.canonicalDatabaseId, status: "running", phase: "preflight", cleanup: "not-needed",
     sourceSqlWrites: 0, deploymentChanges: 0, paidServicesOpened: false,
     limitations: "One current production D1 snapshot only. No production restore/migration, multi-D1 recovery, erasure replay, automated retention, off-device key recovery or application RTO acceptance." };
@@ -197,6 +198,12 @@ async function run() {
     try { await verifySnapshot(snapshot, async (sql) => rehearsal.prepare(sql).all()); } finally { rehearsal.close(); }
     report.localRestoreVerified = true;
     report.restoreStatementCount = planned.statementCount;
+    if (exportOnly) {
+      report.status = "passed";
+      report.phase = "complete";
+      report.remoteRestoreVerified = false;
+      return;
+    }
     const current = await inventory();
     assertFreeCapacity(current, production.canonicalDatabaseId);
     assert.deepEqual(current.map((item) => item.uuid).sort(), existingIds, "Inventory changed before target creation");

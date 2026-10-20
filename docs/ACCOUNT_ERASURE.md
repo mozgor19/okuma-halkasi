@@ -1,4 +1,56 @@
-# Account Erasure: Local Operator Prototype
+# Account Erasure: Operator Workflow
+
+## October 20 Extension
+
+The earlier D1-only prototype below is historical. The current implementation
+adds a separate Secret-authenticated operator endpoint and CLI, production-only
+Firebase UID/project validation, durable provider checkpoints (canonical migration
+0014), provider absence verification BEFORE domain deletion, and atomic identity
+cleanup before account finalization. No real user was erased during development.
+
+`corepack pnpm account:erase --queue` lists request IDs/status only.
+`corepack pnpm account:erase --request=REQUEST_UUID` inspects; it never deletes.
+Explicit owner transfers use `--transfers='{"group-id":ACCOUNT_ID}'`.
+Execution additionally needs `--execute --digest=INSPECTED_SHA256
+--confirmation=ERASE:REQUEST_UUID:ACCOUNT_ID
+--ack=writers-drained-and-content-reviewed` on the same inspected request.
+Do not use placeholder values or execute an unreviewed request.
+
+The local private `.sites-runtime/koru-production/erasure-operator.key` must match
+Worker Secret `ERASURE_OPERATOR_SECRET`. It is not a member/admin permission.
+Queue/inspection are protected; execution also requires MAINTENANCE_MODE=true.
+Independently stop/drain ALL HTTP, scheduled, queue and administrative writers,
+review third-party free text/photos, and verify successor ownership. The flag
+alone does not stop in-flight requests or unrelated administrative writes.
+
+For Firebase identities, the CLI requires an explicitly authorized operator's
+private Google user ADC at `~/.config/gcloud/application_default_credentials.json`,
+with Identity Toolkit OAuth scope and firebaseauth.users.get/delete permissions
+on **koru-951bf**. Cloud SDK is not currently installed locally; configure this
+interactively when an actual reviewed deletion requires it. No service-account
+key, metadata fallback or permanent Google Admin credential is installed in the
+Worker/browser. The short-lived access token stays in request memory, never in
+arguments, reports or the erasure ledger. Missing authorization stops execution.
+
+One successful phase per request bounds D1 calls: freeze, each provider identity,
+then each group and finalization. Only acknowledged progress is continued by the
+CLI. Ambiguous provider failures are not blindly retried. Frozen jobs remain
+blocked and resumable; no automatic stale-lease stealing. UID digests and retained
+job IDs remain pseudonymous, NOT anonymous. Full old-backup restoration requires
+independent deletion-journal review/replay before reopening; the same-DB ledger
+alone cannot prevent resurrection from a backup older than the ledger.
+
+Local coverage includes 17 D1 erasure tests, seven coordinator/operator tests,
+and four signed-auth/operator workerd tests. All provider transport is synthetic;
+no real Google identity/mail/deletion was exercised. The multi-group phase budget
+test is not a claim of measured remote Free-runtime CPU or legal completeness.
+Sole-owner groups without an eligible successor, shared media, unknown/orphan UID
+and incomplete third-party content review remain explicit blockers.
+
+Official references: [Admin delete](https://docs.cloud.google.com/identity-platform/docs/reference/rest/v1/projects.accounts/delete),
+[operator ADC](https://docs.cloud.google.com/docs/authentication/provide-credentials-adc).
+
+## Historical D1-Only Prototype
 
 October 19, 2026. This is NOT a public deletion endpoint or production-ready
 operator tool. No remote user data was erased. Migration 0012 was applied only

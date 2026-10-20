@@ -10,7 +10,7 @@ export const legacyMigrations = Object.freeze([
 ]);
 export const canonicalMigrations = Object.freeze([
   "0008_reading_groups", "0009_self_service", "0010_group_account_links",
-  "0011_account_experience", "0012_account_erasure_jobs", "0013_firebase_auth",
+  "0011_account_experience", "0012_account_erasure_jobs", "0013_firebase_auth", "0014_erasure_provider_checkpoints",
 ]);
 const migration = (name) => readFileSync(new URL(`../drizzle/${name}.sql`, import.meta.url), "utf8");
 
