@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdirSync, openSync, closeSync, writeFileSync, existsSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { randomBytes } from "node:crypto";
+import { resolve } from "node:path";
 import { sourceIdentity } from "./release-source.mjs";
 
 const android = process.argv.includes("--android");
@@ -65,7 +66,7 @@ async function freePort(origin) {
 async function server(legacy = false, selfService = false, koru = false) {
   const origin = legacy ? legacyOrigin : testOrigin;
   await freePort(origin);
-  const child = launch(node("node_modules/vite/bin/vite.js", "--port", new URL(origin).port), { OKUMA_GROUPS_DEVELOPMENT: legacy ? "legacy" : "1", OKUMA_SELF_SERVICE_DEVELOPMENT: selfService ? "1" : "0", OKUMA_APPLICATION_BRAND: koru ? "Koru" : "", OKUMA_BRAND_ORIGIN: koru ? "https://koru.example" : "" }, legacy ? "legacy-server" : koru ? "koru-server" : selfService ? "self-service-server" : "main-server");
+  const child = launch(node("node_modules/vite/bin/vite.js", "--port", new URL(origin).port), { ...registryEnvironment(legacy ? "legacy" : "main"), OKUMA_GROUPS_DEVELOPMENT: legacy ? "legacy" : "1", OKUMA_SELF_SERVICE_DEVELOPMENT: selfService ? "1" : "0", OKUMA_APPLICATION_BRAND: koru ? "Koru" : "", OKUMA_BRAND_ORIGIN: koru ? "https://koru.example" : "" }, legacy ? "legacy-server" : koru ? "koru-server" : selfService ? "self-service-server" : "main-server");
   for (let attempt = 0; attempt < 120; attempt++) {
     if (child.exitCode !== null) throw new Error("Test server exited; inspect its log.");
     try { const response = await fetch(origin + "/login", { signal: AbortSignal.timeout(3_000) }); if (response.ok) return child; } catch { /* Server compilation is bounded by this loop. */ }
@@ -74,9 +75,16 @@ async function server(legacy = false, selfService = false, koru = false) {
   throw new Error("Test server did not become ready.");
 }
 
+function registryEnvironment(name) {
+  // Worker names repeat across local previews; registries must not cross-wire
+  // a release fixture, its legacy server and an existing developer preview.
+  const root = resolve(groupsStatePath, "..", "dev-registry", name);
+  return { WRANGLER_REGISTRY_PATH: resolve(root, "wrangler"), MINIFLARE_REGISTRY_PATH: resolve(root, "miniflare") };
+}
+
 async function productionServer() {
   await freePort(testOrigin);
-  const child = launch(node("scripts/preview-local-production.mjs", "--port=" + new URL(testOrigin).port), {}, "production-server");
+  const child = launch(node("scripts/preview-local-production.mjs", "--port=" + new URL(testOrigin).port), registryEnvironment("production"), "production-server");
   for (let attempt = 0; attempt < 120; attempt++) {
     if (child.exitCode !== null) throw new Error("Local production preview exited; inspect its private log.");
     try { if ((await fetch(testOrigin + "/login", { signal: AbortSignal.timeout(3000) })).ok) return child; } catch { /* Bounded local startup. */ }

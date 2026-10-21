@@ -69,6 +69,9 @@ and separate operator authority. Never rerun already applied0015.
   existing Home/Plan/Meeting/all Profile tab checks. Its real pass/fail result,
   source identity and logs are in the chosen run's `suite-report.json`; never
   treat this documentation as a substitute for that result or manual acceptance.
+- Release servers use separate Wrangler/Miniflare registries per run and role;
+  repeating Worker names cannot select an existing developer preview's registry.
+  Preserve failed/interrupted trial reports rather than rewriting them as passes.
 - Separate synthetic preview: `http://127.0.0.1:5314`, profile
   `web-refinements-20261020`. Demo accounts `demo.multi`, `demo.single`, `demo.none`;
   the generated password is only in the ignored local settings file. Existing
