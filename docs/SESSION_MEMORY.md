@@ -11,6 +11,15 @@ October22 REOPENED URGENT MOBILE BUG: Mustafa reports the October21 hotfix
 did NOT fix his real iPhone keyboard/panning issue. Previous desktop WebKit
 passes are NOT physical acceptance or proof of resolution. Work is scoped
 to that same mobile form regression, not new features or general releases.
+CONFIRMED production-only cause: CSS lowering folds constant translate resets
+into transform, but Tailwind's variable-based individual translate utilities
+remain active in modern browsers. A real minified-bundle check rejected
+translate:-50% -50% even after the dev-only layout fix passed. DO NOT relax
+that assertion. Form dialogs now emit those centering utilities ONLY at681px+
+and no mobile utility to survive minification. Non-form dialogs are unchanged.
+The6d7f0f1 full run stopped on a test's per-page participant init script;
+253e90d focused production run then exposed the REAL residual translate bug.
+Both original failed reports stay retained, never relabeled as passes.
 Local follow-up removes mobile create-dialog centering transforms, zoom
 animation AND the default200ms position/size transition. Normal-motion tests
 exposed an intermediate wrong top/height that reduced-motion checks missed.
