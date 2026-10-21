@@ -27,6 +27,9 @@ değildir. Masaüstü, diğer pencereler, paletler ve veri işlemleri korunur.
   dört formu dört görünüm/açık-koyuda32 kez sınar. Derleyicinin identity
   transform çıktısı geometrik olarak denetlenir; yalnız Vite/dev kontrolü
   veya CSS kaynak metni yeterli kabul edilmez.
+  Ayrı WebKit kabulü için izole üretim preview'ında
+  `node scripts/test-mobile-dialogs.mjs --webkit --production` aynı32 mobil
+  yerleşimi sınar; Vite/dev yanıtını üretim kanıtı diye kabul etmez.
 
 Yeni talep, önceki acil düzeltmenin başarısız devamı için dar kapsamlıdır;
 eski yayın kararı yeniden kullanılmaz. Güncel temiz kaynak/push, tam otomatik
