@@ -3,12 +3,30 @@
 21 Ekim 2026. Mustafa'nın canlı iPhone görüntülerindeki acil hata bildirimi.
 Bu belge tek başına dağıtım veya fiziksel cihaz kabulü değildir.
 
+## Güncel Yayın: 22 Ekim00:49TRT
+
+Kaynak `6762dc8`, Worker `25afe82b-b410-4184-ace0-58e44a6f7865` %100,
+bakım kapalı; https://birkoru.com üzerinde yayında. Asıl üretim CSS hatası
+aşağıda belgelenmiştir.14 tamamlanan otomatik adım, gerçek minify paketinde
+Chromium32/WebKit32 form kontrolü ve web audit geçti.
+
+Mustafa'nın son açık isteğiyle kalan geniş testler durdurularak yayımlandı.
+23 adımın tümü geçmedi: legacy operatör SIGINT'iyle iptal edildi (özgün
+başarısız işareti/raporu korunur); sonraki8 otomatik adım çalıştırılmadı.
+Bu9 kontrol ve13 manuel başlık/gerçek iPhone klavyesi BEKLİYOR.
+Bu yeni kaynağa özel yayın kararı tüketildi; geleceğe genel izin değildir.
+
+Üç şifreli DB yedeği/diskten çözme/offline restore ve birebir eski veri
+karşılaştırması geçti; SQL/migration yok. Secret'lar, tüm bindings/ortak
+okuyucular, mail OFF, diğer Worker'lar ve main korundu. Kanıt:
+`outputs/web-acceptance/6762dc8/production-outcome.json` ve SESSION_MEMORY.
+
 ## 22 Ekim: Hata Tekrar Açıldı
 
 Mustafa, önceki yayından sonra gerçek iPhone'da sorunun sürdüğünü bildirdi.
 Aşağıdaki eski motor testleri sorunun çözüldüğünün kanıtı değildir.
-Yeni düzeltme yalnız mobil form pencerelerini kapsar; henüz yayın sonucu
-değildir. Masaüstü, diğer pencereler, paletler ve veri işlemleri korunur.
+Yeni düzeltme yalnız mobil form pencerelerini kapsar; yayın sonucu yukarıda
+kayıtlıdır. Masaüstü, diğer pencereler, paletler ve veri işlemleri korunur.
 
 - Uretim paketinde ASIL sol-ust hata yeniden uretildi: derleyici sabit
   `translate:none`/`translate:0 0` sifirlamasini `transform` zincirine indiriyor,

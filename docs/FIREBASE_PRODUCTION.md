@@ -1,11 +1,30 @@
 # Koru Üretim Firebase Hazırlığı
 
-22 Ekim: gerçek iPhone'da aynı klavye/pencere hatası tekrar bildirildi.
-21 Ekim dağıtımı sorunu fiziksel cihazda çözmüş kabul edilmez. Yeni yerel
-takip [mobil form belgesinde](MOBILE_DIALOG_HOTFIX.md); Firebase, hesaplar,
-Secret'lar veya SQL değişikliği içermez. Yeni dağıtım henüz kaydedilmedi.
+## Son Yayın: 22 Ekim Mobil Form Takibi
 
-## Son Yayın: Acil Mobil Form Düzeltmesi
+22 Ekim00:49TRT: `https://birkoru.com`, kaynak `6762dc8`, Worker
+`25afe82b-b410-4184-ace0-58e44a6f7865` (%100), bakım kapalı.
+Gerçek üretim CSS'inde yeniden üretilen çift kaydırma düzeltildi:
+mobil Koru formlarında `%50` translate utility'si üretilmiyor. Masaüstü,
+eski web, renk/marka ve hesap/veri işlemleri korunur. [Kapsam](MOBILE_DIALOG_HOTFIX.md).
+
+Mustafa geniş testleri durdurup doğrudan yayın istedi.14 otomatik adım ve
+minify edilmiş üretim paketinde Chromium32/WebKit32 form yerleşimi geçti;
+tam23 adım geçmedi. İptal edilen legacy ve sonraki8 otomatik kontrol ile
+13 manuel kategori/gerçek iPhone klavyesi bekliyor; geçmiş sayılmadı.
+Standart kapı geçilmedi; bu sürüme özel yeni talep tüketildi, genel yetki değildir.
+
+Üç DB'nin taze şifreli yedeği, diskten çözme/offline restore ve eski şema,
+tipli satır, medya/sayaç karşılaştırması geçti. SQL/migration YOK;
+0015/16/17/18'i tekrarlama. Firebase/oturum/Turnstile Secret'ları, paylaşılan
+okuyucular, üç DB, domainler, staging/public-info ve mail OFF korundu.
+Temiz kaynak coauthor olmadan çalışma dalına push edildi; main değişmedi.
+Kanıt: `outputs/web-acceptance/6762dc8/production-outcome.json`,
+`outputs/release-tests/mobile-stable-release-20261022-r5/`, ayrı üretim
+WebKit raporu. Rollout `71670020-61ab-4629-be60-f51bf93557d2` yeniden çalıştırılmaz.
+Sonraki belge commit'i yeni uygulama dağıtımı değildir.
+
+## Önceki Yayın: Acil Mobil Form Düzeltmesi
 
 21 Ekim 2026,23:44TRT: `https://birkoru.com`, uygulama kaynağı
 `aa6df77e14772cca67efc8ba61e437061edc0eec`, Worker sürümü

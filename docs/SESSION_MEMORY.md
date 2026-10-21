@@ -7,6 +7,55 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
+LATEST LIVE FOLLOW-UP (October22,00:49TRT): application source
+6762dc86e40ff4728f679f001f5d41aa31fee2cf is live at https://birkoru.com,
+Worker25afe82b-b410-4184-ace0-58e44a6f7865 at100%; maintenance OFF.
+Mustafa's LATEST instruction explicitly stopped further broad testing and
+ordered immediate publication. This is a NEW revision-bound decision for
+ONLY the mobile form follow-up, now consumed; NOT general authority to skip
+future tests. Main unchanged; source was clean, coauthor-free and pushed
+to the work branch before deployment. Later doc commits are not app releases.
+
+Confirmed production-only root cause: lowering a constant translate reset
+does not remove Tailwind's variable-based individual translate utility in
+modern browsers. The actual minified-bundle test caught -50%/-50% offsets
+that Vite checks missed. Mobile Koru forms no longer emit those utilities;
+desktop centering and legacy/non-form dialogs retain their existing behavior.
+Mobile forms are transform-free, bounded to the visual viewport/safe-area,
+focus the dialog before a deliberate field tap, keep blur/keyboard transitions
+stable and preserve drafts. No palette, font, logo, backend or native changes.
+
+14 completed automatic steps passed:294 unit tests, backend91 checks, types,
+lint/build/contract, real production10 checks INCLUDING32 mobile forms,
+API20 scenarios,211 existing UI checks and35 branding checks (plus existing
+mobile policy/types). Separate source-matched minified-production WebKit32
+layouts/64 images passed. Audit has no high/critical WEB finding; existing
+low/moderate and deferred native findings remain. The full23-step suite did
+NOT finish: operator-requested SIGINT cancelled legacy (its original failed
+marker remains), and the later8 steps were not run. All9 unfinished automatic
+and13 manual categories remain PENDING, not passed. Earlier partial/failed
+runs are retained, not substituted as a passing current full suite. Physical
+iPhone/Android keyboard confirmation is still required to close that acceptance.
+
+Three fresh AES-256-GCM backups were decrypted from disk, restored OFFLINE,
+and compared against every old schema/typed row/media/sequence before opening.
+ZERO SQL writes/migrations; never replay0015/16/17/18. Shared readers, both
+dedicated bindings, Secrets, domains, other Workers and meeting mail OFF
+are preserved. No real accounts/mail, staging import, paid service or native work.
+Minimal deployment health passed: login200, private API401, actual live CSS
+and shared form JS bytes match the published artifact. No new broad/browser
+suite, real accounts or mail. Evidence: production-health.json below.
+
+Evidence (Git-ignored): outputs/release-tests/mobile-stable-release-20261022-r5/
+{suite-report.json,web-production/report.json};
+outputs/release-tests/mobile-stable-20261022-a/mobile-dialogs-production-webkit/report.json;
+outputs/web-acceptance/6762dc8/{production-outcome,production-health}.json.
+Rollout71670020-61ab-4629-be60-f51bf93557d2, artifact68e3a9f38e86d78440b95895d26c216d4a77f42d040f9efd2963b6aa53b2cd20.
+Encrypted snapshots and separate keys remain private. Do not rerun the rollout.
+The original5321 preview and user data were not reset.
+
+### Local Investigation (Historical)
+
 October22 REOPENED URGENT MOBILE BUG: Mustafa reports the October21 hotfix
 did NOT fix his real iPhone keyboard/panning issue. Previous desktop WebKit
 passes are NOT physical acceptance or proof of resolution. Work is scoped

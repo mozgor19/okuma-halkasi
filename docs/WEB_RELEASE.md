@@ -4,10 +4,26 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
-22 Ekim: Mustafa mobil klavye hatasının sürdüğünü bildirdi.21 Ekim motor
-testleri fiziksel iPhone kabulü değildir. [Dar kapsamlı takip](MOBILE_DIALOG_HOTFIX.md)
-ayrı kaynak ve güncel teknik/veri koruma kontrolleri gerektirir; aşağıdaki
-eski yayın onayı yeniden kullanılamaz. Henüz yeni dağıtım kaydı yoktur.
+## Güncel Yayın: 22 Ekim
+
+00:49TRT: kaynak `6762dc8`, Worker `25afe82b-b410-4184-ace0-58e44a6f7865`,
+%100; bakım kapalı. [Mobil form takibi](MOBILE_DIALOG_HOTFIX.md) yayında.
+Asıl hata minify edilmiş CSS'te kalan `%50` translate utility'siydi;
+yalnız Koru mobil formlarında kaldırıldı. Masaüstü/eski web, renkler ve
+veri işlemleri korunur.32 gerçek üretim formu Chromium ve32 WebKit geçti.
+
+Mustafa son açık talebiyle geniş testleri durdurup doğrudan yayın istedi.
+14 tamamlanan otomatik adım geçti;23 aşamanın tamamı geçmedi. İptal edilen
+legacy ve sonraki8 adım BEKLİYOR, geçmiş sayılmaz.13 manuel başlık/gerçek
+iPhone klavyesi de bekliyor. Standart kapı geçilmedi; bu kaynağa özel yeni
+yetki tüketildi, sonraki yayına test atlama izni değildir. Önceki onaylar kullanılmadı.
+
+Üç taze şifreli yedek/diskten çözme/çevrimdışı restore ve birebir eski veri
+karşılaştırması geçti. SQL/migration yok;0015/16/17/18'i tekrarlama.
+Secret'lar, üç DB, ortak okuyucular, diğer Worker'lar ve buluşma postası
+kapalı durumu korundu. Temiz kaynak coauthor olmadan çalışma dalına push
+edilerek dağıtıldı; main değişmedi. Kanıt: `outputs/web-acceptance/6762dc8/`.
+Sonraki belge commit'i uygulama dağıtımı değildir.
 
 ## Güncel Canlı Durum: 21 Ekim
 
