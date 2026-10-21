@@ -288,9 +288,7 @@ try {
       await page.waitForFunction(() => document.querySelector('button[type="submit"]')?.disabled === false);
       assert.equal(await page.getByLabel("Okuma grubu adı").inputValue(), "Korunan Grup Adı");
       assert.equal(await page.getByText("Grup kurmak veya davetle katılmak için e-postanı doğrula.", { exact: true }).count(), 0);
-      await page.locator(".experience-dialog").waitFor();
-      await page.getByRole("button", { name: "Daha sonra", exact: true }).click();
-      await page.locator(".experience-dialog").waitFor({ state: "hidden" });
+      assert.equal(await page.locator(".experience-dialog").count(), 0, "Email verification must not interrupt group setup with the tour");
       await page.route("**/api/onboarding/account", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Synthetic outage" }) }));
       await page.getByRole("button", { name: "Hesap durumunu yenile", exact: true }).click();
       await page.getByRole("alert").filter({ hasText: "Hesap bilgileri yüklenemedi" }).waitFor();
