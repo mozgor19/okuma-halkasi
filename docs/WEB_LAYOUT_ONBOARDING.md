@@ -1,16 +1,30 @@
 # Masaüstü Aralıkları ve İlk Görünüm Seçimi
 
-21 Ekim 2026. Fotoğraf ekleme düğmesinin ayırıcı çizgiye dayanması bildirimi
-ve tur sonrası görünüm seçimi isteği. Bu çalışma yereldir; aşağıdaki kod veya
-0018 migration'ı henüz canlıya dağıtılmış değildir.
+21 Ekim 2026. Fotoğraf ekleme düğmesinin ayırıcı çizgiye dayanması bildirimi,
+ilk gruptan sonra tur/görünüm seçimi, koyu boş durum ve grup görseli düzeltmeleri.
 
-Sonraki21 Ekim mesajında Mustafa bu birikmiş web düzeltmelerinin canlıya
-alınmasını açıkça istedi. Yeni yayın hazırlığı bu kaynak için yapılır; eski
-yayın istisnaları kullanılmaz, eksik13 manuel kabul başarılı sayılmaz. Temiz
-çalışma dalı commit/push, güncel tam test/audit, üç DB'nin taze şifreli yedeği,
-yerel restore ve eski veri karşılaştırması zorunludur. Yalnız kanonik DB'ye
-eklemeli0018 planlanır. Gerçek yayın sonucu ayrıca kaydedilene kadar aşağıdaki
-yerel kanıtlar dağıtım yapılmış anlamına gelmez.
+## Canlı Sonuç
+
+21 Ekim17:03TRT, Mustafa'nın yeni açık yayın talebiyle `https://birkoru.com`:
+kaynak `86225c25216b2e74f7a6a00d2119ed8aeaf2e8ee`, Worker
+`bcdd561c-bae2-44fc-b349-d1faf74940f8` (%100), bakım kapalı.
+Yalnız kanonik DB'ye eklemeli0018 uygulandı. Üç şifreli yedeğin diskten
+çözme/yerel restore ve migration provası geçti; bütün eski şema/kayıt/medya/
+sıra değerleri korundu. **0018 ve önceki migration'ları yeniden uygulama.**
+Hesap tabloları dedicated DB'lere eklenmez. Açık paletler/logo/fontlar değişmedi.
+
+Coauthor olmadan çalışma dalına push edilmiş temiz kaynakta23/23 tam test ve
+güncel web audit geçti. Son refinements adımı11 kontrol/231 görüntü;80 galeri,
+48 boş durum ve32 gerçek grup görseli yerleşimi içeriyor. Canlı15/15 anonim
+HTTPS/PWA kontrolü, gerçek paket hashleri ve16 açık/koyu mobil/masaüstü görüntü
+başarılı. Kanıtlar: `outputs/release-tests/web-layout-release-86225c2-r1/` ve
+`outputs/web-acceptance/86225c2/` (Git dışı).
+
+13 manuel kabul başlığı bekliyor; fiziksel telefon/gerçek posta/ayrıcalıklı
+silme kabulü veya standart manuel kapı geçilmiş sayılmaz. Bu sürüme özel yayın
+talebi tüketildi. Buluşma postası kapalı; provider, staging, native, main,
+Secret ve ücretli hizmet değişmedi. Aşağıdaki yerel sonuçlar kendi tarihindeki
+kaynağı anlatır; güncel canlı durum bu bölümdür.
 
 ## Yerleşim Bulgusu
 
@@ -88,9 +102,10 @@ kalmıştı. Bütün görünümlerin ortak koyu boş durum sözleşmesi artık b
 koyu metin en az 4.5:1, simge 3:1; açık metinler eski renklerle aynı kalmalı.
 Home, boş Buluşmalar ve boş Plan x dört görünüm x iki mod x390/1440 kontrol edilir.
 
-Canlı değişiklik için yeni kaynakla eşleşen yayın kanıtı/ayrı yetki, kanonik
-şema incelemesi, taze şifreli yedek ve eklemeli 0018 provası gerekir. Önceki
-yayın kararları tekrar kullanılmaz. Gerçek posta, Firebase ayarları, staging,
+Sonraki canlı değişiklik için yeni kaynakla eşleşen yayın kanıtı/ayrı yetki,
+kanonik şema incelemesi, taze şifreli yedek ve varsa yeni SQL provası gerekir.
+0018 artık uygulanmıştır; tekrar çalıştırılmaz. Önceki yayın kararları tekrar
+kullanılmaz. Gerçek posta, Firebase ayarları, staging,
 logo, renk paletleri, native kod ve ücretli hizmetler bu çalışmanın dışındadır.
 
 ## Önceki Yerel Sonuç

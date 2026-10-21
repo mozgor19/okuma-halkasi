@@ -6,15 +6,20 @@ onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çık�
 
 ## Güncel Canlı Durum: 21 Ekim
 
-Web iyileştirmeleri Mustafa'nın yeni açık yayın talebiyle birkoru.com'a
-dağıtıldı: kaynak77a69c5, Worker70d23f67-3946-4213-8755-548bbaf4d5a7.
+21 Ekim17:03TRT: Mustafa'nın yeni açık yayın talebiyle birkoru.com'a
+dağıtıldı: kaynak86225c2, Workerbcdd561c-bae2-44fc-b349-d1faf74940f8.
+Galeri aralıkları, ilk gruptan sonra tur/görünüm seçimi, hesap görünüm
+varsayılanı, koyu boş durum karşıtlığı ve grup görselinin ekranda değişmesi yayında.
 23 temiz otomatik adım, güncel web audit, üç şifreli DB yedeği/yerel restore,
-0016/0017 eklemeli migration ve eski veri karşılaştırması,15 anonim canlı HTTPS
-kontrolü geçti.0016 üç DB'de,0017 yalnız kanonik DB'de; yeniden çalıştırma.
+yalnız kanonik DB'de eklemeli0018 ve tüm eski verilerin birebir karşılaştırması,
+15 anonim canlı HTTPS kontrolü geçti.0015/0017/0018 yalnız kanonik DB'de,
+0016 üç DB'de zaten uygulanmış durumda; hiçbirini yeniden çalıştırma.
 Mail göndericisi kurulmadığı için buluşma e-postası kapalı; Firebase hesap
 postaları değişmedi.13 manuel kabul başlığı BEKLİYOR; standart manuel kapı
 geçti diye gösterilmedi. Eski istisnalar tekrar kullanılmadı, bu talep sonraki
-yayına yetki değildir. Aşağıdaki19 Ekim hazırlık bölümleri tarihsel bağlamdır;
+yayına yetki değildir. Kanıtlar: outputs/release-tests/web-layout-release-86225c2-r1/
+ve outputs/web-acceptance/86225c2/. Sonraki belge commit'i yeni uygulama dağıtımı
+değildir. Aşağıdaki19 Ekim hazırlık bölümleri tarihsel bağlamdır;
 güncel kaynak/kanıt için FIREBASE_PRODUCTION.md ve SESSION_MEMORY.md okunur.
 
 19 Ekim ek kabul planı: [sekiz deneyim başlığı](WEB_EXPERIENCE_ACCEPTANCE.md).

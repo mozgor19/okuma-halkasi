@@ -7,20 +7,48 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
-CURRENT PUBLICATION REQUEST (October21, after the image-fix handoff): Mustafa
-explicitly said "tamam canlıya al". Prepare this accumulated web-only update:
-gallery spacing, first-group-only tour, final appearance selection/account
-defaults, dark empty-state contrast and the painted group image fix. This is
-new authority for THIS revision only, not reuse of consumed launch decisions.
-Keep the13 manual acceptance headings pending; do not claim a standard manual
-gate. Require clean coauthor-free work-branch commit/push, exact-source full
-suite, fresh web audit, live identity/settings verification, fresh encrypted
-backups/offline restore of ALL THREE DBs and typed old-data comparisons. Apply
-ONLY additive0018 on canonical DB after rehearsal; never replay0015/16/17 or
-apply account tables to dedicated DBs. Preserve mail OFF, existing Secrets,
-domains, shared readers, accounts, memberships and content. No staging import,
-native change, main push, new provider account/mail or paid service. No release
-has occurred under this request yet; record the actual outcome after verification.
+LATEST LIVE UPDATE (October21,17:03TRT): Mustafa's new explicit "tamam canlıya
+al" request has been completed. Application source86225c25216b2e74f7a6a00d2119ed8aeaf2e8ee
+is live at https://birkoru.com; Workerbcdd561c-bae2-44fc-b349-d1faf74940f8
+at100%, maintenance OFF. Desktop gallery spacing, first-group-only tour,
+final appearance choice/account defaults, dark empty-state contrast and the
+painted group image fix are deployed. Light palettes, approved logo/fonts,
+native code and dependencies were not changed.
+
+ONLY additive0018 was applied to canonical DB, adding an EMPTY account_appearance
+table. Do NOT replay0018 or0015/16/17, or apply account tables to dedicated DBs.
+Fresh AES-256-GCM backups of ALL THREE DBs were decrypted from disk and restored
+offline;0018 was rehearsed before live SQL. Exact schema/typed-row/media/sequence
+comparisons passed before AND after migration; all old data preserved. Both
+dedicated bindings/shared readers, Firebase/Turnstile/session Secrets, domains,
+staging/public-info settings and MEETING_MAIL_ENABLED=false remain unchanged.
+No staging import, provider account/mail, paid service or main push occurred.
+
+Source was clean, coauthor-free and pushed to work/koru-web-pwa-20261019 BEFORE
+deployment. Full clean suite23/23 passed on86225c2; current web audit has no
+high/critical web findings (low/moderate and deferred mobile findings remain).
+The first6922193 run exposed an outdated pre-group-tour TEST expectation;
+its failed report is retained.86225c2 corrected that expectation and reran ALL23
+steps fresh, including22 self-service and11 refinements/231 screenshots.
+The refinement step checks80 gallery,48 empty and32 actual hero layouts with
+real file choosers/picture pixels. Live15/15 anonymous HTTPS checks passed:
+real JS/CSS hashes, security/access,16 public theme screenshots, canonical
+redirects and PWA offline/reconnect; normal system DNS/TLS, no accounts/mail.
+
+Evidence (Git-ignored): outputs/release-tests/web-layout-release-86225c2-r1/suite-report.json,
+outputs/web-acceptance/86225c2/{production-outcome,production-smoke}.json.
+Private rollout ef080773-0572-40bb-a2a0-1f7398af2141; encrypted snapshots and
+separate keys stay outside Git.13 manual acceptance headings remain PENDING;
+this is NOT a passing standard manual gate or physical-device/provider/privileged
+erasure acceptance. This NEW revision-bound publication authority is consumed,
+not standing approval for another release. Never rerun the private rollout or
+restore over newer writes; fix forward with new-schema readers retained.
+Later documentation-only commits are NOT new application deployments.
+
+## Earlier Local Work (Historical)
+
+The local-only status and pending-suite notes below describe earlier snapshots;
+the live outcome above supersedes them for the deployed source.
 
 NEWEST LOCAL FIX (October21,14:08TRT): Mustafa reported the test home image not
 changing. Reproduced with a REAL file chooser: upload succeeded but Notebook's

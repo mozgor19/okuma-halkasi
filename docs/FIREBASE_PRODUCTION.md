@@ -1,6 +1,51 @@
 # Koru Üretim Firebase Hazırlığı
 
-## Son Yayın: Web İyileştirmeleri
+## Son Yayın: Yerleşim, İlk Grup Turu ve Grup Görseli
+
+21 Ekim 2026,17:03TRT: `https://birkoru.com`, uygulama kaynağı
+`86225c25216b2e74f7a6a00d2119ed8aeaf2e8ee`, Worker sürümü
+`bcdd561c-bae2-44fc-b349-d1faf74940f8` (%100); bakım kapalı.
+Masaüstü galeri aralıkları, ilk başarılı grup kurma/katılma sonrası tur,
+son adımda dört görünüm ve renk modu seçimi, hesap varsayılanı, koyu boş durum
+karşıtlığı ve Defter'de gerçek grup görselinin gösterilmesi yayında.
+Açık paletler, logo/fontlar ve önceki hesapların tur durumu korundu.
+
+Üç üretim DB'sinin taze AES-256-GCM yedeği, diskten çözme ve çevrimdışı
+geri yüklemesi doğrulandı. Yalnız kanonik DB'ye `0018_account_appearance`
+uygulandı; yeni tablo boş, mevcut tercih ve tur satırları değiştirilmedi.
+Eski şema, tipli kayıtlar, medya ve kimlik sayaçları işlemden önce/sonra
+birebir eşleşti. **0015/0016/0017/0018'i tekrar çalıştırma.** Dedicated DB'lere
+hesap tablosu ekleme; ortak okuyucular ve üç mevcut bağlantı korunur.
+
+Coauthor içermeyen temiz kaynak dağıtımdan önce çalışma dalına push edildi;
+main değişmedi. Tam paket23/23 geçti; taze web audit'te high/critical web
+bulgusu yok (düşük/orta ve ertelenen mobil bulgular sürüyor). İlk6922193
+koşumundaki eski tur beklentisi testte düzeltildi; başarısız rapor korundu,
+86225c2 için23 adımın tamamı yeniden çalıştırıldı. Son adım11 kontrol/231
+görüntü,80 galeri,48 boş durum ve gerçek dosya seçici/piksel denetimli32
+grup görseli yerleşimini içeriyor.
+
+Canlı15/15 anonim HTTPS kontrolü geçti: gerçek JS/CSS dosyaları derlemeyle
+birebir, güvenlik/yetki ve yönlendirmeler doğru, dört görünüm açık/koyu
+390/1440px'de taşmıyor, PWA çevrimdışı/yeniden bağlanma çalışıyor. Sistem
+DNS'i ve normal TLS kullanıldı; hesap açılmadı veya posta gönderilmedi.
+Firebase/Turnstile/oturum Secret'ları, staging/public-info ayarları, alan adı
+bağlantıları ve ücretli planlar değiştirilmedi. Buluşma postası hâlâ
+`MEETING_MAIL_ENABLED=false`; Firebase hesap postaları değişmedi.
+
+13 manuel kabul başlığı BEKLİYOR. Fiziksel Android/iPhone, gerçek sağlayıcı
+postası/hesap işlemleri ve ayrıcalıklı silme bu kontrollerle tamamlanmış
+sayılmaz. Mustafa'nın bu sürüme özel yeni yayın talebi tüketildi; standart
+manuel kapı geçti veya sonraki yayına genel yetki var denemez.
+
+Kanıtlar (Git dışı): `outputs/release-tests/web-layout-release-86225c2-r1/suite-report.json`,
+`outputs/web-acceptance/86225c2/production-outcome.json`, `production-smoke.json`.
+Özel rollout: `ef080773-0572-40bb-a2a0-1f7398af2141`; şifreli yedekler ve
+ayrı anahtarlar Git dışındadır. Rollout'u yeniden çalıştırma, tabloları silme
+veya yeni yazmaların üzerine yedek dökme. Sorunda yeni şemayı ve ortak
+okuyucuları koruyarak düzelt; sonraki belge commit'i uygulama dağıtımı değildir.
+
+## Önceki Yayın: Web İyileştirmeleri
 
 21 Ekim 2026,10:06TRT: `https://birkoru.com`, uygulama kaynağı
 `77a69c50d58d55113b6a9ae2b1faeccdac5db713`, Worker sürümü
