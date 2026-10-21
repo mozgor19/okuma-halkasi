@@ -1,4 +1,4 @@
-export const WEB_REQUIRED_STEPS = ["fixtures", "release-unit", "backend-unit", "web-types", "ui-contract", "lint", "web-build", "password-runtime", "web-production", "api", "web-ui", "branding", "legacy", "memberships", "self-service", "web-pwa", "web-experience", "web-experience-extra", "web-refinements", "web-updates"];
+export const WEB_REQUIRED_STEPS = ["fixtures", "release-unit", "backend-unit", "web-types", "ui-contract", "lint", "web-build", "password-runtime", "web-production", "api", "web-ui", "branding", "legacy", "memberships", "self-service", "web-pwa", "web-experience", "web-experience-extra", "web-updates", "refinement-fixtures", "web-refinements"];
 export const WEB_MANUAL_CHECKS = ["androidPwa", "iosPwa", "socialPreviews", "visualReview", "performanceAccessibility", "securityReview", "passwordStorage", "permanentMail", "privacyDeletion", "backupRestore", "capacityMonitoring", "productionMigrationPlan", "rollbackPlan", "operatorApproval"];
 
 export function webReleaseFailures({ suite, audit, evidence, current, now = Date.now(), proofExists = () => false }) {

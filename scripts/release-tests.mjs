@@ -63,10 +63,10 @@ async function freePort(origin) {
   await new Promise((resolve, reject) => { server.once("error", reject); server.listen(Number(url.port), url.hostname, resolve); });
   await new Promise((resolve) => server.close(resolve));
 }
-async function server(legacy = false, selfService = false, koru = false) {
+async function server(legacy = false, selfService = false, koru = false, overrides = {}) {
   const origin = legacy ? legacyOrigin : testOrigin;
   await freePort(origin);
-  const child = launch(node("node_modules/vite/bin/vite.js", "--port", new URL(origin).port), { ...registryEnvironment(legacy ? "legacy" : "main"), OKUMA_GROUPS_DEVELOPMENT: legacy ? "legacy" : "1", OKUMA_SELF_SERVICE_DEVELOPMENT: selfService ? "1" : "0", OKUMA_APPLICATION_BRAND: koru ? "Koru" : "", OKUMA_BRAND_ORIGIN: koru ? "https://koru.example" : "" }, legacy ? "legacy-server" : koru ? "koru-server" : selfService ? "self-service-server" : "main-server");
+  const child = launch(node("node_modules/vite/bin/vite.js", "--port", new URL(origin).port), { ...registryEnvironment(legacy ? "legacy" : "main"), OKUMA_GROUPS_DEVELOPMENT: legacy ? "legacy" : "1", OKUMA_SELF_SERVICE_DEVELOPMENT: selfService ? "1" : "0", OKUMA_APPLICATION_BRAND: koru ? "Koru" : "", OKUMA_BRAND_ORIGIN: koru ? "https://koru.example" : "", ...overrides }, overrides.OKUMA_TEST_RUN_ID ? "refinements-server" : legacy ? "legacy-server" : koru ? "koru-server" : selfService ? "self-service-server" : "main-server");
   for (let attempt = 0; attempt < 120; attempt++) {
     if (child.exitCode !== null) throw new Error("Test server exited; inspect its log.");
     try { const response = await fetch(origin + "/login", { signal: AbortSignal.timeout(3_000) }); if (response.ok) return child; } catch { /* Server compilation is bounded by this loop. */ }
@@ -159,9 +159,15 @@ try {
     await run("web-pwa", pnpm("web:test:pwa"));
     await run("web-experience", pnpm("web:test:experience"));
     await run("web-experience-extra", [process.execPath, "scripts/test-web-experience.mjs", "--extra"]);
-    await run("web-refinements", pnpm("web:test:refinements"));
     await run("web-updates", pnpm("web:test:updates"));
     await stop(koru);
+    // Security counters are real. New feature scenarios must not consume the
+    // established account suite's loopback login budget or reset its counters.
+    const refinementEnv = { OKUMA_TEST_RUN_ID: testRunId.slice(0, 48) + "-refinements" };
+    await run("refinement-fixtures", node("scripts/groups-development.mjs"), refinementEnv);
+    const refinements = await server(false, true, true, refinementEnv);
+    await run("web-refinements", pnpm("web:test:refinements"), refinementEnv);
+    await stop(refinements);
   }
   const after = sourceIdentity();
   if (after.commit !== report.commit || after.sourceDigest !== report.sourceDigest) throw new Error("Source changed during tests; rerun against one fixed revision.");
