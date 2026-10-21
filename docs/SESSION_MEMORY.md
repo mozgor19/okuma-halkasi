@@ -7,6 +7,28 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
+CURRENT URGENT REQUEST (October21,23:00TRT): Mustafa supplied real iPhone
+screenshots of editing/create dialogs auto-zooming/panning to the upper left,
+native date overflow and unreachable long-form content, and explicitly asked
+for an urgent live fix without unrelated changes. NEW authority is scoped to
+this mobile-form hotfix, not any consumed publication request. Reproduced
+sub16px PORTAL input fonts in BOTH Chromium and WebKit before correction:
+the existing mobile selector covered .app-shell, not body-level dialog portals.
+Product change: portal fields16px on mobile; constrained create-form
+grid/labels/date/text/file widths; bounded dialog and scrollable form/body.
+A focused bottom field was also proven below the keyboard in a separate probe;
+PwaLifecycle now scrolls ONLY the active create-dialog form region after its
+viewport layout, never the locked page/dialog or focus itself.
+No data/business/auth/backend/native/palette/font/logo/dependency changes,
+no SQL or Secret/provider operations. All migrations through0018 are already
+applied; DO NOT replay. Live baseline remains86225c2 below until a new verified
+outcome is recorded. Mandatory web-refinements now includes128 actual dialog
+layouts (4 forms x4 widths x4 schemes x2 modes), keyboard visibility, draft
+retention, final-action reachability and unchanged book/meeting/plan data.
+Run the clean full suite/audit and separate source-bound WebKit check before
+publishing. Keep13 manual categories pending; desktop engine/emulated viewport
+is not a real iPhone keyboard. Do not reset the original5321 preview.
+
 LATEST LIVE UPDATE (October21,17:03TRT): Mustafa's new explicit "tamam canlıya
 al" request has been completed. Application source86225c25216b2e74f7a6a00d2119ed8aeaf2e8ee
 is live at https://birkoru.com; Workerbcdd561c-bae2-44fc-b349-d1faf74940f8

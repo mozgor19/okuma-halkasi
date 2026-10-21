@@ -7,10 +7,11 @@ import { localTestSql } from "./local-d1-test.mjs";
 import { checkMeetingLayout } from "./meeting-layout-checks.mjs";
 import { checkEmptyPanelContrast } from "./empty-panel-checks.mjs";
 import { checkGroupHero } from "./group-hero-checks.mjs";
+import { checkMobileDialogs } from "./mobile-dialog-checks.mjs";
 
 if (!testRunId) throw Error("A named isolated local fixture is required.");
 const output = testOutputPath("web-refinements"), checks = [], screenshots = [], errors = [], meetingLayouts = [], emptyPanels = [];
-let groupHero = null;
+let groupHero = null, mobileDialogs = [];
 mkdirSync(output, { recursive: true });
 const { password } = readGroupsDevelopmentSettings();
 const browser = await chromium.launch({ args: ["--no-sandbox"] });
@@ -192,6 +193,11 @@ try {
   }, { baseline, current });
   assert.deepEqual(palettes[1], palettes[0]); passed("All original non-dark --app palette declarations remain unchanged");
 
+  mobileDialogs = await checkMobileDialogs(page, context, origin, capture);
+  passed("All four actual form dialogs: no portal input auto-zoom, date/file/text overflow or unreachable save action across four schemes, both modes and320/390/430/1440; keyboard open/close preserves drafts");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(origin + "/?group=default"); await hydrated();
+
   await page.getByRole("button", { name: "Yeni buluşma oluştur", exact: true }).click();
   const dialog = page.locator(".create-dialog");
   await dialog.getByLabel("Kitap adı *", { exact: true }).fill("Çevrim İçi Deneme Kitabı");
@@ -307,7 +313,7 @@ try {
   await capture("mail-preference-mobile");
   passed("Mail deep link opens profile; verified member toggles/persists opt-in and cannot inspect the admin queue");
   assert.deepEqual(errors, []);
-  writeFileSync(`${output}/report.json`, JSON.stringify({ status: "passed", checkedAt: new Date().toISOString(), checks, screenshots, meetingLayouts, emptyPanels, groupHero, errors, limitations: ["Local Chromium and synthetic D1 only; no real provider mail or physical device acceptance"] }, null, 2));
+  writeFileSync(`${output}/report.json`, JSON.stringify({ status: "passed", checkedAt: new Date().toISOString(), checks, screenshots, meetingLayouts, emptyPanels, groupHero, mobileDialogs, errors, limitations: ["Local Chromium and synthetic D1 only; no real provider mail or physical device acceptance"] }, null, 2));
   console.log(`Refinement checks passed: ${checks.length}; screenshots: ${screenshots.length}`);
 } catch (error) {
   writeFileSync(`${output}/failed-${Date.now()}.json`, JSON.stringify({ status: "failed", checkedAt: new Date().toISOString(), checks, screenshots, meetingLayouts, emptyPanels, errors, failure: error.message }, null, 2));

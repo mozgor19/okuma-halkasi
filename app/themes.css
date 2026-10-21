@@ -1296,10 +1296,16 @@ html.dark .favorite{
 .create-dialog{
   width:min(720px,calc(100vw - 24px));
   max-width:min(720px,calc(100vw - 24px));
+  overflow:hidden;
   border-color:var(--color-border);
   background:var(--color-surface);
   color:var(--color-text);
 }
+.create-dialog [data-slot="dialog-header"]{flex-shrink:0;min-width:0}
+.create-dialog>:is(.dialog-scroll,.create-form){min-height:0;overflow-y:auto;overscroll-behavior-y:contain}
+.create-dialog .create-form{grid-template-columns:minmax(0,1fr)}
+.create-dialog .create-form :is(label,fieldset){min-width:0}
+.create-dialog .create-form :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select),.create-dialog .lookup-row input{width:100%;min-width:0;max-width:100%}
 .create-dialog [data-slot="dialog-title"]{color:var(--color-text)}
 .create-dialog [data-slot="dialog-description"]{color:var(--color-text-muted)}
 .create-dialog [data-slot="dialog-close"]{color:var(--color-text-muted)}
@@ -1514,7 +1520,7 @@ html[data-scheme="notebook"] .review-count{padding-top:8px}
   .gallery-actions{width:100%;justify-content:flex-start}
 }
 @media(max-width:680px){
-  .create-dialog{width:calc(100vw - 20px);max-width:calc(100vw - 20px);padding:20px}
+  .create-dialog{width:calc(100vw - 20px);max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);padding:20px}
   .dialog-scroll{overflow-x:hidden}
   .lookup-row{display:grid;grid-template-columns:minmax(0,1fr) auto}
   .lookup-row button{min-width:82px}
@@ -1751,6 +1757,8 @@ html[data-scheme="minimal"] .minimal-custom-hero{display:block;margin:0;width:10
 .onboarding-panel .account-data-section{grid-template-columns:minmax(0,1fr);gap:20px}
 @media(max-width:680px){
   :is(.login-page,.app-shell) :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select){font-size:16px;min-height:44px}
+  /* Dialog portals are outside .app-shell; keep iOS focus from auto-zooming. */
+  html[data-product="koru"] [data-slot="dialog-content"] :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select){font-size:16px;min-height:44px}
   :is(.topbar-tool,.person-picker,.icon-action,.meeting-share,.vote-button,.profile-photo-button,.onboarding-links a,.onboarding-tabs button){min-width:44px;min-height:44px}
   html[data-product="koru"] .login-page{min-height:100dvh;padding-top:max(16px,var(--layout-safe-top));padding-bottom:max(16px,var(--layout-safe-bottom));padding-left:max(16px,var(--layout-safe-left));padding-right:max(16px,var(--layout-safe-right))}
   html[data-product="koru"] .topbar{height:calc(var(--mobile-header-height) + var(--layout-safe-top));min-height:calc(var(--mobile-header-height) + var(--layout-safe-top));padding-top:calc(var(--mobile-header-padding-top) + var(--layout-safe-top));padding-bottom:var(--mobile-header-padding-bottom);padding-left:max(17px,var(--layout-safe-left));padding-right:max(17px,var(--layout-safe-right))}

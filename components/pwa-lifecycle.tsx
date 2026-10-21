@@ -70,6 +70,19 @@ export function PwaLifecycle({ enabled, children }: { enabled: boolean; children
         root.toggleAttribute("data-keyboard-open", keyboard.open);
         root.style.setProperty("--visible-viewport-height", `${keyboard.height}px`);
         root.style.setProperty("--visible-viewport-top", `${keyboard.top}px`);
+        if (keyboard.open) frame = requestAnimationFrame(() => {
+          const field = document.activeElement;
+          if (!(field instanceof HTMLElement)) return;
+          const scroller = field.closest<HTMLElement>(".create-dialog>.dialog-scroll,.create-dialog>.create-form");
+          if (!scroller) return;
+          // Scroll only the form, never the locked page or the dialog itself.
+          const area = scroller.getBoundingClientRect(), bounds = field.getBoundingClientRect();
+          const top = Math.max(area.top, keyboard.top) + 12;
+          const bottom = Math.min(area.bottom, keyboard.top + keyboard.height) - 12;
+          if (bottom <= top) return;
+          if (bounds.height > bottom - top || bounds.top < top) scroller.scrollTop += bounds.top - top;
+          else if (bounds.bottom > bottom) scroller.scrollTop += bounds.bottom - bottom;
+        });
       });
     };
     viewport.addEventListener("resize", update);
