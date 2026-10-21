@@ -18,6 +18,11 @@ Mobile opening focuses the dialog with preventScroll, not the first input;
 the keyboard opens on a deliberate field tap. Visual viewport sizing remains
 through focus/blur; stale dismissal offsets are clamped and pinch zoom does
 not reflow the form. Desktop and non-form dialog behavior stays unchanged.
+The mandatory production-bundle step now also exercises32 real mobile form
+layouts with minified CSS/JS, not only the Vite/dev server. Its geometric
+identity check permits the compiler's translate(0,0) equivalent. The earlier
+9c0e51b suite was deliberately interrupted to add this coverage; do not count
+that partial run or its older WebKit proof as final-source acceptance.
 Source, full technical gate and production checks must precede publication;
 this entry does not claim a deployment. No SQL/migrations, provider, Secrets,
 palettes, brand, native, staging or original5321 preview data changes allowed.

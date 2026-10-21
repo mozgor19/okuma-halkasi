@@ -3,12 +3,15 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 import { readGroupsDevelopmentSettings } from "./groups-development.mjs";
 import { testOrigin as origin, testOutputPath, testRunId } from "./test-environment.mjs";
+import { checkMobileDialogs } from "./mobile-dialog-checks.mjs";
+import { sourceIdentity } from "./release-source.mjs";
 
 if (!testRunId || process.argv.length > 2) throw new Error("A named local production fixture environment is required.");
 const output = testOutputPath("web-production");
 mkdirSync(output, { recursive: true });
 const checks = [], errors = [];
 let passed = false;
+let mobileDialogs = [];
 const browser = await chromium.launch({ args: ["--no-sandbox"] });
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce", serviceWorkers: "block" });
@@ -90,6 +93,13 @@ try {
     await adminPage.getByRole("button", { name: "Hesap menüsü", exact: true }).click();
     await adminPage.getByRole("menuitem", { name: "Yönetici görünümüne dön", exact: true }).click();
     assert.equal(await adminPage.evaluate(() => localStorage.getItem("kitapTahlilViewMode")), "admin");
+    const headers = { Origin: origin, "X-Reading-Group": "default" };
+    assert.equal((await other.request.post(origin + "/api/account/experience", { headers, data: { kind: "tour", version: 1, state: "dismissed" } })).status(), 200);
+    mobileDialogs = await checkMobileDialogs(adminPage, other, origin, async name => {
+      await adminPage.screenshot({ path: `${output}/form-${name}.png`, animations: "disabled" });
+    }, [390]);
+    assert.equal(mobileDialogs.length, 32);
+    checks.push("Minified production CSS and hydrated form JS pass 32 normal-motion mobile dialog/keyboard/blur/zoom layouts with drafts and domain records preserved");
   } finally { await other.close(); }
   checks.push("Parallel-account server documents stay group-isolated; a conflicting group query cannot render private state");
   checks.push("Stored participant preview hydrates without a mismatch and can return to admin mode");
@@ -126,5 +136,5 @@ try {
   console.log(`PRODUCTION: ${checks.length} checks passed`);
 } finally {
   await browser.close();
-  writeFileSync(`${output}/report.json`, JSON.stringify({ status: passed ? "passed" : "failed", checkedAt: new Date().toISOString(), checks, errors, scope: "Local production Chromium; not remote Workers CPU, Turnstile, or physical-device proof" }, null, 2));
+  writeFileSync(`${output}/report.json`, JSON.stringify({ ...sourceIdentity(), status: passed ? "passed" : "failed", checkedAt: new Date().toISOString(), checks, errors, mobileDialogs, scope: "Local production Chromium; not remote Workers CPU, Turnstile, or physical-device proof" }, null, 2));
 }

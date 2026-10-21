@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-export async function checkMobileDialogs(page, context, origin, capture) {
+export async function checkMobileDialogs(page, context, origin, capture, widths = [320, 390, 430, 1440]) {
   const layouts = [], headers = { Origin: origin, "X-Reading-Group": "default" };
   const cases = [
     { name: "meeting-edit", meeting: true, button: "Buluşmayı düzenle" },
@@ -12,7 +12,7 @@ export async function checkMobileDialogs(page, context, origin, capture) {
   const previous = appearance.groups.find(group => group.id === "default");
   const before = await (await context.request.get(origin + "/api/state", { headers })).json();
   try {
-    for (const width of [320, 390, 430, 1440]) for (const scheme of ["editorial", "catalogue", "notebook", "minimal"]) for (const mode of ["light", "dark"]) {
+    for (const width of widths) for (const scheme of ["editorial", "catalogue", "notebook", "minimal"]) for (const mode of ["light", "dark"]) {
       await page.emulateMedia({ reducedMotion: width === 390 ? "no-preference" : "reduce" });
       await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 });
       assert.equal((await context.request.patch(origin + "/api/groups/appearance", { headers, data: { scheme, mode } })).status(), 200);
@@ -32,9 +32,10 @@ export async function checkMobileDialogs(page, context, origin, capture) {
             label + ": opening a long mobile form must focus the dialog, not summon the keyboard during its animation");
           const positioning = await dialog.evaluate(element => {
             const style = getComputedStyle(element);
-            return { transform: style.transform, translate: style.translate, animation: style.animationName, transition: style.transitionDuration };
+            return { identity: style.transform === "none" || new DOMMatrix(style.transform).isIdentity,
+              translate: style.translate, animation: style.animationName, transition: style.transitionDuration };
           });
-          assert.deepEqual(positioning, { transform: "none", translate: "none", animation: "none", transition: "0s" },
+          assert.deepEqual(positioning, { identity: true, translate: "none", animation: "none", transition: "0s" },
             label + ": mobile form positioning must not depend on centering transforms or zoom animations");
         }
         const geometry = await dialog.evaluate(element => {

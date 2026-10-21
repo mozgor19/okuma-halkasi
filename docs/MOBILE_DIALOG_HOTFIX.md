@@ -23,6 +23,10 @@ değildir. Masaüstü, diğer pencereler, paletler ve veri işlemleri korunur.
   ve form yakınlaştırma sırasında yeniden boyutlandırılmaz.
 - Kalıcı testler normal ve azaltılmış hareketi, farklı viewport kaymalarını,
   blur/klavye kapanış sırasını ve taslağın korunmasını kapsar.
+- Zorunlu web-production adımı ayrıca gerçek minify edilmiş CSS/JS ile
+  dört formu dört görünüm/açık-koyuda32 kez sınar. Derleyicinin identity
+  transform çıktısı geometrik olarak denetlenir; yalnız Vite/dev kontrolü
+  veya CSS kaynak metni yeterli kabul edilmez.
 
 Yeni talep, önceki acil düzeltmenin başarısız devamı için dar kapsamlıdır;
 eski yayın kararı yeniden kullanılmaz. Güncel temiz kaynak/push, tam otomatik
