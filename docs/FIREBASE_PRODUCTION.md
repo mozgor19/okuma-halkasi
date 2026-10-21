@@ -1,6 +1,47 @@
 # Koru Üretim Firebase Hazırlığı
 
-## Son Yayın: Yerleşim, İlk Grup Turu ve Grup Görseli
+## Son Yayın: Acil Mobil Form Düzeltmesi
+
+21 Ekim 2026,23:44TRT: `https://birkoru.com`, uygulama kaynağı
+`aa6df77e14772cca67efc8ba61e437061edc0eec`, Worker sürümü
+`e6d97ef8-d8c7-4803-af9c-693b3be0ebe0` (%100); bakım kapalı.
+Mustafa'nın gerçek iPhone görüntüleriyle bildirdiği acil portal form sorunu
+için yeni, yalnız bu kaynağa bağlı yayın talebi uygulandı.
+
+Ürün değişikliği yalnız form CSS'i ve PwaLifecycle'ın form içi odak kaydırması:
+mobil girdiler16px, tarih/dosya/metin alanları genişlik sınırında, uzun form
+kendi içinde kaydırılabilir, aktif alt alan klavyenin üstünde tutulur. Sayfa
+veya odak zorla değiştirilmez. Renk, marka, font dosyası, hesap/grup iş kuralları,
+backend, bağımlılıklar ve native kod değişmedi. [Kapsam](MOBILE_DIALOG_HOTFIX.md).
+
+Aynı temiz kaynakta23 aşama geçti. Port çakışması ve sonraki tarayıcı zaman
+aşımlarının başarısız raporları korundu; kaynak/veri değişmeden12 başarılı
+adım özgün rapor SHA'sıyla doğrulanarak devam edildi, başarısız görsel adım
+ve kalan bütün adımlar yeniden çalıştırıldı.211 mevcut ekran,22 hesap akışı,
+59PWA,43+8 deneyim; son refinements12 kontrol/327 görüntü,128 yeni form
+yerleşimi dahil. Ayrı temiz kaynaklı WebKit128 yerleşim/96 görüntü başarılı.
+Güncel audit'te yüksek/kritik web bulgusu yok; eski düşük/orta ve ertelenen
+native bulgular sürüyor. Bunlar gerçek iPhone klavyesi kabulü değildir.
+
+Üç DB'nin taze şifreli yedeği, diskten çözme/çevrimdışı restore ve tüm eski
+şema/tipli satır/medya/sayaç karşılaştırması geçti. **SQL yazımı veya migration
+YOK;0015/0016/0017/0018'i yeniden çalıştırma.** Mevcut üç DB/ortak okuyucular,
+Secret'lar, alan adları, staging/public-info ve `MEETING_MAIL_ENABLED=false`
+korundu. Firebase hesap postaları değişmedi. Main veya ücretli plan değişmedi.
+
+Yayın sonrası15 anonim gerçek HTTPS/PWA kontrolü ve16 açık/koyu mobil/masaüstü
+görüntü geçti; yeni JS/CSS test edilen paketle birebir. Gerçek hesap veya posta
+oluşturulmadı. Kaynak coauthor olmadan çalışma dalına push edilerek yayımlandı.
+13 manuel başlık hâlâ bekliyor; standart manuel kapı geçilmedi. Bu acil talep
+tüketildi, sonraki dağıtıma genel yetki değildir.
+
+Git dışı kanıt: `outputs/release-tests/mobile-dialog-release-aa6df77-r2/suite-report-continued.json`,
+`outputs/release-tests/mobile-dialog-hotfix-20261021-a/mobile-dialogs-webkit/report.json`,
+`outputs/web-acceptance/aa6df77/{production-outcome,production-smoke}.json`.
+Özel rollout `dd734285-af9c-466c-89b2-54a4767a9196`; şifreli yedekler ve
+ayrı anahtarlar Git dışı. Sonraki belge commit'i uygulama dağıtımı değildir.
+
+## Önceki Yayın: Yerleşim, İlk Grup Turu ve Grup Görseli
 
 21 Ekim 2026,17:03TRT: `https://birkoru.com`, uygulama kaynağı
 `86225c25216b2e74f7a6a00d2119ed8aeaf2e8ee`, Worker sürümü

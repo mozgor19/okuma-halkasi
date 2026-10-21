@@ -7,29 +7,55 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
-CURRENT URGENT REQUEST (October21,23:00TRT): Mustafa supplied real iPhone
-screenshots of editing/create dialogs auto-zooming/panning to the upper left,
-native date overflow and unreachable long-form content, and explicitly asked
-for an urgent live fix without unrelated changes. NEW authority is scoped to
-this mobile-form hotfix, not any consumed publication request. Reproduced
-sub16px PORTAL input fonts in BOTH Chromium and WebKit before correction:
-the existing mobile selector covered .app-shell, not body-level dialog portals.
-Product change: portal fields16px on mobile; constrained create-form
-grid/labels/date/text/file widths; bounded dialog and scrollable form/body.
-A focused bottom field was also proven below the keyboard in a separate probe;
-PwaLifecycle now scrolls ONLY the active create-dialog form region after its
-viewport layout, never the locked page/dialog or focus itself.
-No data/business/auth/backend/native/palette/font/logo/dependency changes,
-no SQL or Secret/provider operations. All migrations through0018 are already
-applied; DO NOT replay. Live baseline remains86225c2 below until a new verified
-outcome is recorded. Mandatory web-refinements now includes128 actual dialog
-layouts (4 forms x4 widths x4 schemes x2 modes), keyboard visibility, draft
-retention, final-action reachability and unchanged book/meeting/plan data.
-Run the clean full suite/audit and separate source-bound WebKit check before
-publishing. Keep13 manual categories pending; desktop engine/emulated viewport
-is not a real iPhone keyboard. Do not reset the original5321 preview.
+LATEST LIVE HOTFIX (October21,23:44TRT): Mustafa's NEW urgent request with real
+iPhone screenshots has been completed at https://birkoru.com. Application
+sourceaa6df77e14772cca67efc8ba61e437061edc0eec, Workere6d97ef8-d8c7-4803-af9c-693b3be0ebe0
+at100%; maintenance OFF. Source was clean, coauthor-free and pushed to the
+work branch BEFORE deployment; main unchanged. This new revision-bound urgent
+authority is consumed, NOT standing approval or reuse of earlier decisions.
 
-LATEST LIVE UPDATE (October21,17:03TRT): Mustafa's new explicit "tamam canlıya
+Reproduced sub16px portal input fonts in BOTH Chromium and WebKit: the mobile
+selector covered .app-shell, not body-level dialog portals. ONLY TWO product
+files changed: themes.css gives mobile portal fields16px, constrains form/grid/
+label/date/file widths and provides bounded scrollable form bodies; PwaLifecycle
+keeps an active bottom field visible by scrolling ONLY that form, never the
+locked page/dialog or focus. Separate red/green measurement proved the bottom
+field moved above the simulated keyboard with draft retained and scrollX0.
+No data/business/auth/backend/native/palette/font-file/logo/dependency changes.
+
+23/23 checks completed on identical CLEAN source and persisted synthetic data.
+r1 stopped on an occupied test port after10 passing steps; r2 used5391/5392,
+then timed out in web-ui after12 passing steps. Original failed reports remain.
+Concurrent WebKit also had timeouts; not relabeled as passes. After closing
+the temporary5331 server and running browser checks separately, the continuation
+retained ONLY the12 source-matched passing steps (original report SHA verified),
+reran failed web-ui211 checks plus EVERY remaining step successfully. No source
+or persisted fixture reset in between. Current web audit passes without web
+high/critical findings; existing low/moderate and deferred native findings remain.
+Final web-refinements:12 checks/327 images, including128 actual mobile/desktop
+dialog layouts, keyboard focus/draft/save access and unchanged domain records;
+previous80 gallery/48 empty/32 hero layouts retained. Separate CLEAN source-bound
+WebKit:128 layouts/96 images, passed. Temporary Ubuntu libs are in /tmp only,
+with ignored .sites-runtime/webkit-local.sh; no system packages were installed.
+
+Fresh encrypted backups/disk decrypt/offline restores of ALL THREE production
+DBs and exact schema/typed-row/media/sequence comparison passed. ZERO SQL writes
+or migrations:0018 was already present on canonical ONLY and is unchanged.
+Do NOT replay0015/16/17/18. Shared readers/dedicated bindings, Secrets, production
+flags/domains, staging/public-info settings and meeting mail OFF are preserved.
+No real accounts/mail, staging import, provider/paid service or native work.
+Post-deployment15/15 anonymous HTTPS checks passed, real JS/CSS byte matches,
+16 public theme screenshots and PWA offline/reconnect; normal system DNS/TLS.
+
+Evidence (Git-ignored): outputs/release-tests/mobile-dialog-release-aa6df77-r2/suite-report-continued.json;
+outputs/release-tests/mobile-dialog-hotfix-20261021-a/mobile-dialogs-webkit/report.json;
+outputs/web-acceptance/aa6df77/{production-outcome,production-smoke}.json.
+Rollout dd734285-af9c-466c-89b2-54a4767a9196; encrypted backups/keys stay private.
+13 manual categories remain PENDING. This is NOT physical iPhone/Android keyboard
+acceptance or a passed standard manual gate. Do not reset the original5321 preview.
+Later documentation-only commits are NOT new application deployments.
+
+PREVIOUS LIVE UPDATE (October21,17:03TRT): Mustafa's new explicit "tamam canlıya
 al" request has been completed. Application source86225c25216b2e74f7a6a00d2119ed8aeaf2e8ee
 is live at https://birkoru.com; Workerbcdd561c-bae2-44fc-b349-d1faf74940f8
 at100%, maintenance OFF. Desktop gallery spacing, first-group-only tour,

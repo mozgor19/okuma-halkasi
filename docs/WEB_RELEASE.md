@@ -6,6 +6,21 @@ onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çık�
 
 ## Güncel Canlı Durum: 21 Ekim
 
+23:44TRT, acil mobil form düzeltmesi yayında: kaynakaa6df77, Worker
+e6d97ef8-d8c7-4803-af9c-693b3be0ebe0 (%100), bakım kapalı. Yalnız form CSS'i
+ve klavye sırasında form içi odak kaydırması değişti. Aynı temiz kaynakta23
+aşama (başarısız rapor korunarak12 geçen adımdan doğrulanmış devam), ayrı
+WebKit128 yerleşim/96 görüntü, güncel audit, üç şifreli yedek/yerel restore/
+eski veri karşılaştırması ve15 canlı HTTPS kontrolü geçti. SQL/migration yok;
+0015/16/17/18 zaten uygulanmıştır, tekrar çalıştırma. Mevcut veri, Secret'lar,
+renk/marka, staging, native ve main korundu.13 manuel kabul hâlâ BEKLİYOR;
+bu gerçek iPhone klavyesi veya standart manuel kapı kabulü değildir. Yeni
+acil talep tüketildi; ilerideki yayınlara yetki değildir. Kanıtlar:
+`outputs/release-tests/mobile-dialog-release-aa6df77-r2/suite-report-continued.json`,
+`outputs/web-acceptance/aa6df77/`. [Mobil form kapsamı](MOBILE_DIALOG_HOTFIX.md).
+
+### Önceki Güncelleme
+
 21 Ekim17:03TRT: Mustafa'nın yeni açık yayın talebiyle birkoru.com'a
 dağıtıldı: kaynak86225c2, Workerbcdd561c-bae2-44fc-b349-d1faf74940f8.
 Galeri aralıkları, ilk gruptan sonra tur/görünüm seçimi, hesap görünüm
