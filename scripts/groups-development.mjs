@@ -5,6 +5,9 @@ import { spawnSync } from "node:child_process";
 import { groupsSettingsPath, groupsConfigPath, groupsSeedPath, groupsStatePath } from "./test-environment.mjs";
 export { groupsSettingsPath, groupsConfigPath, groupsStatePath } from "./test-environment.mjs";
 
+// Synthetic accounts also exercise the real password-change policy.
+export const developmentPassword = () => "Local-Test-7-" + randomBytes(18).toString("base64url");
+
 // This profile never contains a real Cloudflare database ID or remote binding.
 export const groupsBindings = [
   { binding: "DB", database_name: "okuma-local-accounts", database_id: "11111111-1111-4111-8111-111111111111" },
@@ -30,7 +33,7 @@ function execute(binding, file) {
 if (process.argv[1] === resolve("scripts/groups-development.mjs")) {
   mkdirSync(dirname(groupsConfigPath), { recursive: true });
   if (!existsSync(groupsSettingsPath)) {
-    writeFileSync(groupsSettingsPath, JSON.stringify({ sessionSecret: randomBytes(48).toString("hex"), password: randomBytes(18).toString("base64url") }), { mode: 0o600 });
+    writeFileSync(groupsSettingsPath, JSON.stringify({ sessionSecret: randomBytes(48).toString("hex"), password: developmentPassword() }), { mode: 0o600 });
   }
   writeFileSync(groupsConfigPath, JSON.stringify({ name: "okuma-local-groups", compatibility_date: "2026-05-15", d1_databases: groupsBindings }), { mode: 0o600 });
   const marker = groupsSeedPath;
