@@ -38,6 +38,7 @@ export function safeReturnPath(value: string | null | undefined): string {
     const group = url.searchParams.get("group");
     if (meeting && /^[1-9]\d*$/.test(meeting)) params.set("meeting", meeting);
     if (group && group.length <= 128) params.set("group", group);
+    if (url.searchParams.get("notifications") === "1") params.set("notifications", "1");
     return "/" + (params.size ? "?" + params.toString() : "");
   } catch { return "/"; }
 }
@@ -88,7 +89,7 @@ export async function groupFetch(input: string, init: RequestInit = {}): Promise
   if (url.origin !== window.location.origin || !url.pathname.startsWith("/api/")) {
     throw new Error("Geçersiz uygulama isteği.");
   }
-  const groupScoped = /^\/api\/(state|action|upload|books\/|media\/|calendar\/|groups\/appearance)/.test(url.pathname);
+  const groupScoped = /^\/api\/(state|action|upload|books\/|media\/|calendar\/|groups\/(appearance|notifications))/.test(url.pathname);
   if (groupScoped && url.pathname !== "/api/state" && readingGroup === undefined) {
     throw new Error("Okuma grubu henüz yüklenmedi.");
   }

@@ -1,5 +1,6 @@
 import { database, faceSchemaMissing, getAuthenticatedMember, profileSchemaMissing } from "@/db/store";
-import { isSuperAdminRole } from "@/lib/types";
+import { isSuperAdminRole, isAdminRole } from "@/lib/types";
+import { groupHeroKey, removeUnusedHero } from "@/db/group-hero";
 import { readingGroupContext } from "@/db/database";
 import { withReadingGroup } from "@/lib/groups";
 import { faceRecognitionEnabled } from "@/lib/feature-policy";
@@ -41,7 +42,8 @@ async function handlePOST(request: Request) {
     if (purpose === "faceReference" && !faceRecognitionEnabled()) {
       return Response.json({ error: "Yüz eşleştirme bu ortamda kapalı." }, { status: 403 });
     }
-    if (!(file instanceof File) || !["cover", "photo", "avatar", "faceReference"].includes(purpose)) {
+    if (purpose === "groupHero" && !isAdminRole(actor.role)) return Response.json({ error: "Grup görselini yönetici değiştirebilir." }, { status: 403 });
+    if (!(file instanceof File) || !["cover", "photo", "avatar", "faceReference", "groupHero"].includes(purpose)) {
       return Response.json({ error: "Bir fotoğraf seç." }, { status: 400 });
     }
     if (file.size < 1 || file.size > MAX_STORED_IMAGE_BYTES) {
@@ -97,7 +99,11 @@ async function handlePOST(request: Request) {
       .insert("media", "media_key, content_type, data", "?, ?, ?")
       .bind(key, kind, bytes);
 
-    if (purpose === "photo") {
+    if (purpose === "groupHero") {
+      const previous = await groupHeroKey();
+      await db.batch([mediaInsert, db.insert("club_settings", "key,value", "?,?", { conflict: "key", update: "value=excluded.value" }).bind("group_hero_media_key", key)]);
+      await removeUnusedHero(previous);
+    } else if (purpose === "photo") {
       await db.batch([
         mediaInsert,
         db

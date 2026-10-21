@@ -49,6 +49,7 @@
     "brand:assets": "node scripts/generate-brand-assets.mjs",
     "web:test:pwa": "node scripts/test-web-pwa.mjs",
     "web:test:experience": "node scripts/test-web-experience.mjs",
+    "web:test:refinements": "node scripts/test-web-refinements.mjs",
     "web:test:updates": "node scripts/test-pwa-updates.mjs",
     "web:images": "node scripts/optimize-web-images.mjs",
     "web:preview:local": "node scripts/preview-local-production.mjs",

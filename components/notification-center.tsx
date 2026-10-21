@@ -1,5 +1,7 @@
 "use client";
 
+import { nextDeviceNotification } from "@/lib/notification-policy";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell, BellRing, CalendarClock } from "@/components/icons";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -27,6 +29,13 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
     const fortnight = 14 * 24 * 60 * 60 * 1000;
     const recentMeetingWindow = 14 * 24 * 60 * 60 * 1000;
     const items: Array<{ id: string; meetingId: number; title: string; detail: string; time: number }> = [];
+
+    for (const change of data.meetingChanges ?? []) {
+      const meeting = data.meetings.find((item) => item.id === change.meetingId);
+      const book = meeting && data.books.find((item) => item.id === meeting.bookId);
+      if (book) items.push({ id: `changed-${change.id}`, meetingId: change.meetingId, title: book.title,
+        detail: "Buluşma bilgileri değişti · takvim kaydını kontrol et", time: change.createdAt });
+    }
 
     for (const meeting of data.meetings) {
       const time = new Date(meeting.date).getTime();
@@ -77,17 +86,17 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
 
   useEffect(() => {
     if (permission !== "granted" || !memberId || group === undefined) return;
-    const notification = notifications.find((item) => item.id.startsWith("new-"))
-      ?? notifications.find((item) => item.id.startsWith("upcoming-"));
-    if (!notification) return;
     const today = new Date().toISOString().slice(0, 10);
-    const key = `book-club-notified-${group?.id ?? "legacy"}-${memberId}-${today}-${notification.id}`;
-    if (delivered.current.has(key) || pending.current.has(key)) return;
-    try { if (localStorage.getItem(key)) return; } catch { /* Memory deduplication remains available. */ }
+    const next = nextDeviceNotification(notifications, group?.id ?? "legacy", memberId, today, (key) => {
+      if (delivered.current.has(key) || pending.current.has(key)) return true;
+      try { return !!localStorage.getItem(key); } catch { return false; }
+    });
+    if (!next) return;
+    const { notification, key } = next;
     pending.current.add(key);
     let active = true;
-    const title = notification.id.startsWith("new-") ? "Yeni kitap buluşması" : "Yaklaşan kitap buluşması";
-    const body = notification.id.startsWith("new-") ? `${notification.title} için yeni buluşma oluşturuldu.` : `${notification.title} için buluşma yaklaşıyor.`;
+    const title = notification.id.startsWith("changed-") ? "Buluşma bilgileri güncellendi" : notification.id.startsWith("new-") ? "Yeni kitap buluşması" : "Yaklaşan kitap buluşması";
+    const body = notification.id.startsWith("changed-") ? `${notification.title}: tarih, yer veya buluşma biçimi değişti. Takvim kaydını kontrol et.` : notification.id.startsWith("new-") ? `${notification.title} için yeni buluşma oluşturuldu.` : `${notification.title} için buluşma yaklaşıyor.`;
     const url = groupUrl(`/?meeting=${notification.meetingId}`, group?.id);
     void (async () => {
       if (!active) return;

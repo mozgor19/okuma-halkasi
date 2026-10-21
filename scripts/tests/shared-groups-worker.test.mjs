@@ -14,6 +14,8 @@ const { outputFiles } = await build({ stdin: { resolveDir: process.cwd(), source
   import { POST as upload } from './app/api/upload/route.ts';
   import { GET as media } from './app/api/media/[key]/route.ts';
   import { GET as calendar } from './app/api/calendar/[meetingId]/route.ts';
+  import { GET as preferences, POST as savePreference } from './app/api/groups/notifications/route.ts';
+  import { flush } from 'next/server';
   export default { async fetch(request) {
     try {
       const path = new URL(request.url).pathname;
@@ -24,6 +26,8 @@ const { outputFiles } = await build({ stdin: { resolveDir: process.cwd(), source
       if(path === '/api/state') return state(request);
       if(path === '/api/action') return action(request);
       if(path === '/api/upload') return upload(request);
+      if(path === '/api/groups/notifications') return request.method==='GET' ? preferences(request) : savePreference(request);
+      if(path === '/test/flush') { await flush(); return Response.json({ok:true}); }
       if(path.startsWith('/api/media/')) return media(request,{params:Promise.resolve({key:path.split('/').at(-1)})});
       if(path.startsWith('/api/calendar/')) return calendar(request,{params:Promise.resolve({meetingId:path.split('/').at(-1)})});
       return new Response(null,{status:404});
@@ -31,19 +35,19 @@ const { outputFiles } = await build({ stdin: { resolveDir: process.cwd(), source
   }};` }, bundle: true, write: false, format: "esm", platform: "browser", target: "es2022", external: ["cloudflare:workers", "node:*"],
   plugins: [{ name: "no-provider-mail", setup(builder) {
     builder.onResolve({ filter: /^next\/server$/ }, () => ({ path: "after", namespace: "test-only" }));
-    builder.onLoad({ filter: /.*/, namespace: "test-only" }, () => ({ contents: "export const after=()=>{throw Error('Unexpected provider/mail operation')};" }));
+    builder.onLoad({ filter: /.*/, namespace: "test-only" }, () => ({ contents: "const tasks=[];export const after=task=>tasks.push(task);export const flush=async()=>{while(tasks.length)await tasks.shift()()};" }));
   } }],
 });
 
-async function fixture() {
+async function fixture(communication = false) {
   const worker = new Miniflare({ modules: true, script: outputFiles[0].text, compatibilityDate: "2026-05-15", compatibilityFlags: ["nodejs_compat"],
     d1Databases: ["DB"], bindings: { SHARED_GROUPS_ENABLED: "true", READING_GROUPS_ENABLED: "true", SELF_SERVICE_ENABLED: "true",
-      READING_GROUP_DB_BINDINGS: "[]", SELF_SERVICE_GROUP_BINDINGS: "[]", SELF_SERVICE_LOCAL: "false", APPLICATION_BRAND: "Koru",
+      READING_GROUP_DB_BINDINGS: "[]", SELF_SERVICE_GROUP_BINDINGS: "[]", SELF_SERVICE_LOCAL: communication ? "true" : "false", APPLICATION_BRAND: "Koru",
       SESSION_SECRET: "Synthetic-shared-worker-secret-at-least-32" },
     outboundService() { throw Error("No real network/provider/mail is allowed in this test"); },
   });
   const db = await worker.getD1Database("DB");
-  for (const name of [...legacyMigrations, ...canonicalMigrations, "0015_shared_group_storage"]) {
+  for (const name of [...legacyMigrations, ...canonicalMigrations, "0015_shared_group_storage", ...(communication ? ["0016_meeting_details", "0017_group_communication"] : [])]) {
     const sql = readFileSync(new URL(`../../drizzle/${name}.sql`, import.meta.url), "utf8");
     await db.batch(sql.split("--> statement-breakpoint").filter((part) => part.trim()).map((sql) => db.prepare(sql.trim())));
   }
@@ -84,6 +88,39 @@ test("actual workerd D1 creates more than three groups and concurrent idempotent
     assert.equal((await f.db.prepare("SELECT count(*) AS n FROM shared_group_storage").first()).n, 7);
     assert.equal((await f.db.prepare("SELECT count(*) AS n FROM shared_members").first()).n, 7);
     assert.equal((await f.db.prepare("SELECT count(*) AS n FROM members").first()).n, 5);
+    assert.deepEqual((await f.db.prepare("PRAGMA foreign_key_check").all()).results, []);
+  } finally { await f.worker.dispose(); }
+});
+
+test("actual workerd transactions preserve meeting revisions, private change mail, calendar and scoped group images", async () => {
+  const f = await fixture(true);
+  try {
+    const a = await f.create(1, "Meeting Group"), b = await f.create(2, "Other Group");
+    assert.equal((await f.call("/api/groups/notifications", { enabled: true }, 1, a.id)).status, 200);
+    const created = await f.call("/api/action", { action: "createMeeting", date: "2028-10-20T18:00", kind: "online", book: { title: "Online Book", author: "Author" } }, 1, a.id);
+    assert.equal(created.status, 200, await created.clone().text());
+    const meetingId = (await created.json()).meetingId;
+    const edit = { action: "editMeeting", meetingId, revision: 1, date: "2028-10-21T20:00", kind: "online", onlineUrl: "https://meet.example/new" };
+    const updates = await Promise.all([f.call("/api/action", edit, 1, a.id), f.call("/api/action", { ...edit, date: "2028-10-22T20:00" }, 1, a.id)]);
+    assert.deepEqual(updates.map((response) => response.status).sort(), [200, 409]);
+    await f.call("/test/flush");
+    const state = await (await f.call("/api/state", undefined, 1, a.id)).json();
+    assert.equal(state.meetings[0].revision, 2); assert.equal(state.meetings[0].kind, "online"); assert.equal(state.meetingChanges.length, 1);
+    assert.equal((await f.db.prepare("SELECT count(*) AS n FROM development_mail").first()).n, 1);
+    await f.call("/test/flush");
+    assert.equal((await f.db.prepare("SELECT count(*) AS n FROM development_mail").first()).n, 1);
+    const calendar = await (await f.call("/api/calendar/" + meetingId, undefined, 1, a.id)).text();
+    assert.match(calendar, /SEQUENCE:2/); assert.match(calendar, /LOCATION:https:\/\/meet.example\/new/);
+    const foreign = await (await f.call("/api/state", undefined, 2, b.id)).json();
+    assert.deepEqual(foreign.meetingChanges, []);
+    assert.equal((await f.call("/api/calendar/" + meetingId, undefined, 2, b.id)).status, 404);
+    const form = new FormData(); form.set("purpose", "groupHero");
+    form.set("file", new File([readFileSync(new URL("../../public/brand/koru-192-v2.png", import.meta.url))], "fixture.png", { type: "image/png" }));
+    const upload = await f.call("/api/upload", form, 1, a.id); assert.equal(upload.status, 200, await upload.clone().text());
+    const { mediaKey } = await upload.json();
+    assert.equal((await f.call("/api/media/" + mediaKey, undefined, 2, b.id)).status, 404);
+    assert.equal((await f.call("/api/action", { action: "resetGroupHero" }, 1, a.id)).status, 200);
+    assert.equal((await f.call("/api/media/" + mediaKey, undefined, 1, a.id)).status, 404);
     assert.deepEqual((await f.db.prepare("PRAGMA foreign_key_check").all()).results, []);
   } finally { await f.worker.dispose(); }
 });

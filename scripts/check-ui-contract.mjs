@@ -126,13 +126,18 @@ if (/\.dark[^{}]*\{[^{}]*(?:filter\s*:\s*invert|opacity\s*:\s*\.[0-8])/s.test(cs
 }
 
 const contrastChecks = [
-  ["gövde / zemin", "#e9e5de", "#15130f", 4.5],
-  ["gövde / yüzey 1", "#e9e5de", "#211e18", 4.5],
-  ["soluk metin / zemin", "#b8b0a5", "#15130f", 4.5],
-  ["soluk metin / yüzey 1", "#b8b0a5", "#211e18", 4.5],
-  ["gövde / yüzey 2", "#e9e5de", "#2d2922", 4.5],
-  ["gövde / dergi vurgu yüzeyi", "#e9e5de", "#362f23", 4.5],
-  ["gövde / katalog vurgu yüzeyi", "#e9e5de", "#2f3023", 4.5],
+  ["gövde / zemin", "#f0f5f7", "#15191b", 4.5],
+  ["gövde / yüzey 1", "#f0f5f7", "#20272b", 4.5],
+  ["soluk metin / zemin", "#bed0d8", "#15191b", 4.5],
+  ["soluk metin / yüzey 1", "#bed0d8", "#20272b", 4.5],
+  ["gövde / yüzey 2", "#f0f5f7", "#2b363c", 4.5],
+  ["gövde / dergi vurgu yüzeyi", "#f0f5f7", "#3d302d", 4.5],
+  ["gövde / katalog vurgu yüzeyi", "#f0f5f7", "#243e34", 4.5],
+  ["kontrol sınırı / yüzey 2", "#748e9b", "#2b363c", 3],
+  ["defter eylemi / yüzey 2", "#8cd9e8", "#2b363c", 4.5],
+  ["dergi eylemi / yüzey 2", "#ffa28d", "#2b363c", 4.5],
+  ["katalog eylemi / yüzey 2", "#7ee2b7", "#2b363c", 4.5],
+  ["sarı etiket", "#15191b", "#f3d66a", 4.5],
 ];
 for (const [label, foreground, background, minimum] of contrastChecks) {
   const ratio = contrast(foreground, background);

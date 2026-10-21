@@ -125,7 +125,7 @@ test("Migration preserves old accounts and does not auto-enrol new identities", 
     sqlite.exec(readFileSync(new URL("../../drizzle/0009_self_service.sql", import.meta.url), "utf8"));
     assert.equal(sqlite.prepare("SELECT count(*) AS n FROM account_profiles").get().n, 0);
     assert.equal(sqlite.prepare("SELECT count(*) AS n FROM group_invitations").get().n, 0);
-    assert.equal(policy.POLICY_VERSION, "2026-10-17");
+    assert.equal(policy.POLICY_VERSION, "2026-10-21");
   } finally { sqlite.close(); }
 });
 test("A physical database cannot be claimed twice, even through two binding aliases", () => {

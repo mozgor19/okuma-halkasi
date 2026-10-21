@@ -288,6 +288,9 @@ try {
       await page.waitForFunction(() => document.querySelector('button[type="submit"]')?.disabled === false);
       assert.equal(await page.getByLabel("Okuma grubu adı").inputValue(), "Korunan Grup Adı");
       assert.equal(await page.getByText("Grup kurmak veya davetle katılmak için e-postanı doğrula.", { exact: true }).count(), 0);
+      await page.locator(".experience-dialog").waitFor();
+      await page.getByRole("button", { name: "Daha sonra", exact: true }).click();
+      await page.locator(".experience-dialog").waitFor({ state: "hidden" });
       await page.route("**/api/onboarding/account", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Synthetic outage" }) }));
       await page.getByRole("button", { name: "Hesap durumunu yenile", exact: true }).click();
       await page.getByRole("alert").filter({ hasText: "Hesap bilgileri yüklenemedi" }).waitFor();
@@ -332,6 +335,10 @@ try {
     await page.getByRole("button", { name: "Giriş yap", exact: true }).click();
     await page.waitForURL((url) => url.pathname === "/groups");
     await page.getByRole("link", { name: "Grup kur veya katıl", exact: true }).click();
+    await page.locator(".experience-dialog").waitFor();
+    await page.getByRole("heading", { name: "Koru'ya hoş geldin", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Daha sonra", exact: true }).click();
+    await page.locator(".experience-dialog").waitFor({ state: "hidden" });
     await page.getByRole("tab", { name: "Grup kur", exact: true }).click();
     await page.getByLabel("Okuma grubu adı").fill("Webden Kurulan Okuma Grubu");
     await page.getByRole("button", { name: "Okuma grubu oluştur" }).click();

@@ -33,6 +33,10 @@ declare namespace Cloudflare {
     MAIL_FROM?: string;
     RESEND_API_KEY?: string;
     ACCOUNT_MAIL_PROVIDER?: string;
+    /** Separate opt-in meeting mail. Never reuse Firebase/account-mail secrets. */
+    MEETING_MAIL_ENABLED?: string;
+    MEETING_MAIL_FROM?: string;
+    MEETING_MAIL_API_KEY?: string;
     /** Server-only JSON OAuth credential, never a build variable. */
     GMAIL_CREDENTIALS?: string;
     TURNSTILE_SITE_KEY?: string;

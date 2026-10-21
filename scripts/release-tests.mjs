@@ -151,6 +151,7 @@ try {
     await run("web-pwa", pnpm("web:test:pwa"));
     await run("web-experience", pnpm("web:test:experience"));
     await run("web-experience-extra", [process.execPath, "scripts/test-web-experience.mjs", "--extra"]);
+    await run("web-refinements", pnpm("web:test:refinements"));
     await run("web-updates", pnpm("web:test:updates"));
     await stop(koru);
   }

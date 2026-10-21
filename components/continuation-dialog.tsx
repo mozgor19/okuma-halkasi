@@ -7,12 +7,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Book, Meeting } from "@/lib/types";
+import { MeetingVenueFields, venueDraft } from "@/components/meeting-venue-fields";
 
 export function ContinuationDialog({
   book,
   previousMeeting,
   open,
   busy,
+  meetingDetailsReady = false,
   onClose,
   onSubmit,
 }: {
@@ -20,12 +22,12 @@ export function ContinuationDialog({
   previousMeeting?: Meeting;
   open: boolean;
   busy: boolean;
+  meetingDetailsReady?: boolean;
   onClose: () => void;
   onSubmit: (payload: Record<string, unknown>) => Promise<void>;
 }) {
   const [date, setDate] = useState("");
-  const [location, setLocation] = useState(previousMeeting?.location ?? "");
-  const [mapUrl, setMapUrl] = useState(previousMeeting?.mapUrl ?? "");
+  const [venue, setVenue] = useState(() => venueDraft(previousMeeting));
   const [readingScope, setReadingScope] = useState("");
   const [bookStatus, setBookStatus] = useState<"continuing" | "completed">("completed");
   const [note, setNote] = useState("");
@@ -36,8 +38,7 @@ export function ContinuationDialog({
     void onSubmit({
       bookId: book.id,
       date,
-      location,
-      mapUrl,
+      ...venue,
       readingScope,
       bookStatus,
       note,
@@ -61,11 +62,8 @@ export function ContinuationDialog({
               Buluşma tarihi ve saati *
               <Input type="datetime-local" required value={date} onChange={(event) => setDate(event.target.value)} />
             </label>
-            <label>
-              Buluşma yeri *
-              <Input required maxLength={180} value={location} onChange={(event) => setLocation(event.target.value)} />
-            </label>
           </div>
+          <MeetingVenueFields value={venue} onChange={setVenue} enabled={meetingDetailsReady} disabled={busy} />
           <label>
             Bu buluşmada okunacak bölüm
             <Input maxLength={180} value={readingScope} onChange={(event) => setReadingScope(event.target.value)} placeholder="Örn. İkinci yarı · 161-320. sayfalar" />
@@ -76,10 +74,6 @@ export function ContinuationDialog({
               <option value="completed">Kitap tamamlandı</option>
               <option value="continuing">Okuma devam edecek</option>
             </select>
-          </label>
-          <label>
-            Harita bağlantısı
-            <Input type="url" value={mapUrl} onChange={(event) => setMapUrl(event.target.value)} placeholder="https://maps.google.com/..." />
           </label>
           <label>
             Konuşulacaklar / not

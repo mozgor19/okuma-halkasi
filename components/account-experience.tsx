@@ -25,6 +25,13 @@ export function AccountExperienceProvider({ enabled, children }: { enabled: bool
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
   useEffect(() => {
     if (!enabled) return;
+    const resume = () => { if (document.visibilityState === "visible") refresh(); };
+    window.addEventListener("online", resume);
+    window.addEventListener("focus", resume);
+    return () => { window.removeEventListener("online", resume); window.removeEventListener("focus", resume); };
+  }, [enabled, refresh]);
+  useEffect(() => {
+    if (!enabled) return;
     const controller = new AbortController();
     void groupFetch("/api/account/experience", { cache: "no-store", signal: controller.signal }).then(async (response) => {
       if (controller.signal.aborted) return;
@@ -52,8 +59,8 @@ export function TourMenuAction() {
 }
 
 type TourView = "home" | "roadmap" | "archive" | "profile";
-export function WelcomeTour({ ready, name, groupName, planCount, meetingCount, onNavigate }: {
-  ready: boolean; name: string; groupName: string; planCount: number; meetingCount: number; onNavigate(view: TourView): void;
+export function WelcomeTour({ ready, name, groupName, planCount, meetingCount, onNavigate, setup = false }: {
+  ready: boolean; name: string; groupName: string; planCount: number; meetingCount: number; onNavigate(view: TourView): void; setup?: boolean;
 }) {
   const experience = useContext(ExperienceContext);
   const online = useOnline();
@@ -66,7 +73,12 @@ export function WelcomeTour({ ready, name, groupName, planCount, meetingCount, o
   const sharedMeeting = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("meeting");
   const seen = experience.data?.tour && experience.data.tour.version >= TOUR_VERSION;
   const open = !!experience.data?.available && ready && !closed && (!!experience.data.tourEligible && !seen && !sharedMeeting || experience.replay > 0);
-  const steps = [
+  const steps = setup ? [
+    { title: "Koru'ya hoş geldin", detail: `${name}, ilk adım okuma grubun. Kendi grubunu kurabilir veya bir davetle katılabilirsin.`, command: "Devam et", view: "home" as const },
+    { title: "Buluşmaların", detail: "Kitap, tarih ve katılım kayıtların grubunla birlikte burada olacak.", command: "Devam et", view: "archive" as const },
+    { title: "Okuma planın", detail: "Sıradaki kitaplar, öneriler ve oylar okuma grubuna ait.", command: "Devam et", view: "roadmap" as const },
+    { title: "Profilin", detail: "Grupların, görünüm tercihin ve hesap ayarların. İlk adımları profil menüsünden yeniden açabilirsin.", command: "Başlayalım", view: "home" as const },
+  ] : [
     { title: "Okuma grubun", detail: groupName, command: "Planı aç", view: "roadmap" as const },
     { title: "Okuma planın", detail: `${planCount} kitap`, command: "Buluşmaları aç", view: "archive" as const },
     { title: "Buluşmaların", detail: `${meetingCount} buluşma`, command: "Profilimi aç", view: "profile" as const },
@@ -87,7 +99,7 @@ export function WelcomeTour({ ready, name, groupName, planCount, meetingCount, o
         <Button type="button" variant="outline" disabled={busy} onClick={() => { if (!online) { setClosed(true); return; } void finish("dismissed"); }}>Daha sonra</Button>
         <Button type="button" disabled={busy || !online} onClick={() => {
           if (step === steps.length - 1) { void finish("completed"); return; }
-          onNavigate(current.view); setStep((value) => value + 1);
+          if (!setup) onNavigate(current.view); setStep((value) => value + 1);
         }}>{step === steps.length - 1 ? <Check size={18} /> : <ArrowRight size={18} />}{busy ? "Kaydediliyor" : current.command}</Button>
       </div>
     </DialogContent>

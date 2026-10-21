@@ -1,6 +1,8 @@
 import { sessionAccountIsCurrent } from "@/db/accounts";
 import { domainDatabase as database, identityDatabase, readingGroupContext, readingGroupsEnabled } from "@/db/database";
 import { DomainDatabase } from "@/db/domain-sql";
+import { enrichMeetingState } from "@/db/meeting-details";
+import { groupHeroKey } from "@/db/group-hero";
 import { sessionIdentity, sessionTokenFromRequest } from "@/lib/auth";
 import type { AppData, Member } from "@/lib/types";
 
@@ -165,7 +167,9 @@ export async function getState(): Promise<AppData> {
 
   for (const [extended, faceRecognition, clubFeatures, rsvpFeatures] of attempts) {
     try {
-      return await runStateQueries(extended, faceRecognition, clubFeatures, rsvpFeatures);
+      const state = await enrichMeetingState(await runStateQueries(extended, faceRecognition, clubFeatures, rsvpFeatures));
+      const heroKey = clubFeatures ? await groupHeroKey() : null;
+      return { ...state, groupHeroUrl: heroKey ? "/api/media/" + heroKey : null };
     } catch (error) {
       lastError = error;
       if (!profileSchemaMissing(error) && !faceSchemaMissing(error) && !clubSchemaMissing(error) && !rsvpSchemaMissing(error)) throw error;

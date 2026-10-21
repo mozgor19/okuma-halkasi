@@ -1,11 +1,41 @@
 # Koru Project Session Memory
 
-Last decision update: 2026-10-20. Read this at the start of future sessions.
+Last decision update: 2026-10-21. Read this at the start of future sessions.
 This is durable repository memory, not a claim that account-wide AI memory
 or every external assistant has been updated. AGENTS.md enforces the read order.
 Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
+
+LATEST WORK (October 21): Mustafa requested seven web refinements and autonomous
+completion without mid-task questions. Implement automatic zero-group first-account
+tour; optional online/in-person meeting venue in create/edit/continuation; opt-in
+group-scoped change mail, notifications and versioned calendar; admin group hero;
+separated onboarding links; all four dark palettes; readable body text. Preserve
+approved logo/default image, light COLOR palettes, accounts and existing behavior.
+Native remains deferred. See WEB_REFINEMENTS.md and MEETING_MAIL.md.
+
+Brand contract is now BRAND_IDENTITY.md v1.3: dark canvas15191b, surfaces20272b/
+2b363c, textf0f5f7, mutedbed0d8, border748e9b; editorial actionffa28d,
+catalogue7ee2b7, notebook8cd9e8, minimalf0f5f7. Body16px, meta14px; keep notebook
+structure independent. Approved light palette snapshot is an enforced test fixture.
+
+Mustafa chose preparing a FREE domain-verified sender for birkoru.com. Resend
+MEETING_MAIL_* is separate from Firebase auth/Gmail secrets; no real provider
+account, DNS/Secret or mail operation was performed for this update. Membership,
+verified address and opt-in are rechecked; unique leases, 429 deferral, uncertain
+outcomes/no blind resend, private one-recipient messages and 30-day cleanup.
+Activity-driven queue, NOT guaranteed inactive-group cron or background web push.
+Account-owner sender setup and production acceptance stay in final handoff only.
+
+Unapplied additive SQL:0016 DOMAIN tables on canonical/default AND both existing
+dedicated DBs;0017 CANONICAL ONLY for shared metadata and preferences/deliveries.
+Do not rerun0015 or apply0017 to dedicated DBs. Old schemas still work without new
+features. No production/staging migration or deployment authorized by this work;
+previous publication exceptions are CONSUMED. Current production stays d6a1c4d,
+Worker fc31de5a-5c8f-4e7b-9645-81f151453374 at birkoru.com with shared0015.
+The older priority/DNS/logo holds below are historical, overridden by dated
+publication entries, not a claim that production remains on workers.dev.
 
 LATEST DECISION (October 20, overrides earlier local-only Firebase hold and
 DNS-only launch intent below): Mustafa requested completing preparation and

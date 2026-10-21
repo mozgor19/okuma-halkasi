@@ -1,14 +1,10 @@
 import { database, getAuthenticatedMember } from "@/db/store";
 import { readingGroupContext } from "@/db/database";
 import { withReadingGroup } from "@/lib/groups";
+import { meetingCalendar } from "@/lib/meeting-calendar";
+import { meetingDetail, meetingDetailsReady } from "@/db/meeting-details";
 
 export const runtime = "edge";
-
-const escapeIcs = (value: string) =>
-  value.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
-
-const utcStamp = (date: Date) =>
-  date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 
 export const GET = withReadingGroup(handleGET);
 
@@ -37,33 +33,10 @@ async function handleGET(
     }>();
   if (!meeting) return new Response("Buluşma bulunamadı.", { status: 404 });
 
-  const startsAt = new Date(`${meeting.date}:00+03:00`);
-  const endsAt = new Date(startsAt.getTime() + 2 * 60 * 60 * 1000);
-  const description = [meeting.author, meeting.readingScope, meeting.note].filter(Boolean).join("\n");
   const origin = new URL(request.url).origin;
   const group = readingGroupContext()?.group;
-  const lines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Kitap Tahlil ve Istisare//TR",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    ...(group ? [`X-WR-CALNAME:${escapeIcs(group.name)}`] : []),
-    "BEGIN:VEVENT",
-    `UID:meeting-${group ? `${group.id}-` : ""}${meeting.id}@${new URL(request.url).hostname}`,
-    `DTSTAMP:${utcStamp(new Date())}`,
-    `DTSTART:${utcStamp(startsAt)}`,
-    `DTEND:${utcStamp(endsAt)}`,
-    `SUMMARY:${escapeIcs(`Kitap Tahlili: ${meeting.title}`)}`,
-    `LOCATION:${escapeIcs(meeting.location)}`,
-    `DESCRIPTION:${escapeIcs(description)}`,
-    `URL:${origin}/`,
-    "END:VEVENT",
-    "END:VCALENDAR",
-    "",
-  ];
-
-  return new Response(lines.join("\r\n"), {
+  const detail = await meetingDetailsReady() ? await meetingDetail(meeting.id) : null;
+  return new Response(meetingCalendar({ meeting: { ...meeting, ...detail }, title: meeting.title, author: meeting.author, origin, group }), {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
       "Content-Disposition": `attachment; filename="bulusma-${meeting.id}.ics"`,

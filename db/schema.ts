@@ -358,3 +358,40 @@ export const sharedGroupAccountLinks = sqliteTable("shared_group_account_links",
 }, (t) => [primaryKey({ columns: [t.groupId, t.accountMemberId] }), unique().on(t.groupId, t.memberId),
   index("shared_group_account_links_account").on(t.accountMemberId, t.groupId),
   foreignKey({ columns: [t.groupId, t.memberId], foreignColumns: [sharedMembers.groupId, sharedMembers.id] })]);
+
+const meetingDetailColumns = () => ({
+  kind: text("kind", { enum: ["in_person", "online"] }).notNull().default("in_person"),
+  onlineUrl: text("online_url"), revision: integer("revision").notNull().default(1), updatedAt: integer("updated_at").notNull(),
+});
+export const meetingDetails = sqliteTable("meeting_details", {
+  meetingId: integer("meeting_id").primaryKey().notNull().references(() => meetings.id, { onDelete: "cascade" }), ...meetingDetailColumns(),
+}, (t) => [check("meeting_details_kind", sql`${t.kind} IN ('in_person','online')`), check("meeting_details_revision", sql`${t.revision}>0`)]);
+export const sharedMeetingDetails = sqliteTable("shared_meeting_details", {
+  groupId: sharedGroupId(), meetingId: integer("meeting_id").notNull(), ...meetingDetailColumns(),
+}, (t) => [primaryKey({ columns: [t.groupId, t.meetingId] }),
+  foreignKey({ columns: [t.groupId, t.meetingId], foreignColumns: [sharedMeetings.groupId, sharedMeetings.id] }).onDelete("cascade"),
+  check("shared_meeting_details_kind", sql`${t.kind} IN ('in_person','online')`), check("shared_meeting_details_revision", sql`${t.revision}>0`)]);
+const meetingEventColumns = () => ({
+  revision: integer("revision").notNull(), payload: text("payload").notNull(), createdAt: integer("created_at").notNull(), mailCompletedAt: integer("mail_completed_at"),
+});
+export const meetingChangeEvents = sqliteTable("meeting_change_events", {
+  id: text("id").primaryKey().notNull(), meetingId: integer("meeting_id").notNull().references(() => meetings.id, { onDelete: "cascade" }), ...meetingEventColumns(),
+}, (t) => [unique().on(t.meetingId, t.revision), index("meeting_change_events_recent").on(t.createdAt)]);
+export const sharedMeetingChangeEvents = sqliteTable("shared_meeting_change_events", {
+  groupId: sharedGroupId(), id: text("id").notNull(), meetingId: integer("meeting_id").notNull(), ...meetingEventColumns(),
+}, (t) => [primaryKey({ columns: [t.groupId, t.id] }), unique().on(t.groupId, t.meetingId, t.revision),
+  foreignKey({ columns: [t.groupId, t.meetingId], foreignColumns: [sharedMeetings.groupId, sharedMeetings.id] }).onDelete("cascade"),
+  index("shared_meeting_change_events_recent").on(t.groupId, t.createdAt)]);
+export const meetingMailPreferences = sqliteTable("meeting_mail_preferences", {
+  accountMemberId: integer("account_member_id").notNull(), groupId: text("group_id").notNull(),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(false), updatedAt: integer("updated_at").notNull(),
+}, (t) => [primaryKey({ columns: [t.accountMemberId, t.groupId] }),
+  foreignKey({ columns: [t.accountMemberId, t.groupId], foreignColumns: [readingGroupMemberships.accountMemberId, readingGroupMemberships.groupId] }).onDelete("cascade"),
+  check("meeting_mail_preferences_enabled", sql`${t.enabled} IN (0,1)`)]);
+export const meetingMailDeliveries = sqliteTable("meeting_mail_deliveries", {
+  groupId: text("group_id").notNull().references(() => readingGroups.id), eventId: text("event_id").notNull(),
+  accountMemberId: integer("account_member_id").notNull().references(() => memberAccounts.memberId, { onDelete: "cascade" }),
+  status: text("status", { enum: ["pending", "sending", "accepted", "skipped", "failed", "uncertain"] }).notNull(),
+  claimedAt: integer("claimed_at"), leaseToken: text("lease_token"), retryAfter: integer("retry_after"), createdAt: integer("created_at").notNull(), updatedAt: integer("updated_at").notNull(),
+}, (t) => [primaryKey({ columns: [t.groupId, t.eventId, t.accountMemberId] }), index("meeting_mail_deliveries_queue").on(t.groupId, t.status, t.createdAt),
+  check("meeting_mail_deliveries_status", sql`${t.status} IN ('pending','sending','accepted','skipped','failed','uncertain')`)]);

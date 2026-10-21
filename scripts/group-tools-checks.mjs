@@ -30,7 +30,7 @@ export async function checkGroupTools(page) {
     const enabled = controls.filter((el) => !el.matches(":disabled,[aria-disabled=true]"));
     const text = [...section.querySelectorAll("label,h3,small,time,.invitation-state,.invitation-copy-status")].filter((el) => el.getClientRects().length);
     const minimumTextContrast = Math.min(...[...enabled, ...text].map((el) => contrast(rgb(getComputedStyle(el).color), background(el))));
-    const inputs = enabled.filter((el) => el.matches("input"));
+    const inputs = enabled.filter((el) => el.matches('input:not([type="checkbox"]):not([type="radio"])'));
     const minimumBorderContrast = Math.min(...inputs.map((el) => contrast(rgb(getComputedStyle(el).borderTopColor), background(el.parentElement))));
     const geometry = controls.every((el) => {
       const box = el.getBoundingClientRect();

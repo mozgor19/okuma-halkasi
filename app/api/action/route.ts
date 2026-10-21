@@ -4,6 +4,10 @@ import { identityDatabase, readingGroupContext } from "@/db/database";
 import { ReadingGroupError, readingGroupErrorResponse, readingGroupsEnabled, withReadingGroup } from "@/lib/groups";
 import { isAdminRole, isSuperAdminRole } from "@/lib/types";
 import { faceRecognitionEnabled } from "@/lib/feature-policy";
+import { meetingVenue } from "@/lib/meeting-details";
+import { meetingDetailsReady, updateMeetingDetails } from "@/db/meeting-details";
+import { deferMeetingChanges } from "@/db/meeting-mail";
+import { groupHeroKey, removeUnusedHero } from "@/db/group-hero";
 
 export const runtime = "edge";
 
@@ -29,6 +33,9 @@ type Payload = {
   date?: string | null;
   location?: string;
   mapUrl?: string;
+  kind?: string;
+  onlineUrl?: string;
+  revision?: number;
   note?: string;
   readingScope?: string;
   bookStatus?: string;
@@ -135,20 +142,29 @@ async function handlePOST(request: Request) {
   }
 
   try {
+    if (input.action === "resetGroupHero") {
+      if (!isAdminRole(actor.role)) return fail("Grup görselini yönetici değiştirebilir.", 403);
+      const previous = await groupHeroKey();
+      await database().delete("club_settings", "key=?").bind("group_hero_media_key").run();
+      await removeUnusedHero(previous);
+      return Response.json({ ok: true });
+    }
     if (input.action === "createMeeting" || input.action === "createPlan") {
       if (input.action === "createMeeting" && !isAdminRole(actor.role)) {
         return fail("Buluşmayı yönetici oluşturabilir.", 403);
       }
       if (
         input.action === "createMeeting"
-        && (!validMeetingDate(input.date) || !clean(input.location, 180))
+        && !validMeetingDate(input.date)
       ) {
         return fail("Buluşma tarihi ve yeri gerekli.");
       }
 
-      const mapUrl = clean(input.mapUrl, 500);
-      if (input.action === "createMeeting" && mapUrl && !/^https:\/\//.test(mapUrl)) {
-        return fail("Harita bağlantısı https:// ile başlamalı.");
+      let venue;
+      const detailsReady = input.action === "createMeeting" && await meetingDetailsReady();
+      if (input.action === "createMeeting") {
+        try { venue = meetingVenue(input); } catch (error) { return fail((error as Error).message); }
+        if (venue.kind === "online" && !detailsReady) return fail("Çevrim içi buluşmalar henüz bu ortamda açılmadı.", 503);
       }
       if (
         input.action === "createPlan"
@@ -198,20 +214,21 @@ async function handlePOST(request: Request) {
         .bind(
           bookId,
           input.date,
-          clean(input.location, 180),
-          mapUrl || null,
+          venue!.location,
+          venue!.mapUrl,
           clean(input.note, 1000) || null,
           clean(input.readingScope, 180) || null,
           meetingBookStatus(input.bookStatus),
           actor.id,
         );
-      const result = Number.isInteger(input.planId)
-        ? (await database().batch([
-            insert,
-            database().delete("book_votes", "roadmap_id = ?").bind(input.planId),
-            database().delete("roadmap", "id = ?").bind(input.planId),
-          ]))[0]
-        : await insert.run();
+      const commands = [insert];
+      if (detailsReady) commands.push(database().insertSelect("meeting_details", "meeting_id,kind,online_url,revision,updated_at", "last_insert_rowid(),?,?,1,?", "WHERE changes()=1")
+        .bind(venue!.kind, venue!.onlineUrl, Date.now()));
+      if (Number.isInteger(input.planId)) commands.push(
+        database().delete("book_votes", "roadmap_id = ?").bind(input.planId),
+        database().delete("roadmap", "id = ?").bind(input.planId),
+      );
+      const result = (await database().batch(commands))[0];
       return Response.json({ ok: true, meetingId: result.meta.last_row_id });
     }
 
@@ -605,10 +622,18 @@ async function handlePOST(request: Request) {
       if (
         !Number.isInteger(input.meetingId)
         || !validMeetingDate(input.date)
-        || !clean(input.location, 180)
       ) {
         return fail("Buluşma tarihi ve yeri gerekli.");
       }
+      if (await meetingDetailsReady()) {
+        const eventId = await updateMeetingDetails({ ...input, meetingId: input.meetingId!, date: input.date!,
+          note: clean(input.note, 1000) || null, readingScope: clean(input.readingScope, 180) || null,
+          bookStatus: meetingBookStatus(input.bookStatus) });
+        if (eventId) deferMeetingChanges(eventId);
+        return Response.json({ ok: true, eventId });
+      }
+      if (input.kind === "online") return fail("Çevrim içi buluşmalar henüz bu ortamda açılmadı.", 503);
+      if (!clean(input.location, 180)) return fail("Buluşma yeri gerekli.");
       const mapUrl = clean(input.mapUrl, 500);
       if (mapUrl && !/^https:\/\//.test(mapUrl)) {
         return fail("Harita bağlantısı https:// ile başlamalı.");

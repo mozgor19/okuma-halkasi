@@ -3,6 +3,7 @@ import { readingGroupContext } from "@/db/database";
 import { readingGroupsEnabled, withReadingGroup } from "@/lib/groups";
 import { isAdminRole } from "@/lib/types";
 import { faceRecognitionEnabled } from "@/lib/feature-policy";
+import { deferMeetingChanges } from "@/db/meeting-mail";
 
 export const runtime = "edge";
 
@@ -14,6 +15,7 @@ async function handleGET(request: Request) {
 
   try {
     const state = await getState();
+    if (state.meetingChanges?.length) deferMeetingChanges();
     const faces = faceRecognitionEnabled();
     const members = !faces ? state.members.map((person) => ({ ...person, faceReferenceMediaKey: null })) : isAdminRole(member.role)
       ? state.members

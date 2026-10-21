@@ -10,7 +10,7 @@ export type Member = {
   guestMeetingId: number | null;
 };
 export type Book = { id: number; title: string; author: string; publisher: string | null; pages: number | null; isbn: string | null; coverUrl: string | null; sourceUrl: string | null };
-export type Meeting = { id: number; bookId: number; date: string; location: string; mapUrl: string | null; note: string | null; readingScope: string | null; bookStatus: "continuing" | "completed"; createdBy: number; createdAt: string; deletedAt: string | null };
+export type Meeting = { id: number; bookId: number; date: string; location: string; mapUrl: string | null; kind?: "in_person" | "online"; onlineUrl?: string | null; revision?: number; updatedAt?: number; note: string | null; readingScope: string | null; bookStatus: "continuing" | "completed"; createdBy: number; createdAt: string; deletedAt: string | null };
 export type Attendance = { meetingId: number; memberId: number; readingStatus: "read" | "partial" | "unread" | "unselected"; currentPage: number | null };
 export type MeetingRsvp = { meetingId: number; memberId: number; createdAt: string; updatedAt: string };
 export type Review = { meetingId: number; memberId: number; rating: number; comment: string | null; updatedAt: string };
@@ -24,7 +24,7 @@ export type ReadingGroupMode = "light" | "dark" | "system";
 export type ReadingGroup = { id: string; name: string; scheme: ReadingGroupScheme; mode: ReadingGroupMode };
 export type ReadingGroupMembership = ReadingGroup & { role: Member["role"] };
 export type ReadingGroupsResponse = { enabled: boolean; groups: ReadingGroupMembership[]; selectedGroupId: string | null };
-export type AppData = { currentMemberId?: number; readingGroup?: ReadingGroup; faceRecognitionEnabled?: boolean; members: Member[]; books: Book[]; meetings: Meeting[]; attendance: Attendance[]; meetingRsvps: MeetingRsvp[]; reviews: Review[]; photos: Photo[]; roadmap: Plan[]; favorites: Favorite[]; bookVotes: BookVote[]; voteVisibility: "open" | "secret"; trash: TrashItem[]; clubFeaturesReady: boolean; rsvpFeaturesReady: boolean };
+export type AppData = { currentMemberId?: number; readingGroup?: ReadingGroup; faceRecognitionEnabled?: boolean; meetingDetailsReady?: boolean; meetingChanges?: Array<{ id: string; meetingId: number; revision: number; createdAt: number }>; groupHeroUrl?: string | null; members: Member[]; books: Book[]; meetings: Meeting[]; attendance: Attendance[]; meetingRsvps: MeetingRsvp[]; reviews: Review[]; photos: Photo[]; roadmap: Plan[]; favorites: Favorite[]; bookVotes: BookVote[]; voteVisibility: "open" | "secret"; trash: TrashItem[]; clubFeaturesReady: boolean; rsvpFeaturesReady: boolean };
 export const readingLabels: Record<Attendance["readingStatus"], string> = { read: "Okudum", partial: "Kısmen okudum", unread: "Okumadım", unselected: "Henüz belirtmedi" };
 export const isAdminRole = (role: Member["role"]) => role === "super_admin" || role === "admin";
 export const isSuperAdminRole = (role: Member["role"]) => role === "super_admin";

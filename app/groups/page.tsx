@@ -96,7 +96,7 @@ export default function GroupsPage() {
             </button>
           ))}
         </div>
-        {onboarding?.enabled && <><a className="small-link onboarding-command" href="/groups/manage">Grup kur veya katıl</a><a className="small-link onboarding-command" href="/account">Hesap ve verilerim</a></>}
+        {onboarding?.enabled && <nav className="onboarding-actions" aria-label="Grup ve hesap işlemleri"><a className="small-link onboarding-command" href="/groups/manage">Grup kur veya katıl</a><a className="small-link onboarding-command" href="/account">Hesap ve verilerim</a></nav>}
         <div className="mt-6 flex items-center justify-between gap-3">
           <button type="button" className="small-link" disabled={busy !== null} onClick={() => void signOut()}><LogOut size={17} /> Çıkış yap</button>
           <AppearanceModeMenu />

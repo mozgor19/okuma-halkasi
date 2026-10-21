@@ -1,4 +1,4 @@
-export const POLICY_VERSION = "2026-10-17";
+export const POLICY_VERSION = "2026-10-21";
 export const TOKEN_PATTERN = /^[a-f0-9]{64}$/;
 export const REQUEST_KEY_PATTERN = /^[a-f0-9-]{36}$/;
 

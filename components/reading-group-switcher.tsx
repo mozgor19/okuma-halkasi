@@ -5,6 +5,7 @@ import { groupsPath, useReadingGroup } from "@/lib/group-client";
 import { useOnboardingConfig } from "@/components/onboarding";
 import { GroupInvitations } from "@/components/group-invitations";
 import { Button } from "@/components/ui/button";
+import { MeetingMailPreference } from "@/components/meeting-mail-preference";
 
 export function ReadingGroupSwitcher({ disabled = false, isAdmin = false }: { disabled?: boolean; isAdmin?: boolean }) {
   const group = useReadingGroup();
@@ -28,6 +29,7 @@ export function ReadingGroupSwitcher({ disabled = false, isAdmin = false }: { di
         </div>
       </div>
       {onboarding?.enabled && isAdmin && <GroupInvitations key={group.id} groupId={group.id} disabled={disabled} />}
+      {onboarding?.enabled && <MeetingMailPreference key={group.id + "-mail"} />}
     </section>
   );
 }

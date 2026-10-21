@@ -1,6 +1,6 @@
 # Koru Kurumsal Kimliği
 
-Sürüm 1.2 · 20 Ekim 2026 · Web/PWA önce, yerel mobil uygulamalar sonra.
+Sürüm 1.3 · 21 Ekim 2026 · Web/PWA önce, yerel mobil uygulamalar sonra.
 Bu belge tüm platformların tasarım sözleşmesidir. Yeni bir görsel yön, bu
 belgenin sürümü ve karar kaydı güncellenmeden uygulanmaz. Marka tescili veya
 bağımsız erişilebilirlik sertifikası değildir.
@@ -13,9 +13,10 @@ bağımsız erişilebilirlik sertifikası değildir.
 - Kısa açıklama: Kitaplar, buluşmalar ve okuma grubun.
 - Karakter: sakin, özenli, kültürlü, samimi; resmi kurum dili veya çocukça dil değil.
 - Destek: `koru.destek@gmail.com`. İşletici: Mustafa Özgör.
-- Çalışan eski origin: `https://okuma-halkasi.mustafayapayzeka.workers.dev`.
-  Mustafa'nın satın aldığı ve DNS'ini etkinleştirdiği genel yayın hedefi
-  `https://birkoru.com`. Bu belge alanın uygulamaya bağlandığı iddiası değildir.
+- Canlı uygulama origin'i: `https://birkoru.com`. 20 Ekim'de mevcut veriler
+  korunarak açıldı. Eski `https://okuma-halkasi.mustafayapayzeka.workers.dev`
+  adresi ikinci bağımsız hesap sistemi değildir. Bu belgenin yeni sürümü yeni
+  kodun canlıya dağıtıldığı anlamına gelmez; yayın kaydı ayrıca doğrulanır.
 - Ayrı kamusal tanıtım/politika hedefi:
   `https://koru-public-info.mustafayapayzeka.workers.dev`. Bu adres hesap veya
   PWA origin'i değildir; mevcut uygulamanın adresini ve marka geometrisini
@@ -81,10 +82,14 @@ Karşıtlık düzeltmeleri ortak rol sözleşmesinde yapılır, şemaya özel ya
 | Catalogue | `#edf1e8` / `#17342d` / `#176550` | Katalog sıralaması, yeşil eylemler |
 | Minimal | `#f6f6f4` / `#1b1b1a` / `#222220` | Sistem yazı tipi, sade çizgiler, nötr yüzeyler |
 
-Koyu mod bağımsızdır: temel zemin `#15130f`, yüzey `#211e18`, yükseltilmiş
-yüzey `#2d2922`, metin `#e9e5de`, ikincil metin `#b8b0a5`.
-Notebook eylemi `#79adbd`, Editorial `#c9766b`, Catalogue `#5aa087`,
-Minimal `#e9e5de`. Fotoğraflar ters çevrilmez. Paletlerin makine kaynağı
+Mustafa'nın koyu mod eleştirisi üzerine sürüm 1.3'te yalnız koyu palet yenilendi.
+Açık renk değerleri değişmedi; kalıcı test referansı
+`scripts/fixtures/approved-light-palettes.json` dosyasıdır.
+Koyu mod bağımsızdır: temel zemin `#15191b`, yüzey `#20272b`, yükseltilmiş
+yüzey `#2b363c`, metin `#f0f5f7`, ikincil metin `#bed0d8`, sınır `#748e9b`.
+Notebook eylemi `#8cd9e8`, Editorial `#ffa28d`, Catalogue `#7ee2b7`,
+Minimal `#f0f5f7`. Notebook sarısı `#f3d66a`; mercan odak `#ffa28d`.
+Fotoğraflar ters çevrilmez. Paletlerin makine kaynağı
 `app/themes.css`; bu tablo değişince kod ve karşıtlık testleri birlikte güncellenir.
 
 ## Tipografi
@@ -104,8 +109,8 @@ Yedekler: `system-ui,sans-serif` ve `Georgia,serif`. `font-display:swap`.
 | Sayfa başlığı | 34 px / 1.15 | 600 |
 | Bölüm başlığı | 24 px / 1.25 | 600 |
 | Uzun okuma | 19 px / 1.62, en çok 68ch | 400 |
-| Standart arayüz metni | 15 px / 1.50 | 400 veya 600 |
-| Yardımcı etiket | 13–14 px / en az 1.45 | 400 veya 600 |
+| Standart arayüz/gövde metni | 16 px / 1.55–1.65 | 400 veya 600 |
+| Yardımcı etiket ve meta | 14 px / en az 1.45 | 400 veya 600 |
 | Mobil form girdisi | En az 16 px; iOS odakta otomatik yakınlaşma olmamalı | 400 |
 | Dar panel başlığı | 18–24 px; dev başlık kullanılmaz | 600 |
 
@@ -113,9 +118,14 @@ Boyutları `vw` ile ölçekleme; negatif harf aralığı kullanma. Mobil satır
 taşarsa önce satır kır, sonra uygun sabit tipografi kademesini seç.
 Kesintisiz uzun grup adlarında `overflow-wrap:anywhere`, grid/flex çocuklarında
 `min-width:0` kullan. 200% büyütmede metin kesilmemeli.
-Eski ekranlardaki küçük meta metinler tek seferde topluca büyütülmez; ekran
-bazlı okuma/dokunma kabulüyle bu ölçeğe taşınır. Bu belge bütün eski metinlerin
-halihazırda bu ölçüleri geçtiği anlamına gelmez.
+Gövde paragrafları ve önemli meta metinler ekran bazlı kontrolle bu ölçeğe
+taşınır; küçük sayaç/rozetler otomatik olarak gövde boyutuna çıkarılmaz.
+Bu belge bütün eski metinlerin bu ölçüleri geçtiği anlamına gelmez.
+
+Grup görseli yöneticinin yüklediği özel grup medyasıdır. Onaylı okuma odası
+varsayılan ve hata yedeği olarak kalır. Minimal'in varsayılan sade başlık
+yapısı korunur; yalnız özel görsel seçilince başlığın üzerinde fotoğraf bandı
+gösterilir. Logo veya genel paylaşım görseli grup fotoğrafıyla değiştirilmez.
 
 ## Yerleşim ve Etkileşim
 
