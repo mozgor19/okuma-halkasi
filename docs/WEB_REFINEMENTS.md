@@ -44,13 +44,26 @@ only in the final handoff. Native mobile is not being changed.
   image types, client normalization, atomic image/settings write and safe cleanup
   of replaced unreferenced media. Missing/deleted image falls back to default.
 
-## Release Boundary
+## Release Outcome: October 21
 
-Production remains source d6a1c4d with0015. Prior one-time exceptions are consumed.
-This task is implementation/local verification, NOT a new live migration, batch
-mail authorization, staging data import, paid plan or main push. A subsequent
-release needs fresh evidence, backups, reviewed multi-DB0016/canonical0017 plan
-and separate operator authority. Never rerun already applied0015.
+Mustafa subsequently explicitly requested publication after the local handoff.
+Application source77a69c5 is now LIVE at birkoru.com, Worker
+70d23f67-3946-4213-8755-548bbaf4d5a7 at100%, maintenance off. Its clean23-step
+suite and matching audit passed; the production artifact was rebuilt from that
+source. All three DBs had fresh encrypted disk backups/decrypt/offline restore
+and additive rehearsals.0016 applied to all three;0017 CANONICAL ONLY. Old
+schema/typed rows/BLOBs/sequences matched exactly before/after. Never replay
+0015/0016/0017 or import staging. New tables were empty before opening.
+
+All15 anonymous live HTTPS/browser checks passed, including served JS/CSS byte
+matching, four schemes x light/dark x390/1440 and PWA offline/reconnect. Evidence
+is under outputs/web-acceptance/77a69c5/; snapshots/keys stay private/Git-excluded.
+No remote test accounts/mail, Secret/DNS changes, paid service, native change or
+main push. Existing public authentication and mail configuration were retained.
+Meeting change mail remains OFF until real sender setup/acceptance.13 manual
+acceptance headings stay pending; the standard manual release gate did NOT pass.
+This publication request is this release only, not reuse of older exceptions or
+standing future authority. See FIREBASE_PRODUCTION.md and SESSION_MEMORY.md.
 
 ## Verification
 
@@ -80,10 +93,11 @@ and separate operator authority. Never rerun already applied0015.
   `web-refinements-20261020`. Demo accounts `demo.multi`, `demo.single`, `demo.none`;
   the generated password is only in the ignored local settings file. Existing
   developer preview46603 was not stopped, reset or reseeded.
-- Real provider delivery, installed physical Android/iPhone, external calendar
-  update behavior and live schema rollout are NOT proven by local Chromium.
+- Real provider delivery, installed physical Android/iPhone and external calendar
+  update behavior are NOT proven by local Chromium. Live additive schema rollout
+  was separately completed/verified in the publication recorded above.
   No new logo/default-image assets or light color declarations were changed.
 
-Next operator steps are in `MEETING_MAIL.md`, including provider Free/DNS/Secret
-and additive multi-DB migration/rollback boundaries. Do not ask the sleeping user
-for incremental setup or silently deploy under an old exception.
+Remaining owner steps are in `MEETING_MAIL.md`, including provider Free/DNS/Secret
+and real delivery acceptance. SQL is already applied; do not rerun it or silently
+deploy under an old publication decision.

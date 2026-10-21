@@ -1,7 +1,9 @@
 # Koru Buluşma E-postaları
 
-21 Ekim 2026. Bu özellik yerelde hazırlandı; canlı gönderici kurulmuş veya
-gerçek teslim kabulü yapılmış değildir. Firebase hesap postaları değişmez.
+21 Ekim 2026. Kod ve gerekli0016/0017 şemaları artık birkoru.com üzerinde
+yayında (kaynak77a69c5). Canlı gönderici henüz kurulmadı; gönderim açık değildir:
+`MEETING_MAIL_ENABLED=false`. Tercih kaydedilebilir ama şu anda buluşma değişikliği
+postası gönderilmez; arayüz de bunu açıklar. Firebase hesap postaları değişmez.
 
 ## Hazır Olan Akış
 
@@ -72,10 +74,13 @@ silme/saklama yükümlülükleri ve KVKK değerlendirmesi işletmeciye aittir.
 [hata yanıtları](https://resend.com/docs/api-reference/errors),
 [idempotency](https://resend.com/docs/dashboard/emails/idempotency-keys).
 
-## Onaylı Gelecek Dağıtımın SQL Planı
+## Uygulanan SQL Sırası (Tarihsel Kayıt)
 
-Bu belge SQL çalıştırmaz. Eski yayın istisnaları tüketilmiştir. Normal kabul,
-güncel kaynakla eşleşen testler, üç DB'nin özel yedeği ve geri dönüş planı gerekir.
+Bu sıra21 Ekim10:06TRT yayınında TAMAMLANDI.0016 üç üretim DB'sinde,0017 yalnız
+kanonik DB'dedir; yeniden çalıştırma. Üç şifreli yedek, yerel restore ve birebir
+eski veri karşılaştırması yapıldı. Ayrıntı FIREBASE_PRODUCTION.md içindedir.
+Yeni gönderici etkinleştirmesi ayrıca yapılandırma/teslim kabulü gerektirir;
+bu belge tek başına SQL, posta veya başka dağıtım çalıştırmaz.
 
 1. Güncel binding/DB kimliği, `reading_groups`, `shared_group_storage` ve
    migration envanterini salt okunur doğrula. Staging veya test DB'sini taşıma.
@@ -91,9 +96,11 @@ güncel kaynakla eşleşen testler, üç DB'nin özel yedeği ve geri dönüş p
    grup kapsamı ve eski oturum davranışı kabulü yap. Yeni tablolar boş olmalı.
 6. Gönderici kapalıyken uygulamayı dağıt. Eski buluşmalar metadata yoksa yüz yüze
    ve revision 0 okunur; eski şemada yalnız yeni buluşma seçenekleri kapanır.
-7. Geri dönüşte önce mail flag'ini kapat, önceki Worker sürümüne dön. Yeni
-   tabloları veya yeni içerikleri silme; yedeği doğrudan mevcut DB üzerine
-   dökmek canlıdan sonra yazılanları kaybettirebilir. Ayrı inceleme gerekir.
+7. Geri dönüşte mail flag'ini kapalı tut ve yazmaları durdurup incele. Açılıştan
+   sonra çevrim içi buluşma metaverisi yazılmış olabileceğinden, bunu okumayan
+   eski Worker'a sessizce dönme; ortak okuyucular ve metaveri desteği korunarak
+   düzelt. Yeni tabloları/içerikleri silme veya yedeği mevcut DB üzerine dökme.
 
-Yerel/gerçek workerd testleri bu eklemelerin mevcut satırları ve FK bütünlüğünü
-koruduğunu sınar; bu, uzak SQL'nin uygulanmış olduğu anlamına gelmez.
+Yerel workerd testlerine ek olarak bu yayında uzak SQL sonrası tüm eski tipli
+satırlar/medya/sayaçlar, yeni boş tablolar ve FK/integrity kontrolleri de geçti.
+Bu, tam çoklu-DB felaket kurtarma veya gerçek sağlayıcı teslim kabulü değildir.

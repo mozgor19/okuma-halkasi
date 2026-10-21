@@ -4,6 +4,19 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
+## Güncel Canlı Durum: 21 Ekim
+
+Web iyileştirmeleri Mustafa'nın yeni açık yayın talebiyle birkoru.com'a
+dağıtıldı: kaynak77a69c5, Worker70d23f67-3946-4213-8755-548bbaf4d5a7.
+23 temiz otomatik adım, güncel web audit, üç şifreli DB yedeği/yerel restore,
+0016/0017 eklemeli migration ve eski veri karşılaştırması,15 anonim canlı HTTPS
+kontrolü geçti.0016 üç DB'de,0017 yalnız kanonik DB'de; yeniden çalıştırma.
+Mail göndericisi kurulmadığı için buluşma e-postası kapalı; Firebase hesap
+postaları değişmedi.13 manuel kabul başlığı BEKLİYOR; standart manuel kapı
+geçti diye gösterilmedi. Eski istisnalar tekrar kullanılmadı, bu talep sonraki
+yayına yetki değildir. Aşağıdaki19 Ekim hazırlık bölümleri tarihsel bağlamdır;
+güncel kaynak/kanıt için FIREBASE_PRODUCTION.md ve SESSION_MEMORY.md okunur.
+
 19 Ekim ek kabul planı: [sekiz deneyim başlığı](WEB_EXPERIENCE_ACCEPTANCE.md).
 Mevcut testleri tekrar saymak yerine eksik akışlar için `web-experience` ve
 `web-updates` zorunlu adımları eklendi. `0011_account_experience.sql` henüz
@@ -20,7 +33,7 @@ sentetik prototip olarak onaylandı, üretim parola engelini henüz kapatmaz.
 [Yerel silme servisi](ACCOUNT_ERASURE.md) 13 odaklı testle eklendi; korumalı
 işletim, sağlayıcı eşgüdümü ve yedek/restore kabulü hâlâ eksik.
 
-## Şu Anki Karar
+## 19 Ekim Kararı (Tarihsel)
 
 **Genel kullanıma yayın kapalı kalmalı.** Yerel regresyon başarısı; canlı
 migration, fiziksel cihaz, bağımsız güvenlik, kalıcı posta ve hukuki kabulün

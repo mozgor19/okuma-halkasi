@@ -7,8 +7,10 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
-LATEST WORK (October 21): Mustafa requested seven web refinements and autonomous
-completion without mid-task questions. Implement automatic zero-group first-account
+LATEST LIVE UPDATE (October 21,10:06TRT): Mustafa requested publishing the seven
+web refinements after the local handoff. Source77a69c5 is live at birkoru.com,
+Worker70d23f67-3946-4213-8755-548bbaf4d5a7 at100%, maintenance OFF. Implemented
+automatic zero-group first-account
 tour; optional online/in-person meeting venue in create/edit/continuation; opt-in
 group-scoped change mail, notifications and versioned calendar; admin group hero;
 separated onboarding links; all four dark palettes; readable body text. Preserve
@@ -28,12 +30,18 @@ outcomes/no blind resend, private one-recipient messages and 30-day cleanup.
 Activity-driven queue, NOT guaranteed inactive-group cron or background web push.
 Account-owner sender setup and production acceptance stay in final handoff only.
 
-Unapplied additive SQL:0016 DOMAIN tables on canonical/default AND both existing
+APPLIED additive SQL:0016 DOMAIN tables on canonical/default AND both existing
 dedicated DBs;0017 CANONICAL ONLY for shared metadata and preferences/deliveries.
-Do not rerun0015 or apply0017 to dedicated DBs. Old schemas still work without new
-features. No production/staging migration or deployment authorized by this work;
-previous publication exceptions are CONSUMED. Current production stays d6a1c4d,
-Worker fc31de5a-5c8f-4e7b-9645-81f151453374 at birkoru.com with shared0015.
+Do not rerun0015/0016/0017 or apply0017 to dedicated DBs. Three FRESH encrypted
+backups, disk decrypt/offline restore and exact old schema/typed rows/BLOBs/
+sequences comparison passed before opening. No staging import, synthetic remote
+account/mail, provider setup, Secret change, paid service or main push. All23
+clean revision-bound suite steps and15 anonymous live HTTPS checks passed.
+13 manual acceptance headings remain pending, NOT retroactively passed. Mustafa's
+new request applies to this release only; earlier exceptions remain consumed.
+Future releases require the normal gate or new explicit authority. Meeting mail
+flag is false; owner sender steps remain in MEETING_MAIL.md. Physical-phone,
+real provider/calendar and erasure acceptance are not established by Chromium.
 The older priority/DNS/logo holds below are historical, overridden by dated
 publication entries, not a claim that production remains on workers.dev.
 
@@ -1006,3 +1014,52 @@ manual check passed without the operator/device evidence for that exact revision
 - Dated architecture diagrams/counters describe17:52TRT pre-shared snapshot;
   prominent latest-update notices point to SHARED_GROUP_STORAGE.md. Do not
   interpret their old two-pool illustration as a current global capacity limit.
+
+## October 21 Web Refinements Are LIVE
+
+- Mustafa's newest instruction was "tamam canlıya al" after the handoff explicitly
+  distinguishing local checks from missing sender/device acceptance. Recorded a
+  NEW source/migration-bound publication request, not replay of either consumed
+  October20 exception. Standard manual gate remains false;13 categories pending.
+- Deployed source77a69c50d58d55113b6a9ae2b1faeccdac5db713, digest
+  4a530413cfd7fd0e669a96c3fafc19b60ba9d0c9026d369852cee4bd8ac6f96f.
+  Already clean and coauthorlessly pushed to work/koru-web-pwa-20261019; main
+  untouched. Reused its still-fresh23/23 suite and matching dependency audit;
+  web high/critical ZERO, low/moderate/deferred-native findings still remain.
+- Built the production artifact from that exact source. Read-only preflight
+  verified baseline/shared readers, all three DB identities, no partial new
+  schema, no pending erasure and unchanged runtime configuration. Deploy dry-run
+  and local canonical/dedicated preservation/replay-rejection rehearsals passed.
+- Rollout fdc40b90-f81e-428a-8feb-6f4496a4da84: verified maintenance503, drained
+  writers60s, exported ALL THREE production DBs to separate encrypted disk
+  snapshots/keys. Disk decrypt, full offline restore, FK/integrity and additive
+  migration rehearsal passed for each. No extra remote DB or test user created.
+- Applied0016 in DB/GROUP_CREATE_ONE/GROUP_CREATE_TWO,0017 only in DB. All original
+  schema/typed rows/media/hash/sequence values compared BEFORE and AFTER every
+  additive batch. Six new tables canonical/two per dedicated, initially empty.
+  Never rerun migrations or restore a snapshot over newer production writes.
+- Opened2026-10-21T07:06:38Z, Worker70d23f67-3946-4213-8755-548bbaf4d5a7 at100%,
+  deployment88f4df21-aecc-4084-a606-bb6119b5ebba. Three bindings and existing Secret
+  names preserved. Shared mode true, pool list[], maintenance false, new meeting
+  mail false. No Firebase provider/account-mail, DNS or paid-service changes.
+- Live anonymous HTTPS smoke PASSED15 checks, normal system DNS/TLS: public docs,
+  CSP/no-store, approved logo assets, Firebase/Turnstile configuration, protected
+  old/new APIs/operator, empty/foreign signup rejection, canonical redirects,
+  private-safe metadata, served JS/CSS byte matching, hydration, four schemes x
+  light/dark x390/1440 (16 screenshots), anonymous-only PWA cache/offline/reconnect.
+  Inspected mobile notebook dark/desktop editorial light. Initial smoke selected
+  /assets instead of vinext's actual /_next/static; failed report retained, test
+  corrected, then genuinely passed. No production account/mail experiment.
+- Evidence Git-excluded: outputs/release-tests/web-refinements-r7-20261021/,
+  outputs/web-acceptance/77a69c5/production-outcome.json and production-smoke.json,
+  private refinement-rollouts journal and separate backup-keys. Keys, snapshots,
+  personal rows and operator credentials NEVER belong in Git/docs/chat.
+- Sender verification/Secret, real mailbox/calendar behavior, scheduled inactive
+  group delivery and physical Android/iPhone/manual operational/legal/security
+  acceptance remain. Do NOT imply deployed meeting mail currently sends. This
+  update did not migrate staging, change light palettes/logo, reset data, create
+  paid resources or publish native code. Later docs-only commit is not deployed.
+- Recovery: new features may have written real data after opening, so fix forward
+  with shared readers and online metadata support retained. Mail stays off. Do
+  not silently roll back to an online-unaware reader, drop new tables or restore
+  over newer writes. Pause writes/creation for explicit operator review as needed.

@@ -1,6 +1,42 @@
 # Koru Üretim Firebase Hazırlığı
 
-## Son Güncelleme: Ortak Grup Depolaması Canlıda
+## Son Yayın: Web İyileştirmeleri
+
+21 Ekim 2026,10:06TRT: `https://birkoru.com`, uygulama kaynağı
+`77a69c50d58d55113b6a9ae2b1faeccdac5db713`, Worker sürümü
+`70d23f67-3946-4213-8755-548bbaf4d5a7` (%100); bakım kapalı.
+Tur, çevrim içi/yüz yüze buluşma, grup görseli, yazı/aralık ve dört koyu palet
+iyileştirmeleri yayında. Açık renkler, logo ve mevcut kullanıcı verileri korundu.
+
+Üç üretim DB'sinin ayrı şifreli yedeği, diskten çözme/yerel geri yükleme ve
+eklemeli SQL provası geçti. `0016` üç DB'ye, `0017` yalnız kanonik DB'ye uygulandı;
+eski şema, tipli kayıtlar, medya ve kimlik sayaçları birebir karşılaştırıldı.
+**Bu migration'ları yeniden çalıştırma.** Ortak grup okuyucuları, mevcut
+dedicated bağlantıları ve Firebase/Turnstile/oturum Secret'ları korunuyor.
+
+Temiz ve push edilmiş kaynağın23 aşamalı paketi ile güncel web bağımlılık
+taraması geçti; yeni üretim paketi oluşturuldu. Yayın sonrası15 anonim gerçek
+HTTPS kontrolü: güvenlik/yetki, gerçek JS/CSS eşleşmesi, dört görünümün açık/koyu
+390/1440 ekranları ve PWA offline/online dönüşü geçti. Testte kullanıcı
+oluşturulmadı veya posta gönderilmedi. Main, staging, DNS ve ücretli plan değişmedi.
+
+**Buluşma değişikliği postası henüz kapalı:** `MEETING_MAIL_ENABLED=false`.
+[Gönderici kurulumu](MEETING_MAIL.md) tamamlanmalı; Firebase doğrulama ve şifre
+postaları bundan ayrı ve değiştirilmedi. Gerçek posta/cihaz/harici takvim
+teslimi bu anonim testlerle onaylanmış sayılmaz. Mustafa'nın bu yayına özel
+talebi kaydedildi;13 manuel kabul başlığı hâlâ bekliyor, standart manuel kapı
+geçmedi. Önceki yayın istisnaları tekrar kullanılmadı, bu talep de gelecek
+yayınlar için genel yetki değildir.
+
+Kanıtlar (Git dışı): `outputs/release-tests/web-refinements-r7-20261021/`,
+`outputs/web-acceptance/77a69c5/production-outcome.json`, `production-smoke.json`;
+özel rollout `fdc40b90-f81e-428a-8feb-6f4496a4da84`. Şifreli yedekler ve ayrı
+anahtarları Git dışındadır. Yeni verilerin üzerine yedek dökme, yeni tabloları
+silme veya çevrim içi buluşmaları okumayan eski kodu geri getirme; sorun olursa
+yazmaları durdurup mevcut yeni şemayla düzelt. Sonraki doküman commit'i yeni
+uygulama dağıtımı değildir.
+
+## Önceki Yayın: Ortak Grup Depolaması
 
 20 Ekim 2026, 23:18 TRT: `https://birkoru.com`, kaynak
 `d6a1c4d720317c29c0fd366afb7582ab32f07ebf`, Cloudflare sürümü
