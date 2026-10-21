@@ -53,6 +53,7 @@ if (process.argv[1] === resolve("scripts/groups-development.mjs")) {
     execute("DB", resolve("drizzle/0012_account_erasure_jobs.sql"));
     execute("DB", resolve("drizzle/0015_shared_group_storage.sql"));
     execute("DB", resolve("drizzle/0017_group_communication.sql"));
+    execute("DB", resolve("drizzle/0018_account_appearance.sql"));
     if (process.env.OKUMA_FIREBASE_LOCAL === "1") {
       if (!process.env.OKUMA_TEST_RUN_ID?.startsWith("firebase-local-")) throw new Error("Firebase integration requires a fresh named local fixture.");
       execute("DB", resolve("prototypes/firebase-auth/local-integration-schema.sql"));

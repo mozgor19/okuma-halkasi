@@ -3,6 +3,7 @@ import { authenticateAccount } from "@/db/accounts";
 import { ReadingGroupError } from "@/lib/groups";
 import { TOUR_VERSION, validTourState } from "@/lib/web-experience-policy";
 import type { SessionIdentity } from "@/lib/auth";
+import { accountAppearanceAvailable, readAccountAppearance } from "@/db/account-appearance";
 
 export async function accountExperienceAvailable() {
   const { results } = await identityDatabase().prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('account_experience', 'account_deletion_requests')").all();
@@ -15,7 +16,9 @@ export async function readAccountExperience(memberId: number) {
   const profile = await db.prepare("SELECT member_id FROM account_profiles WHERE member_id = ?").bind(memberId).first();
   const tour = await db.prepare("SELECT tour_version AS version, tour_state AS state FROM account_experience WHERE member_id = ?").bind(memberId).first();
   const deletion = await db.prepare("SELECT id, status, requested_at AS requestedAt FROM account_deletion_requests WHERE member_id = ?").bind(memberId).first();
-  return { available: true, tourEligible: !!profile, tour, deletion };
+  const appearanceAvailable = await accountAppearanceAvailable();
+  const appearance = appearanceAvailable ? await readAccountAppearance(memberId) : null;
+  return { available: true, tourEligible: !!profile, tour, deletion, appearanceAvailable, appearance };
 }
 
 export async function saveAccountTour(memberId: number, body: Record<string, unknown>) {

@@ -15,6 +15,7 @@ const { outputFiles } = await build({ stdin: { resolveDir: process.cwd(), source
   import { GET as media } from './app/api/media/[key]/route.ts';
   import { GET as calendar } from './app/api/calendar/[meetingId]/route.ts';
   import { GET as preferences, POST as savePreference } from './app/api/groups/notifications/route.ts';
+  import { GET as experience, POST as saveExperience } from './app/api/account/experience/route.ts';
   import { flush } from 'next/server';
   export default { async fetch(request) {
     try {
@@ -27,6 +28,7 @@ const { outputFiles } = await build({ stdin: { resolveDir: process.cwd(), source
       if(path === '/api/action') return action(request);
       if(path === '/api/upload') return upload(request);
       if(path === '/api/groups/notifications') return request.method==='GET' ? preferences(request) : savePreference(request);
+      if(path === '/api/account/experience') return request.method==='GET' ? experience(request) : saveExperience(request);
       if(path === '/test/flush') { await flush(); return Response.json({ok:true}); }
       if(path.startsWith('/api/media/')) return media(request,{params:Promise.resolve({key:path.split('/').at(-1)})});
       if(path.startsWith('/api/calendar/')) return calendar(request,{params:Promise.resolve({meetingId:path.split('/').at(-1)})});
@@ -47,7 +49,7 @@ async function fixture(communication = false) {
     outboundService() { throw Error("No real network/provider/mail is allowed in this test"); },
   });
   const db = await worker.getD1Database("DB");
-  for (const name of [...legacyMigrations, ...canonicalMigrations, "0015_shared_group_storage", ...(communication ? ["0016_meeting_details", "0017_group_communication"] : [])]) {
+  for (const name of [...legacyMigrations, ...canonicalMigrations, "0015_shared_group_storage", ...(communication ? ["0016_meeting_details", "0017_group_communication", "0018_account_appearance"] : [])]) {
     const sql = readFileSync(new URL(`../../drizzle/${name}.sql`, import.meta.url), "utf8");
     await db.batch(sql.split("--> statement-breakpoint").filter((part) => part.trim()).map((sql) => db.prepare(sql.trim())));
   }
@@ -77,6 +79,28 @@ async function fixture(communication = false) {
   }
   return { worker, db, call, create };
 }
+
+test("actual D1 atomically saves first appearance and tour, inherits defaults and rejects revoked group access", async () => {
+  const f = await fixture(true);
+  try {
+    assert.equal((await f.call("/api/account/experience")).status, 401);
+    const group = await f.create(1), other = await f.create(2);
+    const choose = (scheme, mode) => f.call("/api/account/experience", { kind: "appearance", scheme, mode, groupId: group.id }, 1, group.id);
+    assert.equal((await choose("minimal", "dark")).status, 200);
+    assert.equal((await f.create(1, "Inherited")).scheme, "minimal");
+    const changes = await Promise.all([choose("catalogue", "light"), choose("editorial", "dark")]);
+    assert.ok(changes.every(r => r.status === 200));
+    const account = await f.db.prepare("SELECT scheme,color_mode AS mode FROM account_appearance WHERE member_id=1").first();
+    const membership = await f.db.prepare("SELECT scheme,color_mode AS mode FROM reading_group_memberships WHERE account_member_id=1 AND group_id=?").bind(group.id).first();
+    assert.deepEqual(account, membership);
+    assert.equal((await (await f.call("/api/account/experience", undefined, 1, group.id)).json()).tour.state, "completed");
+    assert.equal((await (await f.call("/api/account/experience", undefined, 2, other.id)).json()).appearance, null);
+    await f.db.prepare("UPDATE reading_group_memberships SET is_active=0 WHERE account_member_id=1 AND group_id=?").bind(group.id).run();
+    assert.equal((await choose("notebook", "system")).status, 403);
+    assert.deepEqual(await f.db.prepare("SELECT scheme,color_mode AS mode FROM account_appearance WHERE member_id=1").first(), account);
+    assert.deepEqual((await f.db.prepare("PRAGMA foreign_key_check").all()).results, []);
+  } finally { await f.worker.dispose(); }
+});
 
 test("actual workerd D1 creates more than three groups and concurrent idempotent retries reserve exactly one roster", async () => {
   const f = await fixture();

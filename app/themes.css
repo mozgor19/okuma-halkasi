@@ -370,6 +370,8 @@ html[data-scheme="minimal"] .side-nav button.active{background:var(--app-surface
 
 /* Dark mode is isolated here so the original daylight schemes remain untouched. */
 .dark body,.dark .app-shell,.dark .main-area{background-color:var(--color-canvas);color:var(--color-text)}
+.dark .empty-panel{border-color:var(--color-border);color:var(--color-text-muted)}
+.dark .empty-panel h3{color:var(--color-text)}
 .dark :is(.topbar,.mobile-nav,.footer,.featured-book-card,.members-card,.next-card,.mini-archive,.archive-item,.roadmap-item,.paper-card,.meeting-score,.profile-stats>div,.favorite-row,.reading-book-row,.face-reference-row,.notification-menu,.global-search-result,.trash-row,.management-row,.login-panel,.create-dialog,.password-dialog,.global-search-dialog,.lookup-results,.lookup-results button){
   background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)
 }
@@ -855,6 +857,12 @@ html[data-scheme="notebook"] .meeting-head{padding-bottom:36px;border-bottom:2px
 html[data-scheme="notebook"] .meeting-score{border:0;border-radius:0;background:transparent}
 html[data-scheme="notebook"] .continuation-band{border:2px solid var(--color-text);background:var(--notebook-highlight);color:var(--color-on-highlight)}
 html[data-scheme="notebook"] .meeting-layout{gap:0}
+@media(min-width:1251px){
+  html[data-scheme="notebook"] .meeting-main{padding-inline-end:32px}
+}
+@media(max-width:1250px){
+  html[data-scheme="notebook"] .meeting-side{border-left:0;padding-left:0}
+}
 html[data-scheme="notebook"] .paper-card{
   border:0;
   border-bottom:1px solid var(--color-border);
@@ -1129,6 +1137,7 @@ html[data-scheme="notebook"] .hero{
       color-mix(in srgb,var(--color-inverse-surface) 76%,transparent) 54%,
       transparent 100%
     ),
+    var(--group-hero-image,url('/reading-room.webp')) center/cover,
     url('/reading-room.webp') center/cover!important
 }
 html[data-scheme="notebook"] .hero-copy{
@@ -1253,6 +1262,10 @@ html.dark .favorite{
 :where(.meeting-layout,.meeting-main,.meeting-side,.paper-card,.section-row,.gallery-actions,.roadmap-page,.roadmap-list,.roadmap-item,.plan-details,.profile-page,.profile-section,.face-reference-grid,.face-reference-row,.management-list,.management-row,.dialog-scroll,.create-form,.form-two,.form-three,.admin-add){
   min-width:0;
 }
+.section-row{flex-wrap:wrap;gap:16px}
+.section-row>div:first-child{min-width:0}
+.section-row h2{overflow-wrap:anywhere}
+.gallery-actions{max-width:100%;gap:8px}
 :where(.face-reference-person strong,.management-person strong,.review-item strong,.participant-list span:nth-child(2)){
   color:var(--color-text);
 }
@@ -1698,6 +1711,27 @@ html[data-scheme="minimal"] .minimal-custom-hero{display:block;margin:0;width:10
 .experience-dialog [data-slot="dialog-header"]{text-align:left;gap:12px;min-width:0}
 .experience-dialog [data-slot="dialog-title"]{color:var(--color-text);font-family:var(--font-display);font-size:24px;line-height:1.25;overflow-wrap:anywhere}
 .experience-dialog [data-slot="dialog-description"]{color:var(--color-text-muted);font-size:16px;line-height:1.5;overflow-wrap:anywhere}
+.experience-dialog.appearance-welcome-dialog{width:min(560px,calc(100vw - 32px));max-width:calc(100vw - 32px)}
+.welcome-appearance-choices{display:grid;gap:20px;min-width:0}
+.welcome-appearance-choices fieldset{min-width:0;border:0;padding:0;margin:0}
+.welcome-scheme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.welcome-scheme-choice{position:relative;display:grid;grid-template-rows:80px auto;gap:10px;min-width:0;border:2px solid var(--control-border);border-radius:4px;padding:12px;background:var(--control-bg);color:var(--control-text);cursor:pointer}
+.welcome-scheme-choice>input,.welcome-mode-options input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.welcome-scheme-choice:has(input:checked),.welcome-mode-options label:has(input:checked){border-color:var(--color-action);background:var(--control-bg-active)}
+.welcome-scheme-choice:focus-within,.welcome-mode-options label:focus-within{outline:2px solid var(--color-focus);outline-offset:3px}
+.welcome-scheme-name{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:24px;font-family:var(--font-display);font-size:16px;font-weight:600}
+.welcome-scheme-name svg{flex:none;color:var(--color-action)}
+.welcome-modes legend{margin-bottom:10px;font-size:14px;font-weight:600;color:var(--color-text)}
+.welcome-mode-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.welcome-mode-options label{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:48px;border:2px solid var(--control-border);border-radius:4px;padding:6px;background:var(--control-bg);color:var(--color-action);font-size:14px;cursor:pointer}
+.welcome-mode-options label span{overflow-wrap:anywhere}
+.welcome-mode-options svg{flex:none}
+.welcome-appearance-choices fieldset:disabled{opacity:.65}
+.appearance-welcome-dialog .welcome-offline{margin:0;color:var(--color-text-muted);font-size:14px;line-height:1.5}
+@media(max-width:380px){
+  .welcome-mode-options label{flex-direction:column;gap:4px;min-height:64px;padding:8px 4px}
+  .welcome-mode-options label span{overflow-wrap:normal}
+}
 .experience-commands{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
 :is(.experience-commands,.account-data-form,.account-data-content) button{min-height:44px;border:1px solid var(--control-border);border-radius:4px;background:var(--control-bg-active);color:var(--color-action);white-space:normal}
 :is(.experience-commands,.account-data-form,.account-data-content) button:hover{background:var(--control-bg);color:var(--color-action-hover)}

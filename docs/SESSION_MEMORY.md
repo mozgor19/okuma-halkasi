@@ -7,6 +7,107 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
+CURRENT PUBLICATION REQUEST (October21, after the image-fix handoff): Mustafa
+explicitly said "tamam canlıya al". Prepare this accumulated web-only update:
+gallery spacing, first-group-only tour, final appearance selection/account
+defaults, dark empty-state contrast and the painted group image fix. This is
+new authority for THIS revision only, not reuse of consumed launch decisions.
+Keep the13 manual acceptance headings pending; do not claim a standard manual
+gate. Require clean coauthor-free work-branch commit/push, exact-source full
+suite, fresh web audit, live identity/settings verification, fresh encrypted
+backups/offline restore of ALL THREE DBs and typed old-data comparisons. Apply
+ONLY additive0018 on canonical DB after rehearsal; never replay0015/16/17 or
+apply account tables to dedicated DBs. Preserve mail OFF, existing Secrets,
+domains, shared readers, accounts, memberships and content. No staging import,
+native change, main push, new provider account/mail or paid service. No release
+has occurred under this request yet; record the actual outcome after verification.
+
+NEWEST LOCAL FIX (October21,14:08TRT): Mustafa reported the test home image not
+changing. Reproduced with a REAL file chooser: upload succeeded but Notebook's
+important CSS shorthand forced reading-room.webp. The old browser test checked
+the reset control/hidden img, not the painted background, so missed this bug.
+ReadingApp now exposes its scoped image as --group-hero-image; Notebook consumes
+it while retaining its approved overlay, crop and reading-room fallback. Other
+schemes/light and dark colors unchanged; Minimal still uses its existing visible
+custom figure. No DB/backend/migration, logo, provider or live/staging changes.
+Added group-hero-checks.mjs/test-group-hero.mjs; mandatory web-refinements calls
+the same stronger check. Local red/green evidence in
+outputs/release-tests/tour-timing-20261021-c/group-hero:32 custom/default layouts,
+33 screenshots, real desktop/mobile chooser uploads, actual picture-pixel change,
+reload, same-file replacement and unreferenced-media cleanup. The failing
+pre-fix report is retained. Four real workerd/D1 isolation/media tests, tsc,
+UI contract and production build pass; lint retains only the5 existing warnings.
+Earlier full-screen/tour reports below predate this image fix; the whole release
+suite has NOT been rerun or waived. Still dirty/unpublished. The5321 preview's
+data and any user-selected images were NOT modified by tests; separate synthetic
+test media/settings were cleaned/restored. No migration is needed for this fix.
+
+NEWEST LOCAL DECISION (October21, supersedes zero-group tour behavior below):
+Mustafa wants the tour only AFTER first successful group creation and real home
+load, not immediately after signup. Removed WelcomeTour/providers from /groups
+and /groups/manage; removed unused setup-mode tour. ReadingApp requires a real
+loaded group and matching member. First invitation join follows the same rule.
+Appearance choice stays the final step; completed/dismissed version1 accounts
+are not forced through it again. Added failed-create/no-consumption and actual
+create/join browser checks, updating the older registration test expectation.
+Fixed overlooked hardcoded empty-panel heading in ALL dark schemes with shared
+semantic heading/body/icon/border roles; light colors/palettes remain unchanged.
+New 48 empty Home/Archive/Plan layouts measure contrast at390/1440; brandv1.5
+records the approved timing and readability contract. Prior23-step evidence
+below predates this change and is NOT current-source verification.0018 remains
+LOCAL ONLY; no deployment, live SQL, paid service or native work by this task.
+
+NEW LOCAL VERIFICATION (October21,13:58TRT): current product passes13 focused
+unit checks, tsc, UI contract and production build; targeted lint has no errors
+(ReadingApp retains its5 pre-existing img/hook warnings). Playwright:43 main
+experience checks/96 screenshots +8 extra/16,211 existing four-theme screen and
+profile checks,11 refinements/199 screenshots including48 empty Home/Archive/
+Plan layouts and80 empty/populated meeting layouts. Dark heading minimum16.10:1,
+body/icon11.12:1; light text colors and original light palettes unchanged.
+Reports: tour-timing-20261021-a/{web-experience,groups-ui} and
+tour-timing-20261021-c/web-refinements under outputs/release-tests. Earlier
+test-selector/setup failures are not passes; the b failed report is retained.
+These focused checks do NOT constitute a new23-step release or manual gate.
+The self-service registration expectation was updated to no pre-group overlay;
+the complete self-service suite was not rerun in this focused task. Current
+application changes remain dirty on86e0492, not committed/pushed/deployed.
+Only the original5321 synthetic preview is left running, with its existing
+layout-onboarding-20261021-b data/password preserved, not reseeded.
+
+LATEST LOCAL WORK (October 21, after the live77a69c5 release): Mustafa reported
+desktop gallery commands touching the divider and requested checking every theme,
+plus a first-account appearance choice AFTER the tour. Implemented notebook
+desktop32px main-column inset, stacked-tablet divider removal, shared16px section
+heading wrap/gap and8px gallery-command gap. Light/dark PALETTES unchanged.
+Added an explicit four-scheme +light/dark/system final step, server-confirmed
+save/retry, account-owned default and chosen membership/tour atomic save. Existing
+group preferences are not overwritten in bulk; newly created/joined groups inherit
+the account default. Keep tour version1: no forced replay for completed accounts.
+Brand contract v1.4 adds these interaction/spacing rules, not a new logo/palette.
+NEW0018 account_appearance is CANONICAL ONLY and is NOT applied to production.
+Old-schema fallback keeps existing tours/groups working. Account erasure cascades
+the new preference. See WEB_LAYOUT_ONBOARDING.md for contracts and test inventory.
+No new live/staging SQL, deployment, mail/provider/DNS/Secret, paid service or
+native change is authorized/performed by this task. Earlier deployment requests
+are consumed, not standing authority. Live baseline below remains authoritative.
+
+LOCAL VERIFICATION completed October 21,09:39UTC:23/23 steps passed on unchanged
+product source (tested digest d2ff7cd0e7096e28104f923729fc93092e0eec4db5857415881434216a74c622,
+dirty HEAD86e0492). Original r3 was interrupted after16 passing checks; preserved
+that report and continued ONLY the remaining7 against the identical source/data.
+Combined evidence: outputs/release-tests/layout-onboarding-suite-20261021-r3-continued/suite-report.json;
+new feature evidence: corresponding r3-refinements/web-refinements/report.json.
+Includes80 empty/populated gallery layouts,150 focused screenshots,43 experience
+checks/96 images,8 extra experience,59PWA and211 existing full-screen/profile
+layout checks. Native/device/provider acceptance is NOT established. Doc-only
+verification notes were added AFTER this test; product fingerprint was retained
+in ignored .sites-runtime/layout-onboarding-verified-product.json. The dirty tree
+and pending manual evidence still block the normal publication gate.
+Preview5321 uses isolated profile layout-onboarding-20261021-b; demo.welcome is a
+synthetic account for first-group onboarding (its tour/memberships are NOT reset;
+same generated local password as demo.multi, ONLY in the ignored settings file). Never reveal its
+sessionSecret. Earlier previews/data were not reset.0018 remains LOCAL ONLY.
+
 LATEST LIVE UPDATE (October 21,10:06TRT): Mustafa requested publishing the seven
 web refinements after the local handoff. Source77a69c5 is live at birkoru.com,
 Worker70d23f67-3946-4213-8755-548bbaf4d5a7 at100%, maintenance OFF. Implemented
@@ -17,7 +118,7 @@ separated onboarding links; all four dark palettes; readable body text. Preserve
 approved logo/default image, light COLOR palettes, accounts and existing behavior.
 Native remains deferred. See WEB_REFINEMENTS.md and MEETING_MAIL.md.
 
-Brand contract is now BRAND_IDENTITY.md v1.3: dark canvas15191b, surfaces20272b/
+Palette contract from BRAND_IDENTITY.md v1.3 (retained in v1.4): dark canvas15191b, surfaces20272b/
 2b363c, textf0f5f7, mutedbed0d8, border748e9b; editorial actionffa28d,
 catalogue7ee2b7, notebook8cd9e8, minimalf0f5f7. Body16px, meta14px; keep notebook
 structure independent. Approved light palette snapshot is an enforced test fixture.

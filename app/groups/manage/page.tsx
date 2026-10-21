@@ -6,7 +6,6 @@ import { AccountStatus, Field, OnboardingFrame, onboardingRequest, useAccountSta
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { finishGroupSelection, groupFetch, type GroupsResponse, type ReadingGroup } from "@/lib/group-client";
-import { AccountExperienceProvider, WelcomeTour } from "@/components/account-experience";
 
 export default function ManageGroupsPage() {
   const [data, setData] = useState<GroupsResponse | null>(null);
@@ -42,8 +41,7 @@ export default function ManageGroupsPage() {
       await open(result.group);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Grup kurulamadı."); setBusy(false); }
   }
-  return <AccountExperienceProvider enabled={!!account.profile}><OnboardingFrame title="Okuma gruplarım" back="/groups">
-    <WelcomeTour setup ready={!!account.profile && !!data && !busy} name={account.profile?.name ?? ""} groupName="" planCount={0} meetingCount={0} onNavigate={() => {}} />
+  return <OnboardingFrame title="Okuma gruplarım" back="/groups">
     <AccountStatus status={account} disabled={busy} />
     {error && <p role="alert">{error}</p>}
     {!data && !error && <p role="status">Yükleniyor.</p>}
@@ -61,5 +59,5 @@ export default function ManageGroupsPage() {
     </form></TabsContent></Tabs>
     <nav className="onboarding-actions" aria-label="Katılım ve hesap işlemleri"><a className="small-link onboarding-command" href="/join"><UserPlus size={18} /> Davetle gruba katıl</a>
     <a className="small-link onboarding-command" href="/account">Hesap ve verilerim</a></nav>
-  </OnboardingFrame></AccountExperienceProvider>;
+  </OnboardingFrame>;
 }

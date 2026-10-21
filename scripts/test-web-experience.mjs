@@ -211,12 +211,18 @@ try {
   assert.equal(await page.locator(".roadmap-page").isVisible(), true);
   await page.getByRole("button", { name: "Buluşmaları aç", exact: true }).click();
   await page.getByRole("button", { name: "Profilimi aç", exact: true }).click();
-  await page.getByRole("button", { name: "Tamamla", exact: true }).click();
+  await page.getByRole("button", { name: "Görünümünü seç", exact: true }).click();
+  await page.locator(".appearance-welcome-dialog").waitFor();
+  const appearanceSaved = page.waitForResponse(response => new URL(response.url()).pathname === endpoint && response.request().method() === "POST" && response.request().postDataJSON()?.kind === "appearance");
+  await page.getByRole("button", { name: "Kaydet ve başla", exact: true }).click();
+  const savedResponse = await appearanceSaved;
+  assert.equal(savedResponse.status(), 200);
+  assert.equal(savedResponse.request().headers()["x-reading-group"], "default");
   await page.locator(".experience-dialog").waitFor({ state: "hidden" });
   await page.reload(); await ready(page);
   assert.equal(await page.locator(".experience-dialog").count(), 0);
   passed("First-use tour navigates real views and completion survives a new page load");
-  for (const width of [390, 1440]) for (const scheme of ["editorial", "catalogue", "notebook", "minimal"]) for (const mode of ["light", "dark"]) {
+  for (const width of [320, 390, 430, 1440]) for (const scheme of ["editorial", "catalogue", "notebook", "minimal"]) for (const mode of ["light", "dark"]) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
     const response = await ui.client.request.patch(origin + "/api/groups/appearance", { headers: { Origin: origin, "X-Reading-Group": "default" }, data: { scheme, mode } });
     assert.equal(response.status(), 200);
@@ -228,6 +234,19 @@ try {
     assert.ok(dialog.x >= 0 && dialog.x + dialog.width <= width + 1);
     let image = `${output}/tour-${width}-${scheme}-${mode}.png`;
     await page.screenshot({ path: image, animations: "disabled" }); screenshots.push(image);
+    await page.getByRole("button", { name: "Planı aç", exact: true }).click();
+    await page.getByRole("button", { name: "Buluşmaları aç", exact: true }).click();
+    await page.getByRole("button", { name: "Profilimi aç", exact: true }).click();
+    await page.getByRole("button", { name: "Görünümünü seç", exact: true }).click();
+    const appearance = page.locator(".appearance-welcome-dialog");
+    const appearanceBox = await appearance.boundingBox();
+    assert.ok(appearanceBox.x >= 0 && appearanceBox.x + appearanceBox.width <= width + 1 && appearanceBox.y >= 0);
+    assert.equal(await appearance.getByRole("radio").count(), 7);
+    for (const radio of await appearance.getByRole("radio").all()) assert.ok((await radio.boundingBox()).height >= 44);
+    await appearance.getByRole("button", { name: "Kaydet ve başla", exact: true }).scrollIntoViewIfNeeded();
+    image = `${output}/appearance-${width}-${scheme}-${mode}.png`;
+    await page.screenshot({ path: image, animations: "disabled" }); screenshots.push(image);
+    await appearance.getByRole("button", { name: "Geri", exact: true }).click();
     await page.getByRole("button", { name: "Daha sonra", exact: true }).click();
     await page.locator(".experience-dialog").waitFor({ state: "hidden" });
     await profile(page);

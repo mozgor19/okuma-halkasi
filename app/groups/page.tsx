@@ -8,7 +8,6 @@ import { GroupName } from "@/components/group-branding";
 import { Button } from "@/components/ui/button";
 import { currentReturnPath, finishGroupSelection, groupFetch, type GroupsResponse, type ReadingGroup } from "@/lib/group-client";
 import { useOnboardingConfig } from "@/components/onboarding";
-import { AccountExperienceProvider, WelcomeTour } from "@/components/account-experience";
 
 const roles = { member: "Katılımcı", admin: "Yönetici", super_admin: "Ana yönetici" };
 
@@ -74,8 +73,7 @@ export default function GroupsPage() {
   }
 
   return (
-    <AccountExperienceProvider enabled={!!onboarding?.enabled && data?.groups.length === 0}><main className="login-page">
-      <WelcomeTour setup ready={!!onboarding?.enabled && data?.groups.length === 0 && !busy} name="Merhaba" groupName="" planCount={0} meetingCount={0} onNavigate={() => {}} />
+    <main className="login-page">
       <section className="login-panel" aria-labelledby="groups-title" aria-busy={busy !== null}>
         <div className="login-brand">
           <span><BrandMark /></span>
@@ -104,6 +102,6 @@ export default function GroupsPage() {
           <AppearanceModeMenu />
         </div>
       </section>
-    </main></AccountExperienceProvider>
+    </main>
   );
 }

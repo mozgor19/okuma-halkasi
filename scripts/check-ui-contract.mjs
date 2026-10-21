@@ -64,6 +64,11 @@ const componentSelectors = [
 ];
 for (const selector of componentSelectors) requireText(css, selector, `Tema sözleşmesi kapsamıyor: ${selector}`);
 
+requireRule(css, ".dark .empty-panel{", ["color:var(--color-text-muted)", "border-color:var(--color-border)"], "Boş durumlar koyu modun okunabilir ortak rollerini kullanmalı");
+requireRule(css, ".dark .empty-panel h3", ["color:var(--color-text)"], "Boş durum başlığı koyu modda eski sabit renge dönmemeli");
+requireText(css, "var(--group-hero-image,url('/reading-room.webp')) center/cover", "Defter arka planı seçilen grup görselini kullanmalı");
+requireText(page, '"--group-hero-image": groupHeroImage', "Görünür arka plan ve grup görseli aynı kaynağı kullanmalı");
+
 requireRule(css, ".vote-reset-button", ["min-height:36px", "padding:7px 12px"], "Oy sıfırlama düğmesinin güvenli iç boşluğu eksik");
 requireRule(css, '.create-form input[type="file"]::file-selector-button', ["min-height:32px", "padding:4px 12px"], "Dosya seçme düğmesinin güvenli iç boşluğu eksik");
 requireRule(css, ".admin-add>div", ["border:1px solid var(--control-border)", "border-radius:var(--app-radius)", "overflow:hidden"], "Katılımcı ve misafir alanlarının kesintisiz dış çerçevesi eksik");

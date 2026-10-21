@@ -1,6 +1,7 @@
 import { accountExperienceAvailable, changeDeletionRequest, readAccountExperience, saveAccountTour } from "@/db/account-experience";
-import { noStore, ReadingGroupError, requireAccountIdentity } from "@/lib/groups";
+import { noStore, ReadingGroupError, requireAccountIdentity, resolveReadingGroup } from "@/lib/groups";
 import { jsonBody, rateLimit, sameOrigin, selfServiceEnabled } from "@/lib/onboarding-security";
+import { saveAccountAppearance } from "@/db/account-appearance";
 
 export const runtime = "edge";
 
@@ -29,6 +30,20 @@ export async function POST(request: Request) {
     const body = await jsonBody(request);
     if (!await accountExperienceAvailable()) throw new ReadingGroupError("ACCOUNT_TOOLS_UNAVAILABLE", 503, "Hesap araçları henüz kullanıma açılmadı. Destekle iletişime geç.");
     if (body.kind === "tour") return noStore(Response.json(await saveAccountTour(identity.memberId, body)));
+    if (body.kind === "appearance") {
+      let group = null;
+      if (body.groupId !== undefined) {
+        if (typeof body.groupId !== "string" || !body.groupId || body.groupId.length > 128) throw new ReadingGroupError("INVALID_APPEARANCE", 400, "Okuma grubunu kontrol et.");
+        const selected = await resolveReadingGroup(request);
+        if (selected.context.accountMemberId !== identity.memberId || selected.group.id !== body.groupId) {
+          throw new ReadingGroupError("GROUP_CHANGED", 409, "Okuma grubu değişti. Sayfayı yenile.");
+        }
+        group = selected.group;
+      }
+      await saveAccountAppearance(identity, body, group?.id ?? null);
+      return noStore(Response.json({ ...await readAccountExperience(identity.memberId),
+        ...(group ? { group: { ...group, scheme: body.scheme, mode: body.mode } } : {}) }));
+    }
     if (body.kind === "deletion") {
       await rateLimit(request, "account-deletion-password", 5, 3600, String(identity.memberId));
       return noStore(Response.json(await changeDeletionRequest(identity, body)));

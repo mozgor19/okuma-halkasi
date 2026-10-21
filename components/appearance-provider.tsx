@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { acceptReadingGroup, getReadingGroup, groupFetch, subscribeReadingGroup, type ReadingGroup } from "@/lib/group-client";
 import { X } from "@/components/icons";
 
@@ -16,6 +16,7 @@ type AppearanceContextValue = {
   setMode: (mode: ColorMode) => void;
   saving: boolean;
   groupPreferences: boolean;
+  applySavedAppearance(preference: { scheme: AppearanceScheme; mode: ColorMode }, group?: ReadingGroup): void;
 };
 
 const schemeKey = "kitapTahlilScheme";
@@ -68,6 +69,17 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   const [groupPreferences, setGroupPreferences] = useState(false);
   const savingRef = useRef(false);
   const committed = useRef({ scheme, mode });
+  const applySavedAppearance = useCallback((next: { scheme: AppearanceScheme; mode: ColorMode }, group?: ReadingGroup) => {
+    committed.current = next;
+    setSchemeState(next.scheme);
+    setModeState(next.mode);
+    setResolvedMode(next.mode === "system" ? systemMode() : next.mode);
+    if (group) acceptReadingGroup(group);
+    else try {
+      window.localStorage.setItem(schemeKey, next.scheme);
+      window.localStorage.setItem(modeKey, next.mode);
+    } catch { /* Server-owned defaults do not depend on optional browser storage. */ }
+  }, []);
 
   useEffect(() => {
     const sync = () => {
@@ -146,6 +158,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     resolvedMode: hydrated ? resolvedMode : "light",
     saving,
     groupPreferences,
+    applySavedAppearance,
     setScheme: (nextScheme) => { void persist({ scheme: nextScheme }); },
     setMode: (nextMode) => { void persist({ mode: nextMode }); },
   };

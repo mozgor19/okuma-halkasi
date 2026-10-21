@@ -108,6 +108,12 @@ export const accountExperience = sqliteTable("account_experience", {
   tourState: text("tour_state", { enum: ["completed", "dismissed"] }).notNull(),
   updatedAt: integer("updated_at").notNull(),
 }, (table) => [check("account_experience_version", sql`${table.tourVersion} > 0`), check("account_experience_state", sql`${table.tourState} IN ('completed', 'dismissed')`)]);
+export const accountAppearance = sqliteTable("account_appearance", {
+  memberId: integer("member_id").primaryKey().notNull().references(() => memberAccounts.memberId, { onDelete: "cascade" }),
+  scheme: text("scheme", { enum: ["editorial", "catalogue", "notebook", "minimal"] }).notNull(),
+  colorMode: text("color_mode", { enum: ["light", "dark", "system"] }).notNull(),
+  updatedAt: integer("updated_at").notNull(),
+}, (table) => [check("account_appearance_scheme", sql`${table.scheme} IN ('editorial', 'catalogue', 'notebook', 'minimal')`), check("account_appearance_mode", sql`${table.colorMode} IN ('light', 'dark', 'system')`)]);
 export const accountDeletionRequests = sqliteTable("account_deletion_requests", {
   id: text("id").primaryKey().notNull(),
   memberId: integer("member_id").notNull().unique().references(() => memberAccounts.memberId),

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useEffectEvent, useMemo, useRef, useState, type FormEvent } from "react";
+import { createContext, useContext, useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import dynamic from "next/dynamic";
 import { Archive, ArrowRight, BookOpen, CalendarDays, CalendarPlus, Camera, Check, ChevronDown, ChevronRight, Compass, Download, ExternalLink, ImagePlus, LogOut, MapPin, Pencil, Plus, RotateCcw, Search, Share, Star, Trash2, UserPlus, UserRound, UserSwitch, Users, X } from "@/components/icons";
 import { AppearanceModeMenu } from "@/components/appearance-mode-menu";
@@ -115,6 +115,7 @@ function ReadingApp({ initialData }: { initialData: AppData | null }) {
   const groupName = useGroupName();
   const [data, setData] = useState<AppData>(() => initialData ? normalizeState(initialData) : emptyData);
   const groupUrl = (path: string) => scopedGroupUrl(path, data.readingGroup?.id);
+  const groupHeroImage = `url(${JSON.stringify(data.groupHeroUrl ? groupUrl(data.groupHeroUrl) : "/reading-room.webp")})`;
   const [view, setView] = useState<View>("home");
   const [meetingId, setMeetingId] = useState<number | null>(null);
   const [createMode, setCreateMode] = useState<"meeting" | "plan" | null>(null);
@@ -512,7 +513,7 @@ function ReadingApp({ initialData }: { initialData: AppData | null }) {
   }
 
   return <div className={`app-shell view-${view}`}>
-    <WelcomeTour ready={memberId > 0} name={accountMember.name} groupName={groupName} planCount={data.roadmap.length} meetingCount={data.meetings.length} onNavigate={navigate} />
+    <WelcomeTour ready={memberId > 0 && accountMember.id === memberId && !!data.readingGroup} name={accountMember.name} groupName={groupName} planCount={data.roadmap.length} meetingCount={data.meetings.length} onNavigate={navigate} />
     <aside className="sidebar">
       <button className="brand" type="button" onClick={() => navigate("home")} title={groupName}><span className="brand-emblem"><BrandMark size={25} /></span><span><span className="group-brand-name"><GroupName accentClassName="brand-accent" /></span><small>kitap kulübü</small></span></button>
       <p className="nav-label">KEŞFET</p>
@@ -532,7 +533,7 @@ function ReadingApp({ initialData }: { initialData: AppData | null }) {
       {error && <div className="error-banner" role="alert">{error}<button aria-label="Uyarıyı kapat" onClick={() => setError("")}><X size={16} /></button></div>}
       <main className="content">
         {view === "home" && <>
-          <section className="hero" style={{ backgroundImage: `linear-gradient(90deg, #101f28 1%, #101f28ee 34%, #101f2866 67%, #101f2808 100%), url(${JSON.stringify(data.groupHeroUrl ? groupUrl(data.groupHeroUrl) : "/reading-room.webp")}), url('/reading-room.webp')` }}>
+          <section className="hero" style={{ "--group-hero-image": groupHeroImage, backgroundImage: `linear-gradient(90deg, #101f28 1%, #101f28ee 34%, #101f2866 67%, #101f2808 100%), ${groupHeroImage}, url('/reading-room.webp')` } as CSSProperties}>
             {isAdminRole(member.role) && data.clubFeaturesReady && <div className="hero-image-tools" aria-label="Grup görseli">
               <label title="Grup görselini değiştir" aria-label="Grup görselini değiştir" className="hero-image-command" aria-disabled={busy}><ImagePlus size={19} aria-hidden="true" />
                 <input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} aria-label="Grup görselini değiştir" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void upload(file, "groupHero"); }} /></label>

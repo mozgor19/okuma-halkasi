@@ -4,6 +4,7 @@ import { verifiedAccount } from "@/db/onboarding-accounts";
 import { accountReadingGroups, groupDatabase, ReadingGroupError, resolveReadingGroup } from "@/lib/groups";
 import { bindingNames, cleanName, newToken, REQUEST_KEY_PATTERN, TOKEN_PATTERN, tokenHash } from "@/lib/onboarding-policy";
 import { DomainDatabase, sharedRoutingKey } from "@/db/domain-sql";
+import { initialAccountAppearance } from "@/db/account-appearance";
 
 type GroupRow = { id: string; name: string; bindingName: string; sharedGroupId?: string };
 const unavailable = () => new ReadingGroupError("GROUP_CAPACITY", 503, "Şu anda yeni grup için kapasite yok. Daha sonra tekrar dene veya destekle iletişime geç.");
@@ -36,6 +37,7 @@ async function createSharedGroup(accountId: number, accountName: string, name: s
   if (group && !group.sharedGroupId) return finishDedicatedGroup(accountId, accountName, group);
   if (!group) {
     const id = crypto.randomUUID();
+    const appearance = await initialAccountAppearance(accountId);
     // One canonical transaction: registry, roster, ownership and membership
     // either all commit or all roll back. Concurrent retries reuse requestKey.
     await db.batch([
@@ -52,8 +54,8 @@ async function createSharedGroup(accountId: number, accountName: string, name: s
         .bind(accountName, id),
       db.prepare("INSERT INTO shared_group_account_links(group_id, account_member_id, member_id) SELECT ?, ?, last_insert_rowid() WHERE changes() = 1")
         .bind(id, accountId),
-      db.prepare("INSERT INTO reading_group_memberships(account_member_id, group_id, member_id) SELECT account_member_id, group_id, member_id FROM shared_group_account_links WHERE group_id = ? AND account_member_id = ?")
-        .bind(id, accountId),
+      db.prepare("INSERT INTO reading_group_memberships(account_member_id, group_id, member_id, scheme, color_mode) SELECT account_member_id, group_id, member_id, ?, ? FROM shared_group_account_links WHERE group_id = ? AND account_member_id = ?")
+        .bind(appearance.scheme, appearance.mode, id, accountId),
       db.prepare("INSERT INTO shared_club_settings(group_id, key, value) SELECT group_id, 'book_vote_visibility', 'open' FROM shared_group_storage WHERE group_id = ?")
         .bind(id),
     ]);
@@ -133,8 +135,9 @@ export async function createReadingGroup(accountId: number, body: Record<string,
 async function finishDedicatedGroup(accountId: number, accountName: string, group: GroupRow) {
   const db = identityDatabase();
   const memberId = await localMember(domainDb(group), group.id, accountId, accountName, "super_admin");
+  const appearance = await initialAccountAppearance(accountId);
   await db.batch([
-    db.prepare("INSERT INTO reading_group_memberships(account_member_id, group_id, member_id) VALUES (?, ?, ?) ON CONFLICT(account_member_id, group_id) DO NOTHING").bind(accountId, group.id, memberId),
+    db.prepare("INSERT INTO reading_group_memberships(account_member_id, group_id, member_id, scheme, color_mode) VALUES (?, ?, ?, ?, ?) ON CONFLICT(account_member_id, group_id) DO NOTHING").bind(accountId, group.id, memberId, appearance.scheme, appearance.mode),
     db.prepare("UPDATE group_provisioning SET state = 'ready' WHERE group_id = ? AND owner_id = ?").bind(group.id, accountId),
   ]);
   return { ok: true, group: (await accountReadingGroups(accountId)).find((item) => item.id === group!.id) };
@@ -194,6 +197,7 @@ export async function joinReadingGroup(accountId: number, value: unknown) {
   const membership = await db.prepare("SELECT is_active AS active FROM reading_group_memberships WHERE account_member_id = ? AND group_id = ?").bind(accountId, invite.id).first<{ active: number }>();
   if (membership?.active === 0) throw new ReadingGroupError("MEMBERSHIP_REVOKED", 403, "Bu gruptaki üyeliğin kapatılmış. Grubun yöneticisiyle iletişime geç.");
   if (!membership) {
+    const appearance = await initialAccountAppearance(accountId);
     await reserveInvitation(accountId, invite.invitationId, now);
     const reservation = await db.prepare("SELECT invitation_id AS invitationId FROM group_invitation_redemptions WHERE account_member_id = ? AND group_id = ?").bind(accountId, invite.id).first<{ invitationId: string }>();
     if (!reservation || reservation.invitationId !== invite.invitationId) throw invalidInvite();
@@ -201,10 +205,10 @@ export async function joinReadingGroup(accountId: number, value: unknown) {
       ? await sharedLocalMember(invite, accountId, account.name)
       : await localMember(domainDb(invite), invite.id, accountId, account.name, "member");
     const result = await db.batch([
-      db.prepare(`INSERT INTO reading_group_memberships(account_member_id, group_id, member_id)
-        SELECT ?, i.group_id, ? FROM group_invitations i WHERE i.id = ? AND i.revoked_at IS NULL AND i.expires_at > ?
+      db.prepare(`INSERT INTO reading_group_memberships(account_member_id, group_id, member_id, scheme, color_mode)
+        SELECT ?, i.group_id, ?, ?, ? FROM group_invitations i WHERE i.id = ? AND i.revoked_at IS NULL AND i.expires_at > ?
         AND EXISTS (SELECT 1 FROM group_invitation_redemptions r WHERE r.account_member_id = ? AND r.group_id = i.group_id AND r.invitation_id = i.id)
-        ON CONFLICT(account_member_id, group_id) DO NOTHING`).bind(accountId, memberId, invite.invitationId, Date.now(), accountId),
+        ON CONFLICT(account_member_id, group_id) DO NOTHING`).bind(accountId, memberId, appearance.scheme, appearance.mode, invite.invitationId, Date.now(), accountId),
       db.prepare(`UPDATE group_invitation_redemptions SET state = 'ready' WHERE account_member_id = ? AND group_id = ?
         AND EXISTS (SELECT 1 FROM reading_group_memberships m WHERE m.account_member_id = ? AND m.group_id = ? AND m.is_active = 1)`).bind(accountId, invite.id, accountId, invite.id),
     ]);

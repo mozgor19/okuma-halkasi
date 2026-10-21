@@ -1,6 +1,6 @@
 # Koru Kurumsal Kimliği
 
-Sürüm 1.3 · 21 Ekim 2026 · Web/PWA önce, yerel mobil uygulamalar sonra.
+Sürüm 1.5 · 21 Ekim 2026 · Web/PWA önce, yerel mobil uygulamalar sonra.
 Bu belge tüm platformların tasarım sözleşmesidir. Yeni bir görsel yön, bu
 belgenin sürümü ve karar kaydı güncellenmeden uygulanmaz. Marka tescili veya
 bağımsız erişilebilirlik sertifikası değildir.
@@ -146,6 +146,21 @@ gösterilir. Logo veya genel paylaşım görseli grup fotoğrafıyla değiştiri
 - `prefers-reduced-motion` korunur. Durum animasyonları işlemi engellemez.
 - Skeleton, boş liste, yetkisiz, hata, yükleniyor, çevrimdışı ve tekrar dene
   durumları özelliğin tasarımının parçasıdır.
+- Koyu boş durumlarda başlık `--color-text`, açıklama ve simge
+  `--color-text-muted`, sınır `--color-border` kullanır. Açık renkli eski sabit
+  başlık rengi koyu moda taşınmaz; açık görünüm renkleri değiştirilmez.
+- Masaüstü ayırıcılarına buton/içerik dayanmaz: Defter'in yan yana buluşma
+  sütunlarında çizginin iki yanında 32px iç boşluk; mobilde tek sütun korunur.
+  Bölüm başlığı/komut aralığı 16px; komut grupları dar alanda satır kırar.
+- Yeni hesabın turu kayıt veya grup hazırlık ekranlarında AÇILMAZ. İlk grup
+  başarıyla kurulup veya davetle katılıp grubun gerçek ana ekranı yüklendiğinde
+  başlar. Başarısız grup işlemi turu tüketmez. Tamamlanan/ertelenen tur hesap
+  bazındadır, her yeni grupta tekrar dayatılmaz. Bu sıra 1.5'te düzeltildi.
+- Turun sonunda dört görünüm ve Açık/Koyu/Sistem seçimi, ardından
+  **Kaydet ve başla** vardır. Sunucu onayına kadar seçim taslaktır. Hesap
+  varsayılanı yeni üyeliklere taşınır; diğer mevcut grup tercihleri değişmez.
+  Seçenekler 4px köşeli, native radyo, açık odak ve 44px hedefle sunulur.
+  Bu etkileşim sözleşmesi 1.4'te eklendi; logo/font/renk paleti değişmedi.
 
 ## Paylaşım ve PWA
 

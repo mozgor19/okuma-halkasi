@@ -13,8 +13,10 @@ only in the final handoff. Native mobile is not being changed.
   scheme structures, accounts and tenant boundaries. Typography may improve in
   both modes. New dark colors require brand document/memory updates and contrast
   plus screenshot regression. No fresh brand assets are needed.
-- Tour first entry covers both zero-group selection and group management. Completion/
-  dismissal stays account-owned and persisted; replay remains available.
+- Updated October21: first entry tour waits until the first group is successfully
+  created/joined and its real home/member/group data are ready. Zero-group
+  selection and group management must NOT show it. Completion/dismissal stays
+  account-owned and persisted; replay remains available. See WEB_LAYOUT_ONBOARDING.md.
 - Additive0016 creates domain meeting_details/change_events in the canonical
   legacy domain AND each existing dedicated DB. Additive0017 is CANONICAL ONLY:
   shared equivalents with composite tenant FKs plus opt-in/delivery ledgers.
@@ -43,6 +45,10 @@ only in the final handoff. Native mobile is not being changed.
 - Group image upload/reset is admin-only, private group media, bounded raster
   image types, client normalization, atomic image/settings write and safe cleanup
   of replaced unreferenced media. Missing/deleted image falls back to default.
+- October21 local image fix: Notebook's important background shorthand had
+  overridden the uploaded URL even though the hidden image and database changed.
+  It now consumes ReadingApp's scoped `--group-hero-image` with the same approved
+  overlay/cover/default fallback. Other schemes and colors are unchanged.
 
 ## Release Outcome: October 21
 
@@ -67,14 +73,25 @@ standing future authority. See FIREBASE_PRODUCTION.md and SESSION_MEMORY.md.
 
 ## Verification
 
+- October21 image regression: `scripts/test-group-hero.mjs` and the mandatory
+  `web-refinements` step share `group-hero-checks.mjs`. The latter clicks the real
+  file chooser (not only setInputFiles), asserts the PAINTED background or visible
+  Minimal figure, decodes media, compares picture-only pixels, reloads all four
+  schemes x two modes x390/1440, reselects the same file, and resets/cleans media.
+  A separate synthetic run produced32 custom/default checks/33 screenshots in
+  `outputs/release-tests/tour-timing-20261021-c/group-hero/report.json`. Its
+  pre-fix failing report remains alongside it. The user preview's image is not
+  used or reset. Four real workerd media/isolation tests, types, contract and
+  build also pass. This focused evidence is NOT a fresh full-release/manual gate.
 - Focused backend tests cover additive row/media/hash preservation, tenant FKs,
   optional/unsafe online URLs, create/edit/continuation, optimistic conflict,
   rollback/no-op, stable calendar UID/UTF-8, opt-in, membership revocation,
   unverified addresses, HTML escaping, provider uncertainty/429, erasure cascade
   and protected group-image upload/reset. Real workerd tests exercise concurrent
   revisions and the D1 SQL, not only an in-memory adapter.
-- Local Playwright `web:test:refinements` covers zero-group automatic tour and
-  persisted completion; actual create/edit/upload/reset forms; unchanged light
+- Local Playwright `web:test:refinements` now covers no tour before group setup,
+  failed creation, first create/join home tour, persisted completion/dismissal,
+  dark empty-state contrast; actual create/edit/upload/reset forms; unchanged light
   palette; four schemes x two modes x390/1440 and separated44px onboarding links.
   The first focused run passed6 checks/69 screenshots in
   `outputs/release-tests/web-refinements-20261020/web-refinements/report.json`.
