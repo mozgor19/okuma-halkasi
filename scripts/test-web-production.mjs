@@ -95,9 +95,14 @@ try {
     assert.equal(await adminPage.evaluate(() => localStorage.getItem("kitapTahlilViewMode")), "admin");
     const headers = { Origin: origin, "X-Reading-Group": "default" };
     assert.equal((await other.request.post(origin + "/api/account/experience", { headers, data: { kind: "tour", version: 1, state: "dismissed" } })).status(), 200);
-    mobileDialogs = await checkMobileDialogs(adminPage, other, origin, async name => {
-      await adminPage.screenshot({ path: `${output}/form-${name}.png`, animations: "disabled" });
+    // The preview test's init script intentionally reapplies member mode on
+    // every adminPage navigation. Form checks need a page without that script.
+    const forms = await other.newPage();
+    forms.on("pageerror", () => errors.push("Unhandled form browser exception"));
+    mobileDialogs = await checkMobileDialogs(forms, other, origin, async name => {
+      await forms.screenshot({ path: `${output}/form-${name}.png`, animations: "disabled" });
     }, [390]);
+    await forms.close();
     assert.equal(mobileDialogs.length, 32);
     checks.push("Minified production CSS and hydrated form JS pass 32 normal-motion mobile dialog/keyboard/blur/zoom layouts with drafts and domain records preserved");
   } finally { await other.close(); }
