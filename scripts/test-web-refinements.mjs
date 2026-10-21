@@ -148,12 +148,20 @@ try {
   await page.goto(origin + "/?notifications=1&group=default"); await hydrated();
   const preference = page.getByRole("switch", { name: "Buluşma değişikliği e-postaları", exact: true });
   await preference.waitFor(); assert.equal(await preference.isEnabled(), true); assert.equal(await preference.isChecked(), false);
-  await preference.check();
-  await page.waitForFunction(() => !document.querySelector('.meeting-mail-preference input')?.disabled);
+  async function savePreference(enabled) {
+    const saved = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/groups/notifications" && response.request().method() === "POST");
+    await preference.click();
+    const response = await saved; assert.equal(response.status(), 200);
+    assert.equal((await response.json()).enabled, enabled);
+    await page.waitForFunction((enabled) => {
+      const input = document.querySelector('.meeting-mail-preference input');
+      return input && !input.disabled && input.checked === enabled;
+    }, enabled);
+  }
+  await savePreference(true);
   await page.reload(); await preference.waitFor();
   assert.equal(await preference.isChecked(), true);
-  await preference.uncheck();
-  await page.waitForFunction(() => !document.querySelector('.meeting-mail-preference input')?.disabled);
+  await savePreference(false);
   assert.equal(await page.locator(".meeting-mail-queue").count(), 0, "Regular members cannot inspect the queue");
   await capture("mail-preference-mobile");
   passed("Mail deep link opens profile; verified member toggles/persists opt-in and cannot inspect the admin queue");
