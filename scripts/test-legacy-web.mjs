@@ -53,6 +53,17 @@ try {
       assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"), "/manifest.webmanifest");
       try { await page.locator(".featured-book-card").waitFor(); }
       catch (error) { console.error({ url: page.url(), body: (await page.locator("body").innerText()).slice(0, 1800) }); throw error; }
+      await page.getByRole("button", { name: "Yeni buluşma oluştur", exact: true }).click();
+      const form = page.locator(".create-dialog");
+      await form.waitFor();
+      await page.screenshot({ path: `${output}/form-${scheme}-${mode}.png`, animations: "disabled" });
+      const bounds = await form.boundingBox();
+      assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 391 && bounds.y >= 0 && bounds.y + bounds.height <= 845,
+        "Koru's mobile fix must preserve legacy form centering");
+      assert.equal(await form.evaluate(element => document.activeElement === element), false,
+        "Legacy form autofocus must remain unchanged");
+      await form.locator('[data-slot="dialog-close"]').click();
+      await form.waitFor({ state: "hidden" });
       await page.locator(".mobile-nav").getByRole("button", { name: "Profil", exact: true }).click();
       assert.equal(await page.getByRole("button", { name: "Grup değiştir" }).count(), 0);
       await page.getByRole("tab", { name: "Görünüm", exact: true }).click();
@@ -62,5 +73,5 @@ try {
   }
   assert.deepEqual(errors, []);
   await context.close();
-  console.log("Legacy web: login, state, mutation, hidden group UI and eight appearance combinations passed with feature disabled.");
+  console.log("Legacy web: login, state, mutation, hidden group UI and eight appearance/form combinations passed with feature disabled.");
 } finally { await browser.close(); }

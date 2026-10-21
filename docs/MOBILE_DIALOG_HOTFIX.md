@@ -17,6 +17,8 @@ değildir. Masaüstü, diğer pencereler, paletler ve veri işlemleri korunur.
   paket kontrolu `translate:-50% -50%` degerini yakaladi; kabul gevsetilmedi.
   Formlar mobilde bu utility siniflarini ARTIK URETMEZ. Ayni merkezleme
   utility'leri yalniz681px ve ustunde kalir; masaustu geometrisi korunur.
+  Bu sinif secimi mevcut useKoruBrand baglamiyla yalniz Koru'ya uygulanir;
+  eski webin merkezlemesi/otomatik odagi sekiz acik-koyu gorunumde ayrica sinanir.
 - Mobil form yüzde/transform ile ortalanmaz; görünür alanın kenarlarına
   sabitlenir, safe-area ve klavye yüksekliği kadar sınırlandırılır.
 - Zoom animasyonu ve konum/boyut geçişi kapatılır. Normal hareket modunda

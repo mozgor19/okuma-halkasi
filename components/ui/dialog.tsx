@@ -6,6 +6,7 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useKoruBrand } from "@/components/group-branding"
 
 function Dialog({
   ...props
@@ -56,7 +57,8 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
-  const formDialog = className?.split(/\s+/).includes("create-dialog")
+  const koru = useKoruBrand()
+  const formDialog = koru && className?.split(/\s+/).includes("create-dialog")
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
