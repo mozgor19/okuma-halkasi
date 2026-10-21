@@ -1,12 +1,27 @@
 import { database, getAuthenticatedMember } from "@/db/store";
 import { readingGroupContext } from "@/db/database";
-import { withReadingGroup } from "@/lib/groups";
+import { noStore, validGroupId, withReadingGroup } from "@/lib/groups";
 import { meetingCalendar } from "@/lib/meeting-calendar";
 import { meetingDetail, meetingDetailsReady } from "@/db/meeting-details";
 
 export const runtime = "edge";
 
-export const GET = withReadingGroup(handleGET);
+const protectedGET = withReadingGroup(handleGET);
+export async function GET(request: Request, context: { params: Promise<{ meetingId: string }> }) {
+  const response = await protectedGET(request, context);
+  if ([401, 403, 409].includes(response.status) && (request.headers.get("Sec-Fetch-Mode") === "navigate" || request.headers.get("Accept")?.includes("text/html"))) {
+    const { meetingId } = await context.params;
+    if (/^[1-9]\d*$/.test(meetingId)) {
+      // Mail readers may open a different browser/session. The normal app entry
+      // handles login and authorized group selection before offering export.
+      const params = new URLSearchParams({ meeting: meetingId });
+      const group = new URL(request.url).searchParams.get("group");
+      if (validGroupId(group)) params.set("group", group);
+      return noStore(new Response(null, { status: 303, headers: { Location: "/?" + params.toString() } }));
+    }
+  }
+  return response;
+}
 
 async function handleGET(
   request: Request,

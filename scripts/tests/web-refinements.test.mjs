@@ -115,6 +115,19 @@ test("calendar keeps the previous event UID, increments sequence, includes onlin
   } finally { f.close(); }
 });
 
+test("calendar mail navigation recovers login/group selection without changing API authorization or allowing external redirects", async () => {
+  const f = fixture();
+  try {
+    const route = f.load("app/api/calendar/[meetingId]/route"), params = { params: Promise.resolve({ meetingId: "7" }) };
+    const url = "https://birkoru.com/api/calendar/7?group=sample";
+    assert.equal((await route.GET(new Request(url), params)).status, 401);
+    const browser = await route.GET(new Request(url, { headers: { Accept: "text/html" } }), params);
+    assert.equal(browser.status, 303); assert.equal(browser.headers.get("Location"), "/?meeting=7&group=sample"); assert.match(browser.headers.get("Cache-Control"), /no-store/);
+    const invalid = await route.GET(new Request(url.replace("sample", "https%3A%2F%2Fevil.example"), { headers: { Accept: "text/html" } }), params);
+    assert.equal(invalid.headers.get("Location"), "/?meeting=7");
+  } finally { f.close(); }
+});
+
 test("opt-in is account/group specific; only verified active consent existing at the change receives one private local message", async () => {
   const f = fixture();
   try {

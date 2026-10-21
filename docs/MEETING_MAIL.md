@@ -15,6 +15,9 @@ gerçek teslim kabulü yapılmış değildir. Firebase hesap postaları değişm
 - Takvim UID'si korunur, SEQUENCE ve LAST-MODIFIED artar. Harici takvimleri
   sessizce değiştirme izni yoktur; kişi güncel dosyayı içe aktarır veya kendi
   kaydını düzenler. Takvim uygulamalarının içe aktarma davranışı farklıdır.
+- Postadaki takvim bağlantısı farklı/kapalı oturumda tarayıcıyla açılırsa normal
+  uygulama girişine yönlenir; giriş ve yetkili grup seçimi sonrası buluşmadaki
+  takvim komutu kullanılabilir. JSON/API istemcileri gerçek401/403/409'u korur.
 - Yerelde yalnız `development_mail` kullanılır. Üretim gönderimi ancak
   `MEETING_MAIL_ENABLED=true`, birkoru.com origin'i, doğrulanmış From ve ayrı
   Secret birlikte varsa açılır. Eksik yapılandırma mevcut uygulamayı bozmaz.

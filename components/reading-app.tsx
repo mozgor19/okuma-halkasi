@@ -657,7 +657,7 @@ function ReadingApp({ initialData }: { initialData: AppData | null }) {
     />}
     {searchOpen && <GlobalSearchDialog data={data} open onOpenChange={setSearchOpen} onOpenMeeting={openMeeting} onOpenRoadmap={() => navigate("roadmap")} />}
     {createMode && <BookDialog mode={createMode} member={member} meetingDetailsReady={data.meetingDetailsReady} initialBook={scheduledPlanId ? findBook(data.roadmap.find((plan) => plan.id === scheduledPlanId)?.bookId ?? -1) : undefined} initialDate={scheduledPlanId ? data.roadmap.find((plan) => plan.id === scheduledPlanId)?.plannedDate ?? null : null} planId={scheduledPlanId} onClose={() => { setCreateMode(null); setScheduledPlanId(null); }} onUpload={(file) => upload(file, "cover")} onSubmit={async (payload) => { const result = await perform(createMode === "plan" ? "createPlan" : "createMeeting", payload); if (result) { setCreateMode(null); setScheduledPlanId(null); if (createMode === "meeting" && result.meetingId) openMeeting(result.meetingId); } }} busy={busy} />}
-    {editMeetingOpen && <EditMeetingDialog meeting={selectedMeeting} open={editMeetingOpen} busy={busy} meetingDetailsReady={data.meetingDetailsReady} onClose={() => setEditMeetingOpen(false)} onSubmit={async (payload) => { const result = await perform("editMeeting", { meetingId: selectedMeeting?.id, ...payload }); if (result) setEditMeetingOpen(false); }} />}
+    {editMeetingOpen && <EditMeetingDialog meeting={selectedMeeting} open={editMeetingOpen} busy={busy} meetingDetailsReady={data.meetingDetailsReady} onClose={() => setEditMeetingOpen(false)} onSubmit={async (payload) => { const result = await perform("editMeeting", { meetingId: selectedMeeting?.id, ...payload }); if (!result) throw Error("Kaydedilemedi. Bağlantını kontrol et; buluşma başka bir yerde değiştiyse pencereyi kapatıp güncel kaydı yeniden aç."); setEditMeetingOpen(false); }} />}
     {editBookOpen && <BookEditDialog book={editBookId ? findBook(editBookId) : activeBook} open={editBookOpen} busy={busy} onClose={() => { setEditBookOpen(false); setEditBookId(null); }} onUpload={(file) => upload(file, "cover")} onSubmit={async (bookId, book) => { const result = await perform("editBook", { bookId, book }); if (result) { setEditBookOpen(false); setEditBookId(null); setNotice("Kitap künyesi güncellendi."); } }} />}
     {continuationOpen && <ContinuationDialog book={activeBook} previousMeeting={selectedMeeting} open={continuationOpen} busy={busy} meetingDetailsReady={data.meetingDetailsReady} onClose={() => setContinuationOpen(false)} onSubmit={async (payload) => { const result = await perform("createMeeting", payload); if (result?.meetingId) { setContinuationOpen(false); openMeeting(result.meetingId); } }} />}
   </div>;
@@ -669,14 +669,17 @@ function EditMeetingDialog({ meeting, open, busy, onClose, onSubmit, meetingDeta
   const [note, setNote] = useState(meeting?.note ?? "");
   const [readingScope, setReadingScope] = useState(meeting?.readingScope ?? "");
   const [bookStatus, setBookStatus] = useState<"continuing" | "completed">(meeting?.bookStatus ?? "completed");
+  const [revision] = useState(meeting?.revision);
+  const [error, setError] = useState("");
 
   return <Dialog open={open} onOpenChange={(value) => !value && onClose()}><DialogContent className="create-dialog"><DialogHeader><DialogTitle>Buluşma bilgileri</DialogTitle><DialogDescription>Tarihi, yeri, okunan bölümü ve kitabın devam durumunu güncelle.</DialogDescription></DialogHeader>
-    <form className="create-form" onSubmit={(event) => { event.preventDefault(); void onSubmit({ date, ...venue, revision: meeting?.revision, note, readingScope, bookStatus }); }}>
+    <form className="create-form" onSubmit={async (event) => { event.preventDefault(); setError(""); try { await onSubmit({ date, ...venue, revision, note, readingScope, bookStatus }); } catch (cause) { setError((cause as Error).message); } }}>
       <label>Tarih ve saat *<Input type="datetime-local" required value={date} onChange={(event) => setDate(event.target.value)} /></label>
       <MeetingVenueFields value={venue} onChange={setVenue} enabled={meetingDetailsReady} disabled={busy} />
       <label>Okunan bölüm<Input maxLength={180} value={readingScope} onChange={(event) => setReadingScope(event.target.value)} placeholder="Örn. İlk yarı · 1-160. sayfalar" /></label>
       <label>Bu buluşmadan sonra<select value={bookStatus} onChange={(event) => setBookStatus(event.target.value as "continuing" | "completed")}><option value="completed">Kitap tamamlandı</option><option value="continuing">Okuma devam edecek</option></select></label>
       <label>Konuşma notu<Textarea maxLength={1000} rows={4} value={note} onChange={(event) => setNote(event.target.value)} /></label>
+      {error && <p className="form-error" role="alert">{error}</p>}
       <Button type="submit" disabled={busy} className="full-button">Kaydet</Button>
     </form></DialogContent></Dialog>;
 }

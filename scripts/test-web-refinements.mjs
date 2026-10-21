@@ -35,7 +35,7 @@ try {
       SELECT last_insert_rowid(),'${username}',password_hash,password_salt,password_iterations FROM member_accounts WHERE username='demo.multi';
     INSERT INTO account_profiles(member_id,email,verified_at,policy_version)
       SELECT member_id,'${username}@example.test',1,'fixture' FROM member_accounts WHERE username='${username}';`);
-  await login(username); await page.goto(origin + "/groups/manage");
+  await login(username); await page.goto(origin + "/groups");
   await page.locator(".experience-dialog").waitFor();
   await page.getByRole("heading", { name: "Koru'ya hoş geldin", exact: true }).waitFor();
   await capture("first-account-tour");
@@ -45,6 +45,8 @@ try {
   await page.reload(); await page.locator(".onboarding-actions").waitFor();
   assert.equal(await page.locator(".experience-dialog").count(), 0);
   assert.deepEqual((await (await context.request.get(origin + "/api/account/experience")).json()).tour, { version: 1, state: "completed" });
+  await page.goto(origin + "/groups/manage"); await page.locator(".onboarding-actions").waitFor();
+  assert.equal(await page.locator(".experience-dialog").count(), 0);
   passed("First verified account with zero groups opens the tour automatically; completion survives reload");
 
   await login("demo.multi");
@@ -88,6 +90,26 @@ try {
   await page.getByRole("link", { name: "Toplantıya katıl", exact: true }).waitFor();
   await capture("online-meeting-mobile");
   passed("Real meeting forms create an online meeting without a link and later add a safe join link");
+  const headers = { Origin: origin, "X-Reading-Group": "default" };
+  const before = await (await context.request.get(origin + "/api/state", { headers })).json();
+  const currentMeeting = before.meetings.find((meeting) => meeting.id === Number(new URL(page.url()).searchParams.get("meeting")));
+  assert.ok(currentMeeting);
+  await page.getByRole("button", { name: "Buluşmayı düzenle", exact: true }).click();
+  await dialog.locator('input[name="onlineUrl"]').fill("https://meet.example/unsaved");
+  assert.equal((await context.request.post(origin + "/api/action", { headers, data: { action: "editMeeting", meetingId: currentMeeting.id, revision: currentMeeting.revision, date: "2028-10-22T19:00", kind: "online", onlineUrl: "https://meet.example/other-editor" } })).status(), 200);
+  let backgroundReads = 0;
+  const observe = (request) => { if (new URL(request.url()).pathname === "/api/state") backgroundReads++; };
+  page.on("request", observe);
+  await page.evaluate(() => window.dispatchEvent(new Event("okuma:resume")));
+  await page.waitForTimeout(350); page.off("request", observe);
+  assert.equal(backgroundReads, 0, "Editing must suspend background state refresh");
+  assert.equal(await dialog.locator('input[name="onlineUrl"]').inputValue(), "https://meet.example/unsaved");
+  const conflicted = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/action");
+  await dialog.getByRole("button", { name: "Kaydet", exact: true }).click(); assert.equal((await conflicted).status(), 409);
+  await dialog.getByRole("alert").waitFor();
+  assert.equal((await (await context.request.get(origin + "/api/state", { headers })).json()).meetings.find((meeting) => meeting.id === currentMeeting.id).onlineUrl, "https://meet.example/other-editor");
+  await page.keyboard.press("Escape"); await dialog.waitFor({ state: "hidden" });
+  passed("Editing suspends background refresh and keeps the draft; stale submission warns inside the dialog without overwriting another edit");
 
   for (const width of [390, 1440]) for (const scheme of ["editorial", "catalogue", "notebook", "minimal"]) for (const mode of ["light", "dark"]) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });

@@ -334,11 +334,11 @@ try {
     await page.getByLabel("Şifre", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Giriş yap", exact: true }).click();
     await page.waitForURL((url) => url.pathname === "/groups");
-    await page.getByRole("link", { name: "Grup kur veya katıl", exact: true }).click();
     await page.locator(".experience-dialog").waitFor();
     await page.getByRole("heading", { name: "Koru'ya hoş geldin", exact: true }).waitFor();
     await page.getByRole("button", { name: "Daha sonra", exact: true }).click();
     await page.locator(".experience-dialog").waitFor({ state: "hidden" });
+    await page.getByRole("link", { name: "Grup kur veya katıl", exact: true }).click();
     await page.getByRole("tab", { name: "Grup kur", exact: true }).click();
     await page.getByLabel("Okuma grubu adı").fill("Webden Kurulan Okuma Grubu");
     await page.getByRole("button", { name: "Okuma grubu oluştur" }).click();

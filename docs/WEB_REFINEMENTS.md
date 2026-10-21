@@ -13,7 +13,7 @@ only in the final handoff. Native mobile is not being changed.
   scheme structures, accounts and tenant boundaries. Typography may improve in
   both modes. New dark colors require brand document/memory updates and contrast
   plus screenshot regression. No fresh brand assets are needed.
-- Tour first entry also covers the zero-group onboarding route. Completion/
+- Tour first entry covers both zero-group selection and group management. Completion/
   dismissal stays account-owned and persisted; replay remains available.
 - Additive0016 creates domain meeting_details/change_events in the canonical
   legacy domain AND each existing dedicated DB. Additive0017 is CANONICAL ONLY:
