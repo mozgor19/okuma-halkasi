@@ -3,6 +3,33 @@
 21 Ekim 2026. Mustafa'nın canlı iPhone görüntülerindeki acil hata bildirimi.
 Bu belge tek başına dağıtım veya fiziksel cihaz kabulü değildir.
 
+## 22 Ekim: Hata Tekrar Açıldı
+
+Mustafa, önceki yayından sonra gerçek iPhone'da sorunun sürdüğünü bildirdi.
+Aşağıdaki eski motor testleri sorunun çözüldüğünün kanıtı değildir.
+Yeni düzeltme yalnız mobil form pencerelerini kapsar; henüz yayın sonucu
+değildir. Masaüstü, diğer pencereler, paletler ve veri işlemleri korunur.
+
+- Mobil form yüzde/transform ile ortalanmaz; görünür alanın kenarlarına
+  sabitlenir, safe-area ve klavye yüksekliği kadar sınırlandırılır.
+- Zoom animasyonu ve konum/boyut geçişi kapatılır. Normal hareket modunda
+  test,200ms geçiş sırasında yanlış top/yükseklik değerlerini yakaladı;
+  eski reduced-motion koşusu bu ara durumu kapsamıyordu.
+- Açılışta ilk girdi yerine pencereye preventScroll ile odaklanılır.
+  Kullanıcı bir alana dokununca klavye açılır; Radix odak tuzağı ve kapatma
+  davranışı korunur. Masaüstünde otomatik odak davranışı değişmez.
+- Odak kaybolurken klavye henüz kapanmadıysa form büyüyüp sıçramaz.
+  Kapanıştaki eski Safari offset'i sınırlandırılır; pinch zoom engellenmez
+  ve form yakınlaştırma sırasında yeniden boyutlandırılmaz.
+- Kalıcı testler normal ve azaltılmış hareketi, farklı viewport kaymalarını,
+  blur/klavye kapanış sırasını ve taslağın korunmasını kapsar.
+
+Yeni talep, önceki acil düzeltmenin başarısız devamı için dar kapsamlıdır;
+eski yayın kararı yeniden kullanılmaz. Güncel temiz kaynak/push, tam otomatik
+paket, audit, üç DB'nin taze şifreli yedek/yerel restore ve birebir veri
+karşılaştırması zorunludur. SQL yazımı yoktur. Fiziksel telefon doğrulanmadan
+bu hata kullanıcı tarafında kapanmış sayılmaz.
+
 ## Yayın Sonucu
 
 21 Ekim23:44TRT: düzeltme `https://birkoru.com` üzerinde yayında.

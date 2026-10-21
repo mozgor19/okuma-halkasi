@@ -1,5 +1,10 @@
 # Koru Üretim Firebase Hazırlığı
 
+22 Ekim: gerçek iPhone'da aynı klavye/pencere hatası tekrar bildirildi.
+21 Ekim dağıtımı sorunu fiziksel cihazda çözmüş kabul edilmez. Yeni yerel
+takip [mobil form belgesinde](MOBILE_DIALOG_HOTFIX.md); Firebase, hesaplar,
+Secret'lar veya SQL değişikliği içermez. Yeni dağıtım henüz kaydedilmedi.
+
 ## Son Yayın: Acil Mobil Form Düzeltmesi
 
 21 Ekim 2026,23:44TRT: `https://birkoru.com`, uygulama kaynağı

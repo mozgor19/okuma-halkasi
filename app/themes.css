@@ -1767,6 +1767,20 @@ html[data-scheme="minimal"] .minimal-custom-hero{display:block;margin:0;width:10
   html[data-product="koru"][data-keyboard-open] .mobile-nav{display:none}
   html[data-product="koru"][data-keyboard-open] .main-area{padding-bottom:16px}
   html[data-product="koru"][data-keyboard-open] [data-slot="dialog-content"]{top:calc(var(--visible-viewport-top) + 8px);transform:translateX(-50%);translate:0 0;max-height:calc(var(--visible-viewport-height) - 16px);overflow-y:auto}
+  /* Mobile forms never switch between percentage centering and keyboard transforms. */
+  html[data-product="koru"] .create-dialog[data-slot="dialog-content"]{
+    top:calc(var(--visible-viewport-top,0px) + max(8px,var(--layout-safe-top)));
+    left:max(10px,var(--layout-safe-left));
+    right:max(10px,var(--layout-safe-right));
+    width:auto;
+    max-width:none;
+    max-height:calc(var(--visible-viewport-height,100dvh) - max(8px,var(--layout-safe-top)) - max(8px,var(--layout-safe-bottom)));
+    transform:none;
+    translate:none;
+    animation:none;
+    transition:none;
+    overflow:hidden;
+  }
   html[data-product="koru"][data-keyboard-open] :is(input,textarea,select){scroll-margin-block:24px}
   .account-data-section{grid-template-columns:minmax(0,1fr);gap:20px}
 }

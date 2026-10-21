@@ -1,14 +1,31 @@
 # Koru Project Session Memory
 
-Last decision update: 2026-10-21. Read this at the start of future sessions.
+Last decision update: 2026-10-22. Read this at the start of future sessions.
 This is durable repository memory, not a claim that account-wide AI memory
 or every external assistant has been updated. AGENTS.md enforces the read order.
 Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
+October22 REOPENED URGENT MOBILE BUG: Mustafa reports the October21 hotfix
+did NOT fix his real iPhone keyboard/panning issue. Previous desktop WebKit
+passes are NOT physical acceptance or proof of resolution. Work is scoped
+to that same mobile form regression, not new features or general releases.
+Local follow-up removes mobile create-dialog centering transforms, zoom
+animation AND the default200ms position/size transition. Normal-motion tests
+exposed an intermediate wrong top/height that reduced-motion checks missed.
+Mobile opening focuses the dialog with preventScroll, not the first input;
+the keyboard opens on a deliberate field tap. Visual viewport sizing remains
+through focus/blur; stale dismissal offsets are clamped and pinch zoom does
+not reflow the form. Desktop and non-form dialog behavior stays unchanged.
+Source, full technical gate and production checks must precede publication;
+this entry does not claim a deployment. No SQL/migrations, provider, Secrets,
+palettes, brand, native, staging or original5321 preview data changes allowed.
+Physical iPhone keyboard acceptance and the13 manual categories remain pending.
+
 LATEST LIVE HOTFIX (October21,23:44TRT): Mustafa's NEW urgent request with real
-iPhone screenshots has been completed at https://birkoru.com. Application
+iPhone screenshots was deployed at https://birkoru.com. It was NOT confirmed
+fixed on the physical phone; see the October22 reopened report above. Application
 sourceaa6df77e14772cca67efc8ba61e437061edc0eec, Workere6d97ef8-d8c7-4803-af9c-693b3be0ebe0
 at100%; maintenance OFF. Source was clean, coauthor-free and pushed to the
 work branch BEFORE deployment; main unchanged. This new revision-bound urgent

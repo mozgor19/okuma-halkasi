@@ -4,6 +4,11 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
+22 Ekim: Mustafa mobil klavye hatasının sürdüğünü bildirdi.21 Ekim motor
+testleri fiziksel iPhone kabulü değildir. [Dar kapsamlı takip](MOBILE_DIALOG_HOTFIX.md)
+ayrı kaynak ve güncel teknik/veri koruma kontrolleri gerektirir; aşağıdaki
+eski yayın onayı yeniden kullanılamaz. Henüz yeni dağıtım kaydı yoktur.
+
 ## Güncel Canlı Durum: 21 Ekim
 
 23:44TRT, acil mobil form düzeltmesi yayında: kaynakaa6df77, Worker
