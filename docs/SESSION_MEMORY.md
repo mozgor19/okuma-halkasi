@@ -7,7 +7,36 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
-EMAIL PUBLICATION REQUEST (October22, in progress): Mustafa explicitly asked
+LATEST EMAIL FOLLOW-UP (October22,23:17TRT): application source
+7f796dab6c840eca2051bcd5e2ce0556c4d7bde1 is live at https://birkoru.com,
+Worker725de55c-4ed4-4a46-ac7a-1e7ccd7d9fba at100%; maintenance OFF.
+Mustafa's NEW explicit request published ONLY the reviewed email-verification
+completion fix; reported own testing is not all manual acceptance. Clean
+coauthor-free work-branch source was pushed BEFORE deploy; main untouched.
+Fresh audit has no high/critical WEB finding (deferred native and low/moderate
+findings remain).298 units/91 backend/types/targeted lint/build passed, as did
+compiled Chromium6/WebKit6 new-flow checks and production10 checks/32 mobile
+forms on exact7f796da. Full suite and13 manual/physical categories remain
+PENDING, not passed or generally waived. Eight live anonymous HTTPS/security/
+canonical redirect and JS/CSS byte-identity checks passed; no real test
+account/mail or authenticated production-user acceptance was performed.
+
+All THREE fresh AES-256-GCM backups/disk decrypt/OFFLINE restores and exact
+old schema/typed rows/media/sequences passed before opening. ZERO SQL writes,
+migrations or D1 cleanup/transfer; keep all8 D1s. Both dedicated bindings,
+occupied production-group-1, shared readers, Secrets, Firebase/Turnstile,
+domains, other Workers and meeting mail OFF preserved. Firebase mail branding
+settings/default handler were NOT changed; hosted verification still needs
+the new-password completion shown by the new /account form. Do NOT replay
+0015/16/17/18. Evidence: outputs/web-acceptance/7f796da/{production-outcome,production-health}.json;
+outputs/release-tests/mobile-stable-20261022-a/{email-verification-chromium,email-verification-webkit,web-production}/;
+private email-verification-core.json. Rollout6c46c819-9724-4267-aa53-5d7094274324,
+deployment876c8cdd-3700-455d-9cf7-570325033525. DO NOT rerun the consumed private
+rollout. New scoped authority is consumed; documentation-only outcome commits
+are NOT application deployments. Owned5334 test preview stopped; other user
+previews were not reset.
+
+EMAIL PUBLICATION REQUEST (Historical, now completed above): Mustafa explicitly asked
 to publish the previously reviewed email-verification fix and reported testing
 it. This is NEW scoped publication authority for that fix only, not D1 cleanup,
 schema/provider/template changes or a general waiver. Preserve all THREE live
@@ -17,8 +46,8 @@ coauthor-free pushed work-branch source, fresh audit, core/auth checks, targeted
 compiled Chromium/WebKit, current production identity, fresh three-DB encrypted
 backups/disk decrypt/offline restore/exact preservation before opening.
 Operator's report is not proof of every manual category; remaining full/manual
-criteria stay pending, not marked passed. The local fix below is not live until
-a new completed outcome is recorded. Main and native remain untouched.
+criteria stay pending, not marked passed. Completion is recorded above and
+this scoped authority is now consumed. Main and native remain untouched.
 
 READ-ONLY D1 AUDIT (October22,23:04-23:06TRT): Mustafa requested inventory and
 approval BEFORE any cleanup.8 remote D1s confirmed:3 bound to okuma-halkasi,
@@ -38,7 +67,7 @@ DDL/migrations, deletes, exports, deployments, binding/Secret/paid changes.
 No personal rows/mail or credentials were collected. Earlier local email
 changes remain undeployed; audit grants NO cleanup/deployment authority.
 
-LOCAL EMAIL FOLLOW-UP (October22, NOT deployed): a reported verified legacy
+EMAIL FOLLOW-UP (Historical local preparation, now published above): a reported verified legacy
 email still showed unverified because the hosted Firebase handler updates the
 provider only; Koru provision() previously ran only on a new-password login.
 The custom /auth/email action now also finalizes the exact checkpointed UID
@@ -72,7 +101,7 @@ That provider setting was not changed or remotely verified here. See the new
 operator instructions in FIREBASE_PRODUCTION.md; do not bypass template-edit
 restrictions, enable another sign-in provider or upgrade billing to fix a name.
 
-LATEST LIVE FOLLOW-UP (October22,21:32TRT): application source
+PREVIOUS LIVE FOLLOW-UP (October22,21:32TRT): application source
 370c0d034c56efbf531cfdf2aaf9575de7a70e53 is live at https://birkoru.com,
 Worker3de95dfd-8c5e-46da-963a-efadab32fc38 at100%; maintenance OFF.
 Mustafa's NEW request covered ONLY the verification reminder/mobile install

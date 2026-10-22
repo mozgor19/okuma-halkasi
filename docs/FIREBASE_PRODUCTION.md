@@ -1,6 +1,24 @@
 # Koru Üretim Firebase Hazırlığı
 
-## E-posta Doğrulama Takibi: Yerel Düzeltme
+## Son Yayın: E-posta Doğrulama
+
+22 Ekim23:17TRT: kaynak `7f796da`, Worker
+`725de55c-4ed4-4a46-ac7a-1e7ccd7d9fba` %100; birkoru.com açık, bakım kapalı.
+Mustafa'nın yeni açık talebiyle yalnız önceki doğrulama düzeltmesi yayımlandı.
+Coauthorsuz temiz kaynak çalışma dalına önceden push edildi; main değişmedi.
+Güncel audit/298 birim/91 backend/tip/lint/build, derlenmiş yeni akış Chromium6
+ve WebKit6, üretim10 kontrol/32 mobil form geçti. Üç şifreli yedek/diskten
+çözme/offline restore/eski verinin birebir korunması geçti; SQL/migration/DB
+silme veya taşıma yapılmadı. Tüm bağlantılar/Secret'lar, diğer Worker'lar,
+ortak grup okuyucuları ve buluşma postası OFF korundu.0015/16/17/18'i tekrarlama.
+Firebase paneli, Public-facing name veya varsayılan eylem URL'si değiştirilmedi.
+Gerçek hesap/posta oluşturulmadı; canlı sekiz anonim HTTPS/JS-CSS kimlik kontrolü
+geçti. Tam paket/13 manuel/fiziksel kabul hâlâ bekliyor; operatörün kendi testi
+bu kategorilerin tamamının kabulü değildir. Bu kaynağa özel talep tüketildi.
+Kanıt: `outputs/web-acceptance/7f796da/`, SESSION_MEMORY.md. Sonraki belge
+commit'i yeni uygulama dağıtımı değildir.
+
+## E-posta Doğrulama Takibi: Tarihsel Hazırlık
 
 22 Ekim: Firebase'in varsayılan doğrulama sayfası yalnız sağlayıcı kaydını
 doğrular. Eski Koru hesabıyla eşleştirme, mevcut kullanıcı adı ve bağlama
@@ -35,7 +53,7 @@ Kaynak: [Firebase şablon yer tutucuları](https://support.google.com/firebase/a
 [public-facing name](https://support.google.com/firebase/answer/9137752?hl=en).
 Bu ayar bu çalışmada değiştirilmedi ve yeni gerçek test postası gönderilmedi.
 
-## Son Yayın: 22 Ekim Bildirim ve PWA
+## Önceki Yayın: 22 Ekim Bildirim ve PWA
 
 21:32TRT, kaynak `370c0d0`, Worker `3de95dfd-8c5e-46da-963a-efadab32fc38`
 %100; birkoru.com açık, bakım kapalı. Yalnız doğrulama bildirimi/mobil kurulum

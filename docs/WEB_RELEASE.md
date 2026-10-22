@@ -4,7 +4,23 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
-## Yeni Dar Kapsamlı Yayın Talebi
+## Güncel Yayın: E-posta Doğrulama
+
+22 Ekim23:17TRT: kaynak `7f796da`, Worker
+`725de55c-4ed4-4a46-ac7a-1e7ccd7d9fba` %100; bakım kapalı.
+Eski hesap doğrulama eşleştirmesi ve `/account` tamamlama akışı yeni açık
+yayın talebiyle yayımlandı. Kaynak coauthorsuz çalışma dalına önceden push
+edildi; main değişmedi. Güncel audit,298 birim/91 backend/tip/lint/build,
+derlenmiş Chromium6/WebKit6 ve üretim10 kontrol/32 mobil form geçti.
+Üç taze şifreli yedek/diskten çözme/offline restore/birebir eski veri kontrolü
+geçti; SQL/migration/DB temizliği yok. Tüm bağlantılar/Secret'lar, ortak
+okuyucular, diğer Worker'lar ve mail OFF korundu. Firebase panel/mail adı
+değiştirilmedi. Canlı sekiz anonim HTTPS ve JS/CSS kimlik kontrolü geçti;
+gerçek hesap/posta testi yapılmadı. Tam paket/13 manuel/fiziksel kabul hâlâ
+bekliyor. Bu kaynağa özel onay tüketildi; belge commit'i yeni uygulama yayını
+değildir. Kanıt: `outputs/web-acceptance/7f796da/`, SESSION_MEMORY.md.
+
+## Dar Kapsamlı Talep: Tarihsel
 
 22 Ekim: Mustafa, test ettiğini bildirerek önceki yerel e-posta doğrulama
 düzeltmesini açıkça canlıya dağıtmamızı istedi. Bu yeni talep yalnız bu
@@ -13,9 +29,9 @@ kapsamaz. Temiz coauthorsuz çalışma dalı, güncel audit, kritik hesap/oturum
 ve derlenmiş tarayıcı kontrolleri, üç taze şifreli yedek/offline restore ve
 eski verinin birebir korunması zorunludur. Operatörün bildirimi diğer manuel
 kriterleri tamamlamaz; tam paket ve kalan fiziksel/manual kabul geçmiş
-sayılmaz. Aşağıdaki yayın, yeni tamamlanmış sonuç yazılana kadar günceldir.
+sayılmaz. Tamamlanan sonuç yukarıdadır; bu talep sonraki yayına yetki vermez.
 
-## Güncel Yayın: Bildirim ve Kurulum
+## Önceki Yayın: Bildirim ve Kurulum
 
 22 Ekim21:32TRT: kaynak `370c0d0`, Worker
 `3de95dfd-8c5e-46da-963a-efadab32fc38` %100; bakım kapalı.
