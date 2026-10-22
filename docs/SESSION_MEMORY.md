@@ -7,9 +7,43 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
-PUBLICATION REQUEST IN PROGRESS (October22): Mustafa explicitly requested
+LATEST LIVE FOLLOW-UP (October22,21:32TRT): application source
+370c0d034c56efbf531cfdf2aaf9575de7a70e53 is live at https://birkoru.com,
+Worker3de95dfd-8c5e-46da-963a-efadab32fc38 at100%; maintenance OFF.
+Mustafa's NEW request covered ONLY the verification reminder/mobile install
+offer and preserving other behavior. Mandatory Next16.4.1 fixed newly blocking
+critical/high advisories; audit policy was NOT relaxed. Do not downgrade to
+affected Next. Clean coauthor-free source was pushed to the work branch;
+main unchanged. New-feature Chromium13/WebKit13 and meeting-edit WebKit18
+passed on exact370c0d0. Core294 units/91 backend/types/lint/build and actual
+production10 checks/32 forms on851660c were retained with verified identical
+application inputs: EVERY tracked file except the test wait helper is unchanged.
+The helper settles requests before WebKit navigation, never filters errors.
+Failed original reports remain. Fresh passing audit matches370c0d0.
+Full suite/13 manual and physical iPhone/Android installation acceptance are
+PENDING, not a passing standard gate or standing waiver for future releases.
+
+Three fresh AES-256-GCM backups/disk decrypt/OFFLINE restores and exact old
+schema/typed rows/media/sequences passed. Third export stopped once; original
+failed journal retained. Same-source resume verified the exact owned maintenance
+deployment, revalidated both disk backups, completed the third and compared ALL
+data before opening. ZERO SQL/migrations; never replay0015/16/17/18. All DB
+bindings/shared readers, Secrets, Firebase/Turnstile, domains, other Workers
+and mail OFF preserved. No real accounts/mail, paid or native changes.
+Live six-check health passed: login200, private account/state401, production
+configuration, CSS/notification/install JS byte identity and anonymous mobile
+iOS guide/dismissal. This emulation is NOT physical installation acceptance.
+Evidence: outputs/web-acceptance/370c0d0/{production-outcome,production-health}.json;
+outputs/release-tests/mobile-stable-20261022-a/{account-install-chromium,account-install-webkit,meeting-edit-layout-webkit}/report.json;
+851660c application-only continuation: web-production/report.json and private
+core command records. Rollout304a2f39-585d-4721-90eb-8d20a0a89af8,
+resume37c8ce8c-9df2-4200-bd11-86c7f145da19; DO NOT rerun private scripts.
+New scoped authority is consumed. Later docs-only commits are not application
+deployments. Existing user previews were not reset; owned5332/5333 checks stopped.
+
+PUBLICATION PREPARATION (Historical, October22): Mustafa explicitly requested
 publication of ONLY the account notification/mobile installation follow-up,
-preserving everything else. No new deployment has occurred yet. A fresh audit
+preserving everything else. Before the completed outcome above, a fresh audit
 on473b07c BLOCKED on newly published Next GHSA-2464-fhr4-w9xw (critical) and
 GHSA-p3m5-59mp-jv5r (high). The original blocked report is retained at
 outputs/web-security/dependency-audit-blocked-473b07c.json. Audit policy was NOT
@@ -17,11 +51,11 @@ weakened. The necessary fix pins ONLY Next16.4.1 and updates its lock entries;
 no general dependency refresh, native version or app behavior change.
 https://github.com/advisories/GHSA-2464-fhr4-w9xw
 https://github.com/advisories/GHSA-p3m5-59mp-jv5r
-Current physical/manual criteria remain pending; do not represent targeted
+Physical/manual criteria remain pending; do not represent targeted
 browser checks as a passing standard full/manual gate. Existing live version
-remains93ce9f97 until a new completed outcome is recorded.
+was93ce9f97 during preparation; the new completed outcome is above.
 
-LOCAL UNPUBLISHED FOLLOW-UP (October22): Mustafa requested an unverified-email
+LOCAL PREPARATION (Historical, now published above): Mustafa requested an unverified-email
 reminder in notifications and an automatic mobile home-screen installation
 offer. NotificationCenter reuses useAccountStatus and the existing /account
 verification/linking screen; confirmed false status adds one badge/list item,
@@ -48,11 +82,11 @@ browser contexts; production SW caching/updates are untouched. First failed
 test-waiter, stale local-build and SW-interception reports are retained, not
 relabeled. Full suite and physical device installation were NOT run/accepted.
 Evidence: outputs/release-tests/mobile-stable-20261022-a/account-install-{chromium,webkit}/report.json.
-This is local source work, NOT a deployment or renewed publication authority.
-Live application source/version remains26e6f90/93ce9f97 below. No production,
+This was local source work, NOT a deployment or renewed publication authority.
+At that point live source/version was26e6f90/93ce9f97 below. No production,
 staging, migrations, Secrets, real accounts/mail, paid or native changes.
 
-LATEST LIVE FOLLOW-UP (October22,09:48TRT): application source
+PREVIOUS LIVE FOLLOW-UP (October22,09:48TRT): application source
 26e6f90e779b85eccac12b2bb1cea29f99cdb439 is live at https://birkoru.com,
 Worker93ce9f97-2cf2-43d9-ab0d-9584a17c7562 at100%; maintenance OFF.
 Mustafa clarified ONLY meeting-edit contents pan sideways/fields have unequal

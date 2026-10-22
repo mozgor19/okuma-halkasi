@@ -4,7 +4,24 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
-## Yerel Hazırlık: Bildirim ve Kurulum
+## Güncel Yayın: Bildirim ve Kurulum
+
+22 Ekim21:32TRT: kaynak `370c0d0`, Worker
+`3de95dfd-8c5e-46da-963a-efadab32fc38` %100; bakım kapalı.
+Doğrulama bildirimi/mevcut hesap ekranına bağlantı ve mobil kurulum teklifi
+yayında. Yeni kritik/yüksek audit nedeniyle zorunlu Next16.4.1 düzeltildi;
+güvenlik kapısı gevşetilmedi. Yeni akış Chromium13/WebKit13, önceki form
+WebKit18 ve güncel audit geçti.851660c'deki294 birim/91 backend/tip/lint/
+derleme/üretim10+32 form kanıtı, yalnız test bekleyicisi değiştiği ispatlanarak
+doğrulanmış devamla korundu. Tam paket/13 manuel/gerçek cihaz bekliyor.
+Üç taze şifreli yedek/offline restore/birebir eski veri kontrolü geçti;
+üçüncü export'un başarısız özgün kaydı korunarak sahipliği doğrulanan bakım
+sürümünden devam edildi. SQL/migration yok; veri/bağlantılar/Secret'lar,
+mail OFF ve main korundu. Canlı altı anonim sağlık kontrolü geçti; gerçek
+hesap/posta kullanılmadı. Kanıt: `outputs/web-acceptance/370c0d0/`.
+Bu yayına özel yeni onay tüketildi; belge commit'i yeni uygulama yayını değildir.
+
+## Önceki Yerel Hazırlık (Tarihsel)
 
 22 Ekim: doğrulanmamış e-posta için bildirim ve mevcut `/account` bağlantısı;
 mobil tarayıcıda kapatılabilir ana ekrana ekleme teklifi hazırlandı, henüz
@@ -21,7 +38,7 @@ Tam paket veya fiziksel kurulum kabulü yapılmadı. Canlı veri/ayarlar değiş
 aşağıdaki26e6f90 yayını hâlâ güncel. Önceki dar kapsamlı yayın yetkisi yeniden
 kullanılamaz. Kaynak ve kanıt ayrıntısı SESSION_MEMORY.md içindedir.
 
-## Güncel Yayın: 22 Ekim
+## Önceki Yayın: 22 Ekim09:48TRT
 
 09:48TRT: kaynak `26e6f90`, Worker `93ce9f97-2cf2-43d9-ab0d-9584a17c7562`
 %100, bakım kapalı. Yalnız mobil buluşma düzenleme formunun yatay taşması ve

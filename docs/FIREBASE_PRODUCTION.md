@@ -1,6 +1,23 @@
 # Koru Üretim Firebase Hazırlığı
 
-## Son Yayın: 22 Ekim Buluşma Formu
+## Son Yayın: 22 Ekim Bildirim ve PWA
+
+21:32TRT, kaynak `370c0d0`, Worker `3de95dfd-8c5e-46da-963a-efadab32fc38`
+%100; birkoru.com açık, bakım kapalı. Yalnız doğrulama bildirimi/mobil kurulum
+teklifi ve zorunlu Next16.4.1 güvenlik düzeltmesi yayımlandı. Hesap/parola
+backend'i, Firebase/Turnstile, Secret'lar, üç DB/ortak okuyucular, diğer
+Worker'lar, mail OFF ve main korundu. Mevcut `/account` yeniden kullanılır;
+yeni otomatik posta veya gerçek test hesabı yok. Üç şifreli yedek/offline
+restore ve birebir veri kontrolü geçti. Üçüncü export durduğunda özgün kayıt
+korunarak aynı sahipliği doğrulanan bakım sürümünden devam edildi. SQL yok;
+0015/16/17/18'i tekrarlama. Yeni akış13+13/form WebKit18/audit geçti;
+uygulaması değişmeyen851660c çekirdek/üretim kanıtı doğrulanmış devamla
+korundu. Tam paket/13 manuel/gerçek cihaz kabulü bekliyor. Canlı anonim altı
+sağlık kontrolü ve dosya kimliği geçti. Kaynak coauthorsuz çalışma dalına
+push edildi; yeni onay tüketildi, belge commit'i yeni yayın değildir.
+Kanıt: `outputs/web-acceptance/370c0d0/` ve SESSION_MEMORY.md.
+
+## Önceki Yayın: 22 Ekim Buluşma Formu
 
 09:48TRT, kaynak `26e6f90`, Worker `93ce9f97-2cf2-43d9-ab0d-9584a17c7562`
 %100; birkoru.com açık, bakım kapalı. Yalnız mobil buluşma düzenleme formuna
