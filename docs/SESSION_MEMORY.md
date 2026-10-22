@@ -7,7 +7,35 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
-LATEST LIVE FOLLOW-UP (October22,00:49TRT): application source
+LATEST LIVE FOLLOW-UP (October22,09:48TRT): application source
+26e6f90e779b85eccac12b2bb1cea29f99cdb439 is live at https://birkoru.com,
+Worker93ce9f97-2cf2-43d9-ab0d-9584a17c7562 at100%; maintenance OFF.
+Mustafa clarified ONLY meeting-edit contents pan sideways/fields have unequal
+widths and explicitly requested only critical tests and rapid publication.
+New revision-bound authority is now consumed, not a standing test waiver.
+Only mobile meeting-edit CSS changed: zero-minimum label grid tracks,
+horizontal containment, native date width normalization and bounded textarea.
+The component change adds only its scope class; submit/revision/payload,
+other dialogs, desktop styling, palettes, auth and native remain unchanged.
+Types, targeted lint (existing warnings only), production build, fresh audit
+and source-matched minified-production WebKit18/Chromium6 layouts passed.
+Long values, both venue types, equal field widths, no horizontal overflow,
+save reachability and cancelled-draft data preservation were checked.
+Broad suite was NOT run per this request; broader automated/manual checks
+remain pending, including physical iPhone keyboard acceptance. Never relabel
+the prior interrupted reports or these browser checks as physical acceptance.
+All three fresh encrypted backups/disk decrypt/offline restores and exact
+old schema/typed row/media/sequence comparisons passed; ZERO SQL writes or
+migrations. Never replay0015/16/17/18. Shared/dedicated bindings, Secrets,
+meeting mail OFF, other Workers and main preserved. Clean coauthor-free
+source was pushed to the work branch BEFORE deploy. Live login200/private
+API401 and actual CSS/meeting-form JS byte identity passed; no accounts/mail.
+Evidence: outputs/release-tests/mobile-stable-20261022-a/meeting-edit-layout-{webkit,chromium}/report.json;
+outputs/web-acceptance/26e6f90/{production-outcome,production-health}.json.
+Rolloutd149d9d3-78bd-424a-aa79-0eb22b8516cd; do not rerun its private script.
+Later documentation commits are not new application deployments.
+
+PREVIOUS LIVE FOLLOW-UP (October22,00:49TRT): application source
 6762dc86e40ff4728f679f001f5d41aa31fee2cf is live at https://birkoru.com,
 Worker25afe82b-b410-4184-ace0-58e44a6f7865 at100%; maintenance OFF.
 Mustafa's LATEST instruction explicitly stopped further broad testing and

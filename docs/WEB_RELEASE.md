@@ -6,6 +6,19 @@ onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çık�
 
 ## Güncel Yayın: 22 Ekim
 
+09:48TRT: kaynak `26e6f90`, Worker `93ce9f97-2cf2-43d9-ab0d-9584a17c7562`
+%100, bakım kapalı. Yalnız mobil buluşma düzenleme formunun yatay taşması ve
+alan genişlikleri için dar kapsamlı CSS yayımlandı; kayıt/veri işlemleri,
+diğer pencereler, masaüstü ve paletler değişmedi. Tip/lint/üretim derlemesi,
+güncel audit, gerçek minify paketinde WebKit18/Chromium6 yerleşim ve canlı
+dosya kimliği kontrolleri geçti. Mustafa'nın yalnız kritik test/yayın talebi
+bu kaynağa özel uygulandı; tam paket ve13 manuel başlık geçmiş sayılmadı.
+Üç taze şifreli yedek/offline restore/birebir veri kontrolü geçti; SQL yok.
+Kanıt: `outputs/web-acceptance/26e6f90/`. Main ve Secret'lar korundu.
+Bu yayın yetkisi tüketildi; sonraki belge commit'i yeni uygulama yayını değildir.
+
+## Önceki Yayın: 22 Ekim00:49TRT
+
 00:49TRT: kaynak `6762dc8`, Worker `25afe82b-b410-4184-ace0-58e44a6f7865`,
 %100; bakım kapalı. [Mobil form takibi](MOBILE_DIALOG_HOTFIX.md) yayında.
 Asıl hata minify edilmiş CSS'te kalan `%50` translate utility'siydi;

@@ -1,6 +1,20 @@
 # Koru Üretim Firebase Hazırlığı
 
-## Son Yayın: 22 Ekim Mobil Form Takibi
+## Son Yayın: 22 Ekim Buluşma Formu
+
+09:48TRT, kaynak `26e6f90`, Worker `93ce9f97-2cf2-43d9-ab0d-9584a17c7562`
+%100; birkoru.com açık, bakım kapalı. Yalnız mobil buluşma düzenleme formuna
+genişlik/yatay kaydırma sınırı eklendi. Firebase, hesap/posta, backend,
+Secret'lar, üç DB/ortak okuyucular, diğer Worker'lar ve main değişmedi.
+Üç taze şifreli yedek/offline restore/birebir eski veri karşılaştırması geçti;
+SQL/migration yok. Kaynak coauthorsuz çalışma dalına push edilerek yayımlandı.
+Güncel audit, tip/lint/derleme, gerçek üretim WebKit18/Chromium6 ve anonim
+canlı dosya kimliği kontrolleri geçti. Yeni talep yalnız kritik kontrollere
+özeldi; tam paket ve13 manuel başlık/gerçek iPhone hâlâ bekliyor, geçmiş sayılmaz.
+Yetki tüketildi. Kanıt: `outputs/web-acceptance/26e6f90/`; sonraki belge
+commit'i yeni uygulama yayını değildir.0015/16/17/18'i yeniden çalıştırma.
+
+## Önceki Yayın: 22 Ekim Mobil Form Takibi
 
 22 Ekim00:49TRT: `https://birkoru.com`, kaynak `6762dc8`, Worker
 `25afe82b-b410-4184-ace0-58e44a6f7865` (%100), bakım kapalı.

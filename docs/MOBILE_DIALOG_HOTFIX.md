@@ -3,7 +3,25 @@
 21 Ekim 2026. Mustafa'nın canlı iPhone görüntülerindeki acil hata bildirimi.
 Bu belge tek başına dağıtım veya fiziksel cihaz kabulü değildir.
 
-## Güncel Yayın: 22 Ekim00:49TRT
+## Güncel Yayın: 22 Ekim09:48TRT
+
+Mustafa yalnız buluşma düzenleme içeriğinin sağa/sola oynamasını ve eşit
+olmayan alanlarını bildirdi. `26e6f90`, Worker
+`93ce9f97-2cf2-43d9-ab0d-9584a17c7562` %100; bakım kapalı.
+`.meeting-edit-dialog` sınıfı yalnız bu pencereyi işaretler.680px ve altında
+etiket grid'leri `minmax(0,1fr)`, form yatayda sınırlı, tarih girdisi doğal
+WebKit genişliğine zorlanmaz; textarea genişliği içeriğiyle büyümez.
+Diğer form/desktop/renk/kayıt davranışlarına dokunulmadı.
+`scripts/test-meeting-edit-layout.mjs` gerçek minify paketinde uzun metinler,
+tarih, fiziksel/online geçişi, eşit genişlikler, yatay kaydırmama, son düğmeye
+erişim ve iptal edilen taslakların veri değiştirmemesini sınar.
+WebKit18/Chromium6 geçti; fiziksel iPhone klavyesi kabulü değildir.
+Yeni açık talep doğrultusunda yalnız kritik kontroller çalıştırıldı; tam
+paket ve13 manuel başlık bekliyor. Üç şifreli yedek/offline restore/eski veri
+kontrolü ve canlı dosya kimliği geçti; SQL yok. Kanıt: SESSION_MEMORY ve
+`outputs/web-acceptance/26e6f90/`. Bu kaynağa özel yayın yetkisi tüketildi.
+
+## Önceki Yayın: 22 Ekim00:49TRT
 
 Kaynak `6762dc8`, Worker `25afe82b-b410-4184-ace0-58e44a6f7865` %100,
 bakım kapalı; https://birkoru.com üzerinde yayında. Asıl üretim CSS hatası
