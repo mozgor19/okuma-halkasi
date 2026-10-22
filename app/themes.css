@@ -1721,6 +1721,24 @@ html[data-scheme="minimal"] .minimal-custom-hero{display:block;margin:0;width:10
 .hero-image-command:disabled,.hero-image-command[aria-disabled="true"]{opacity:.6;cursor:not-allowed}
 @media(max-width:420px){.onboarding-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.hero-image-tools{top:10px;right:10px}.hero-image-command{width:44px;height:44px}}
 .web-connection-status{padding:12px max(20px,var(--layout-safe-right));border-bottom:1px solid var(--color-border);background:var(--color-surface-subtle);color:var(--color-text);font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.notification-menu .notification-account{min-height:64px;text-decoration:none;color:var(--color-action)}
+.notification-menu .notification-account svg{color:var(--color-action)}
+.notification-menu .notification-account strong{color:var(--color-text);font-size:14px;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+.notification-menu .notification-account small{color:var(--color-text-muted);font-size:14px;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+.notification-menu .notification-account:focus-visible{outline:2px solid var(--color-focus);outline-offset:-2px}
+.pwa-install-notice,.pwa-install-error{position:fixed;z-index:45;right:max(12px,var(--layout-safe-right));bottom:calc(84px + var(--layout-safe-bottom));left:max(12px,var(--layout-safe-left));display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px;border:1px solid var(--color-border);border-radius:4px;background:var(--color-surface);color:var(--color-text);box-shadow:0 4px 16px var(--app-shadow)}
+.pwa-install-notice>div{display:grid;justify-items:start;gap:8px;min-width:0}
+.pwa-install-notice strong{font-size:16px;line-height:1.5;overflow-wrap:anywhere}
+.pwa-install-notice button,.pwa-install-error button{height:auto;min-height:44px;white-space:normal}
+.pwa-install-notice button[data-size="icon"],.pwa-install-error button[data-size="icon"]{min-width:44px}
+.pwa-install-error{grid-template-columns:minmax(0,1fr) auto;font-size:14px;line-height:1.5}
+.pwa-install-dialog{width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;border-color:var(--color-border);background:var(--color-surface);color:var(--color-text);border-radius:4px}
+.pwa-install-dialog [data-slot="dialog-title"]{font-size:24px;line-height:1.25;color:var(--color-text)}
+.pwa-install-dialog [data-slot="dialog-description"]{font-size:16px;line-height:1.55;color:var(--color-text-muted)}
+.pwa-install-dialog ol{display:grid;gap:16px;padding:0;margin:8px 0;list-style-position:inside}
+.pwa-install-dialog li{display:flex;align-items:center;gap:12px;font-size:16px;line-height:1.55;min-width:0;overflow-wrap:anywhere}
+.pwa-install-dialog li svg{flex-shrink:0;color:var(--color-action)}
+.pwa-install-dialog [data-slot="dialog-close"]{min-width:44px;min-height:44px;top:4px;right:4px;color:var(--color-text-muted)}
 .experience-dialog{width:min(440px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;border:1px solid var(--color-border);border-radius:4px;background:var(--color-surface);color:var(--color-text);padding:24px;gap:24px}
 .experience-dialog [data-slot="dialog-header"]{text-align:left;gap:12px;min-width:0}
 .experience-dialog [data-slot="dialog-title"]{color:var(--color-text);font-family:var(--font-display);font-size:24px;line-height:1.25;overflow-wrap:anywhere}

@@ -7,6 +7,37 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
+LOCAL UNPUBLISHED FOLLOW-UP (October22): Mustafa requested an unverified-email
+reminder in notifications and an automatic mobile home-screen installation
+offer. NotificationCenter reuses useAccountStatus and the existing /account
+verification/linking screen; confirmed false status adds one badge/list item,
+verified/unknown/error status does not. Focus/pageshow refresh removes it after
+verification. Meeting/device notification delivery logic is unchanged; no mail
+is sent automatically and no auth/backend/schema changes were made.
+PwaInstallProvider isolates installation UI from the unchanged service-worker,
+keyboard and offline guards in PwaLifecycle. Mobile supported browsers receive
+a dismissible, nonmodal offer; its button calls the retained native install
+event in the user gesture. Final approval belongs to the browser, never silently
+install. iPhone/iPad use the real Safari Share/Add to Home Screen instructions;
+there is no equivalent programmable iOS install prompt. Existing account-menu
+install action remains available, including iOS guidance after dismissal.
+Seven-day device-local dismissal, native/standalone suppression, dialog/tour/
+keyboard deferral and sensitive-page exclusions prevent repeated interruptions.
+No unsupported-browser install success is claimed. Four schemes use existing
+semantic tokens, approved mark and44px controls; no palette/font/logo change.
+Types, targeted lint and production build passed. Actual compiled local bundle
+passed13 checks in BOTH Chromium and WebKit, with light/dark four-scheme
+320/1440 screenshots. scripts/test-web-pwa.mjs now runs the same helper;
+standalone: scripts/test-account-install.mjs [--webkit] in an isolated fixture.
+Mocked account status requires serviceWorkers:block ONLY in that helper's
+browser contexts; production SW caching/updates are untouched. First failed
+test-waiter, stale local-build and SW-interception reports are retained, not
+relabeled. Full suite and physical device installation were NOT run/accepted.
+Evidence: outputs/release-tests/mobile-stable-20261022-a/account-install-{chromium,webkit}/report.json.
+This is local source work, NOT a deployment or renewed publication authority.
+Live application source/version remains26e6f90/93ce9f97 below. No production,
+staging, migrations, Secrets, real accounts/mail, paid or native changes.
+
 LATEST LIVE FOLLOW-UP (October22,09:48TRT): application source
 26e6f90e779b85eccac12b2bb1cea29f99cdb439 is live at https://birkoru.com,
 Worker93ce9f97-2cf2-43d9-ab0d-9584a17c7562 at100%; maintenance OFF.

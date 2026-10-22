@@ -4,6 +4,7 @@ import { chromium } from "playwright";
 import { TOUR_VERSION } from "../lib/web-experience-policy.ts";
 import { KORU_BRAND, KORU_MARK_PATHS } from "../lib/brand-identity.ts";
 import { groupsSettingsPath, testOrigin as origin, testOutputPath } from "./test-environment.mjs";
+import { checkAccountInstall } from "./account-install-checks.mjs";
 
 const output = testOutputPath("web-pwa");
 mkdirSync(output, { recursive: true });
@@ -249,6 +250,7 @@ try {
   await page.getByRole("menuitem", { name:"Koru’yu yükle", exact:true }).click();
   await page.waitForFunction(() => document.documentElement.dataset.installPrompted === "true");
   check("Private group title preserved, product metadata stable, logo and install command wiring");
+  for (const label of await checkAccountInstall(browser, origin, password, (target, name) => target.screenshot({ path: `${output}/account-install-${name}.png`, animations: "disabled" }))) check(label);
   assert.deepEqual(errors, []);
   assert.deepEqual(hydrationErrors, []);
   passed = true;

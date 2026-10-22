@@ -4,6 +4,23 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
+## Yerel Hazırlık: Bildirim ve Kurulum
+
+22 Ekim: doğrulanmamış e-posta için bildirim ve mevcut `/account` bağlantısı;
+mobil tarayıcıda kapatılabilir ana ekrana ekleme teklifi hazırlandı, henüz
+canlıya dağıtılmadı. Desteklenen Android tarayıcısında düğme gerçek kurulum
+penceresini açar; son onay kullanıcı/tarayıcıya aittir. iPhone/iPad'de Safari
+Paylaş → Ana Ekrana Ekle adımları gösterilir, otomatik kurulum vaat edilmez.
+Yedi günlük kapatma tercihi, açık pencere/tur/klavye engeli ve kurulu/native
+uygulamada göstermeme korunur. Mevcut hesap menüsünden de tekrar açılır.
+Tip/lint/üretim derlemesi ve gerçek yerel üretim paketinde Chromium13/WebKit13
+hedefli kontrol geçti; dört görünüm/açık-koyu320/1440 görüntüleri incelendi.
+Yeni kontrol mevcut `web-pwa` adımına eklendi; bağımsız çalıştırma:
+`OKUMA_TEST_RUN_ID=<izole-fixture> OKUMA_TEST_ORIGIN=http://127.0.0.1:<port> node scripts/test-account-install.mjs`.
+Tam paket veya fiziksel kurulum kabulü yapılmadı. Canlı veri/ayarlar değişmedi;
+aşağıdaki26e6f90 yayını hâlâ güncel. Önceki dar kapsamlı yayın yetkisi yeniden
+kullanılamaz. Kaynak ve kanıt ayrıntısı SESSION_MEMORY.md içindedir.
+
 ## Güncel Yayın: 22 Ekim
 
 09:48TRT: kaynak `26e6f90`, Worker `93ce9f97-2cf2-43d9-ab0d-9584a17c7562`

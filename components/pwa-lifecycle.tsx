@@ -1,17 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { Download } from "@/components/icons";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { useEffect, useState, type ReactNode } from "react";
+import { PwaInstallProvider } from "@/components/pwa-install";
 import { isNativeApp } from "@/lib/native-bridge";
 import { useOnline } from "@/lib/network-client";
 import { keyboardViewport } from "@/lib/web-experience-policy";
 
-type InstallEvent = Event & { prompt(): Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> };
-const InstallContext = createContext<{ install: InstallEvent | null; clear(): void }>({ install: null, clear() {} });
+export { PwaInstallAction } from "@/components/pwa-install";
 
 export function PwaLifecycle({ enabled, children }: { enabled: boolean; children: ReactNode }) {
-  const [install, setInstall] = useState<InstallEvent | null>(null);
   const [updateReady, setUpdateReady] = useState(false);
   const online = useOnline();
   useEffect(() => {
@@ -47,15 +44,6 @@ export function PwaLifecycle({ enabled, children }: { enabled: boolean; children
       window.removeEventListener("online", refresh);
       document.removeEventListener("visibilitychange", refresh);
     };
-  }, [enabled]);
-  useEffect(() => {
-    if (!enabled || isNativeApp()) return;
-    if (matchMedia("(display-mode: standalone)").matches) return;
-    const ready = (event: Event) => { event.preventDefault(); setInstall(event as InstallEvent); };
-    const done = () => setInstall(null);
-    window.addEventListener("beforeinstallprompt", ready);
-    window.addEventListener("appinstalled", done);
-    return () => { window.removeEventListener("beforeinstallprompt", ready); window.removeEventListener("appinstalled", done); };
   }, [enabled]);
   useEffect(() => {
     if (!enabled || isNativeApp() || !window.visualViewport) return;
@@ -114,20 +102,10 @@ export function PwaLifecycle({ enabled, children }: { enabled: boolean; children
     document.addEventListener("submit", guard, true);
     return () => document.removeEventListener("submit", guard, true);
   }, [enabled]);
-  return <InstallContext.Provider value={{ install, clear: () => setInstall(null) }}>
+  return <PwaInstallProvider enabled={enabled}>
     {enabled && (!online || updateReady) && <div className="web-connection-status" role="status" aria-live="polite">
       {!online ? "Çevrimdışısın. Kayıtlar güncel olmayabilir; değişiklikler kaydedilmez." : "Güncelleme hazır. Tüm Koru pencereleri kapatıldıktan sonraki açılışta uygulanacak."}
     </div>}
     {children}
-  </InstallContext.Provider>;
-}
-
-export function PwaInstallAction() {
-  const { install, clear } = useContext(InstallContext);
-  const [busy, setBusy] = useState(false);
-  if (!install) return null;
-  return <DropdownMenuItem disabled={busy} onSelect={() => {
-    setBusy(true);
-    void install.prompt().then(() => install.userChoice).catch(() => {}).finally(() => { setBusy(false); clear(); });
-  }}><Download /> Koru’yu yükle</DropdownMenuItem>;
+  </PwaInstallProvider>;
 }

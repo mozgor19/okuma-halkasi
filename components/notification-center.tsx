@@ -3,8 +3,9 @@
 import { nextDeviceNotification } from "@/lib/notification-policy";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, BellRing, CalendarClock } from "@/components/icons";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Bell, BellRing, CalendarClock, ShieldCheck } from "@/components/icons";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAccountStatus } from "@/components/onboarding";
 import type { AppData } from "@/lib/types";
 import { groupUrl, useReadingGroup } from "@/lib/group-client";
 import { isNativeApp, nativeNotificationPermission, nativeNotificationsSupported, showNativeNotification } from "@/lib/native-bridge";
@@ -22,6 +23,8 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
   const [error, setError] = useState("");
   const group = useReadingGroup();
   const koru = useKoruBrand();
+  const account = useAccountStatus(koru);
+  const needsVerification = account.profile?.verified === false;
   const delivered = useRef(new Set<string>());
   const pending = useRef(new Set<string>());
   const notifications = useMemo(() => {
@@ -129,26 +132,30 @@ export function NotificationCenter({ data, memberId, now, onOpenMeeting }: {
     } catch { setError("Bildirim izni alınamadı."); }
   }
 
+  const notificationCount = notifications.length + (needsVerification ? 1 : 0);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button type="button" className="topbar-tool" aria-label="Bildirimler" title="Bildirimler">
           <Bell size={18} />
-          {notifications.length > 0 && <span>{Math.min(notifications.length, 9)}</span>}
+          {notificationCount > 0 && <span>{Math.min(notificationCount, 9)}</span>}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="notification-menu">
         <div className="notification-heading">
           <strong>Bildirimler</strong>
-          <small>{notifications.length ? `${notifications.length} kayıt` : "Yeni bildirim yok"}</small>
+          <small>{notificationCount ? `${notificationCount} kayıt` : "Yeni bildirim yok"}</small>
         </div>
+        {needsVerification && <DropdownMenuItem asChild className="notification-item notification-account">
+          <a href="/account"><ShieldCheck size={18} /><span><strong>E-posta adresini doğrula</strong><small>Hesabının e-posta adresi henüz doğrulanmadı.</small></span></a>
+        </DropdownMenuItem>}
         {notifications.map((item) => (
           <button type="button" className="notification-item" key={item.id} onClick={() => onOpenMeeting(item.meetingId)}>
             <CalendarClock size={18} />
             <span><strong>{item.title}</strong><small>{item.detail}</small></span>
           </button>
         ))}
-        {!notifications.length && <div className="notification-empty">Şimdilik her şey tamam.</div>}
+        {!notificationCount && <div className="notification-empty">Şimdilik her şey tamam.</div>}
         {permission === "default" && (
           <button type="button" className="notification-permission" onClick={() => void enableNotifications()}>
             <BellRing size={16} /> Cihaz bildirimlerini aç
