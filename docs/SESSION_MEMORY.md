@@ -7,6 +7,20 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
+PUBLICATION REQUEST IN PROGRESS (October22): Mustafa explicitly requested
+publication of ONLY the account notification/mobile installation follow-up,
+preserving everything else. No new deployment has occurred yet. A fresh audit
+on473b07c BLOCKED on newly published Next GHSA-2464-fhr4-w9xw (critical) and
+GHSA-p3m5-59mp-jv5r (high). The original blocked report is retained at
+outputs/web-security/dependency-audit-blocked-473b07c.json. Audit policy was NOT
+weakened. The necessary fix pins ONLY Next16.4.1 and updates its lock entries;
+no general dependency refresh, native version or app behavior change.
+https://github.com/advisories/GHSA-2464-fhr4-w9xw
+https://github.com/advisories/GHSA-p3m5-59mp-jv5r
+Current physical/manual criteria remain pending; do not represent targeted
+browser checks as a passing standard full/manual gate. Existing live version
+remains93ce9f97 until a new completed outcome is recorded.
+
 LOCAL UNPUBLISHED FOLLOW-UP (October22): Mustafa requested an unverified-email
 reminder in notifications and an automatic mobile home-screen installation
 offer. NotificationCenter reuses useAccountStatus and the existing /account
