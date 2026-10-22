@@ -1306,6 +1306,14 @@ html.dark .favorite{
 .create-dialog .create-form{grid-template-columns:minmax(0,1fr)}
 .create-dialog .create-form :is(label,fieldset){min-width:0}
 .create-dialog .create-form :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select),.create-dialog .lookup-row input{width:100%;min-width:0;max-width:100%}
+@media(max-width:680px){
+  .meeting-edit-dialog>.create-form{min-width:0;overflow-x:hidden;overscroll-behavior-x:none}
+  .meeting-edit-dialog .create-form>*,.meeting-edit-dialog .meeting-venue-fields>*{min-width:0;max-width:100%}
+  .meeting-edit-dialog .create-form label:not(.venue-choice label){grid-template-columns:minmax(0,1fr)}
+  .meeting-edit-dialog .create-form input[type="datetime-local"]{appearance:none;display:block}
+  .meeting-edit-dialog input[type="datetime-local"]::-webkit-date-and-time-value{min-width:0;text-align:left}
+  .meeting-edit-dialog textarea{field-sizing:fixed;resize:vertical}
+}
 .create-dialog [data-slot="dialog-title"]{color:var(--color-text)}
 .create-dialog [data-slot="dialog-description"]{color:var(--color-text-muted)}
 .create-dialog [data-slot="dialog-close"]{color:var(--color-text-muted)}

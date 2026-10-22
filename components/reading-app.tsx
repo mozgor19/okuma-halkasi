@@ -673,7 +673,7 @@ function EditMeetingDialog({ meeting, open, busy, onClose, onSubmit, meetingDeta
   const [revision] = useState(meeting?.revision);
   const [error, setError] = useState("");
 
-  return <Dialog open={open} onOpenChange={(value) => !value && onClose()}><DialogContent className="create-dialog"><DialogHeader><DialogTitle>Buluşma bilgileri</DialogTitle><DialogDescription>Tarihi, yeri, okunan bölümü ve kitabın devam durumunu güncelle.</DialogDescription></DialogHeader>
+  return <Dialog open={open} onOpenChange={(value) => !value && onClose()}><DialogContent className="create-dialog meeting-edit-dialog"><DialogHeader><DialogTitle>Buluşma bilgileri</DialogTitle><DialogDescription>Tarihi, yeri, okunan bölümü ve kitabın devam durumunu güncelle.</DialogDescription></DialogHeader>
     <form className="create-form" onSubmit={async (event) => { event.preventDefault(); setError(""); try { await onSubmit({ date, ...venue, revision, note, readingScope, bookStatus }); } catch (cause) { setError((cause as Error).message); } }}>
       <label>Tarih ve saat *<Input type="datetime-local" required value={date} onChange={(event) => setDate(event.target.value)} /></label>
       <MeetingVenueFields value={venue} onChange={setVenue} enabled={meetingDetailsReady} disabled={busy} />
