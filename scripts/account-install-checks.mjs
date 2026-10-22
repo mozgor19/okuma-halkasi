@@ -9,6 +9,9 @@ export async function checkAccountInstall(browser, origin, password, capture = a
   page.on("pageerror", error => errors.push(error.message));
   const headers = { Origin: origin, "X-Reading-Group": "default" };
   const hydrate = async (target, path = "/login") => {
+    // WebKit reports aborted cross-navigation fetches as access-control errors.
+    // Settle the previous document's requests instead of suppressing page errors.
+    await target.waitForLoadState("networkidle");
     await target.goto(origin + path);
     await target.waitForFunction(() => [...document.querySelectorAll("button,input")].some(element => Object.keys(element).some(key => key.startsWith("__reactProps"))));
     await target.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -133,7 +136,7 @@ export async function checkAccountInstall(browser, origin, password, capture = a
       await phone.addInitScript(() => Object.defineProperty(navigator, "standalone", { configurable: true, value: true }));
       await hydrate(phone); assert.equal(await notice(phone).count(), 0);
       checks.push("No automatic offer on password/signup screens or installed iOS app");
-    } finally { await ios.close(); }
+    } finally { await phone.waitForLoadState("networkidle"); await ios.close(); }
 
     await hydrate(page); await offer(page);
     await page.evaluate(() => { window.ReactNativeWebView = { postMessage() {} }; window.dispatchEvent(new Event("okuma:native-ready")); });
