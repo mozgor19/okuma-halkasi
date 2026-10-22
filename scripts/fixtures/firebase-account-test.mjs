@@ -38,7 +38,7 @@ export function firebaseAccountFixture() {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
     new Function("require", "module", "exports", "console", source)((key) => {
       if (key === "cloudflare:workers") return { env };
-      if (key === "next/server") return { after: (task) => tasks.push(task) };
+      if (key === "next/server") return { ...require("next/server"), after: (task) => tasks.push(task) };
       if (key === "@/lib/firebase-auth") return { ...load("lib/firebase-auth"), remoteFirebase: () => provider };
       return key.startsWith("@/") ? load(key.slice(2)) : require(key);
     }, compiledModule, compiledModule.exports, { ...console, error: (...args) => diagnostics.push(args) });

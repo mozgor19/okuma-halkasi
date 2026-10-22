@@ -1,5 +1,40 @@
 # Koru Üretim Firebase Hazırlığı
 
+## E-posta Doğrulama Takibi: Yerel Düzeltme
+
+22 Ekim: Firebase'in varsayılan doğrulama sayfası yalnız sağlayıcı kaydını
+doğrular. Eski Koru hesabıyla eşleştirme, mevcut kullanıcı adı ve bağlama
+sırasında seçilen **yeni hesap şifresiyle** girişte tamamlanır. Eski kayıtlı
+şifreyle giriş eski oturumu koruyabilir; yalnız bağlantıyı açmak Koru profilini
+doğrulanmış yapmıyordu. Mevcut canlı kullanıcı yeni hesap şifresiyle tekrar
+giriş yaparak bu son adımı tamamlayabilir. Parola veya bağlantı istemeyin.
+
+Yerel düzeltme: `/auth/email` geçerli koddan dönen sağlayıcı UID/e-postasını
+checkpoint ve hesap sürümüyle eşleştirip provision işlemini de yapar. Varsayılan
+Firebase sayfası için dönüş `/account` olur; bekleyen eski hesabın tamamlama
+formu yalnız doğrulanmış Firebase şifresi kabul eden giriş yolunu kullanır.
+Eski şifreye fallback yoktur. Roller/gruplar/kimlik ve oturum iptali korunur;
+veritabanı migration'ı gerekmez. **Bu bölüm yeni canlı dağıtım kaydı değildir.**
+Gerçek hesap/posta, sağlayıcı ayarı veya üretim verisi değiştirilmedi.
+
+### Konuda Neden Proje Kimliği Görünüyor?
+
+Varsayılan şablondaki `%APP_NAME%`, Firebase'in **Public-facing name** değeridir.
+Sender name ve Reply to alanları bunu değiştirmez. İç Project name, Project ID
+ve web uygulaması takma adı da bu ayarın yerine geçmez.
+
+1. [Üretim proje ayarlarını](https://console.firebase.google.com/project/koru-951bf/settings/general) aç.
+2. **General > Public settings > Public-facing name** alanını `Koru` yap ve kaydet.
+3. **Project ID** `koru-951bf` olarak kalmalı. Spark, Email/Password ve gönderici
+   ayarları değişmemeli; yeni sağlayıcı, ücretli plan veya yeni proje açma.
+4. Bu alan panelinde görünmüyorsa Firebase Support'a yalnız alanın görünmediğini
+   bildir; şablon kısıtını API ile aşmaya çalışma. Ekran düzeni hesapta ayrıca
+   doğrulanmadı. Eski postaların konusu değişmez; yeni postada kontrol edilir.
+
+Kaynak: [Firebase şablon yer tutucuları](https://support.google.com/firebase/answer/7000714?hl=en),
+[public-facing name](https://support.google.com/firebase/answer/9137752?hl=en).
+Bu ayar bu çalışmada değiştirilmedi ve yeni gerçek test postası gönderilmedi.
+
 ## Son Yayın: 22 Ekim Bildirim ve PWA
 
 21:32TRT, kaynak `370c0d0`, Worker `3de95dfd-8c5e-46da-963a-efadab32fc38`

@@ -3,6 +3,9 @@ import { authenticateAccount, passwordRehashRequired } from "@/db/accounts";
 import { getMember } from "@/db/store";
 import { identityDatabase } from "@/db/database";
 import { jsonBody, rateLimit, sameOrigin, selfServiceEnabled } from "@/lib/onboarding-security";
+import { firebaseSelected } from "@/lib/firebase-auth-policy";
+import { normalizeUsername } from "@/lib/password";
+import { env } from "cloudflare:workers";
 import {
   accountReadingGroups,
   groupCookieOptions,
@@ -33,7 +36,7 @@ async function handlePOST(request: Request) {
     return NextResponse.json({ error: configurationIssue }, { status: 503 });
   }
 
-  let body: { username?: unknown; password?: unknown } | null;
+  let body: { username?: unknown; password?: unknown; completeVerification?: unknown } | null;
   try {
     if (selfServiceEnabled()) {
       sameOrigin(request);
@@ -49,7 +52,10 @@ async function handlePOST(request: Request) {
   }
 
   try {
-    const account = await authenticateAccount(username, password);
+    // Completion must not accept a still-valid legacy password as verification.
+    const account = body?.completeVerification === true
+      ? firebaseSelected(env) ? await (await import("@/db/firebase-accounts")).authenticateFirebaseAccount(normalizeUsername(username), password) : null
+      : await authenticateAccount(username, password);
     const member = account ? await getMember(account.memberId, identityDatabase()) : null;
     if (!account || !member) {
       return NextResponse.json({ error: "Kullanıcı adı veya şifre yanlış." }, { status: 401 });

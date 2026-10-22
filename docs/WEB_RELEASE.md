@@ -4,6 +4,17 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
+## Yeni Dar Kapsamlı Yayın Talebi
+
+22 Ekim: Mustafa, test ettiğini bildirerek önceki yerel e-posta doğrulama
+düzeltmesini açıkça canlıya dağıtmamızı istedi. Bu yeni talep yalnız bu
+düzeltmeyi kapsar; DB temizliği/taşıma, migration veya Firebase şablon ayarı
+kapsamaz. Temiz coauthorsuz çalışma dalı, güncel audit, kritik hesap/oturum
+ve derlenmiş tarayıcı kontrolleri, üç taze şifreli yedek/offline restore ve
+eski verinin birebir korunması zorunludur. Operatörün bildirimi diğer manuel
+kriterleri tamamlamaz; tam paket ve kalan fiziksel/manual kabul geçmiş
+sayılmaz. Aşağıdaki yayın, yeni tamamlanmış sonuç yazılana kadar günceldir.
+
 ## Güncel Yayın: Bildirim ve Kurulum
 
 22 Ekim21:32TRT: kaynak `370c0d0`, Worker

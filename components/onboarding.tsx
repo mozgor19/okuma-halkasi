@@ -21,7 +21,7 @@ export function useOnboardingConfig() {
   return config;
 }
 
-type OnboardingAccount = { username: string; name: string; email: string | null; verified: boolean };
+type OnboardingAccount = { username: string; name: string; email: string | null; verified: boolean; verificationPending?: boolean };
 export function useAccountStatus(enabled = true) {
   const [profile, setProfile] = useState<OnboardingAccount | null>(null);
   const [loading, setLoading] = useState(true);
@@ -140,6 +140,38 @@ export function SecurityChallenge({ siteKey, action, onToken }: { siteKey: strin
 }
 
 type AccountFlow = "register" | "verify-email" | "forgot-password" | "reset-password" | "link-email";
+
+function PendingEmailVerification({ username, restart }: { username: string; restart: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function finish(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy) return;
+    const form = event.currentTarget;
+    const password = new FormData(form).get("verificationPassword");
+    setBusy(true); setError("");
+    try {
+      requireOnline();
+      const response = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password, completeVerification: true }) });
+      const result = await response.json().catch(() => null) as { ok?: boolean; error?: string } | null;
+      if (!response.ok || result?.ok !== true) throw new Error(response.status === 401
+        ? "Önce e-postadaki bağlantıyı doğrula, ardından doğrulama için belirlediğin yeni hesap şifresini gir."
+        : result?.error || "Doğrulama tamamlanamadı. Biraz sonra yeniden dene.");
+      form.reset();
+      window.location.replace("/account");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Bağlantı kurulamadı. Yeniden dene."); setBusy(false); }
+  }
+  return <section aria-label="E-posta doğrulamasını tamamla">
+    <p className="onboarding-status">Doğrulama postası gönderildi. E-postadaki bağlantıyı onayladıktan sonra aşağıya yeni hesap şifreni girerek hesabını güncelle. Mevcut grupların ve rollerin korunur.</p>
+    <form className="login-form onboarding-form verification-completion-form" onSubmit={finish} aria-busy={busy}>
+      <Field id="verificationPassword" label="Yeni hesap şifren" type="password" autoComplete="current-password" required minLength={12} maxLength={200} />
+      {error && <p role="alert">{error}</p>}
+      <Button type="submit" disabled={busy}>{busy ? "Doğrulanıyor" : "Doğruladım, hesabımı güncelle"}</Button>
+      <Button type="button" variant="ghost" disabled={busy} onClick={restart}>Doğrulama postasını yeniden iste</Button>
+    </form>
+  </section>;
+}
+
 export function AccountForm({ flow, children }: { flow: AccountFlow; children?: ReactNode }) {
   const config = useOnboardingConfig();
   const account = useAccountStatus(flow === "link-email");
@@ -150,6 +182,7 @@ export function AccountForm({ flow, children }: { flow: AccountFlow; children?: 
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [restartLink, setRestartLink] = useState(false);
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       const value = new URLSearchParams(window.location.hash.slice(1)).get("token") || "";
@@ -180,6 +213,7 @@ export function AccountForm({ flow, children }: { flow: AccountFlow; children?: 
       });
       setMessage(result.message || (isVerify ? "E-posta adresin doğrulandı. Giriş yapabilirsin." : "Şifren yenilendi. Yeniden giriş yap."));
       setComplete(true);
+      if (remoteLink) { setRestartLink(false); account.refresh(); }
     } catch (cause) { setError(cause instanceof Error ? cause.message : "İşlem tamamlanamadı."); }
     finally { setBusy(false); setChallenge(""); setChallengeKey((value) => value + 1); }
   }
@@ -189,7 +223,7 @@ export function AccountForm({ flow, children }: { flow: AccountFlow; children?: 
     {!config && <p role="status">Yükleniyor.</p>}
     {config && !config.ready && <p role="alert">Kayıt ve e-posta hizmeti henüz kullanıma açılmadı.</p>}
     {message && <p className="onboarding-status" role="status">{message}</p>}
-    {flow === "link-email" && account.profile?.verified ? <><p className="onboarding-status">E-posta adresin doğrulanmış.</p><a className="small-link" href="/groups/manage">Gruplarıma dön</a></> : complete ? <a className="small-link" href={flow === "link-email" ? "/groups/manage" : "/login"}>Devam et</a> : <form className="login-form onboarding-form" onSubmit={submit} aria-busy={busy}>
+    {flow === "link-email" && account.profile?.verified ? <><p className="onboarding-status">E-posta adresin doğrulanmış.</p><a className="small-link" href="/groups/manage">Gruplarıma dön</a></> : remoteLink && account.profile?.verificationPending === true && !restartLink ? <PendingEmailVerification username={account.profile.username} restart={() => { setRestartLink(true); setComplete(false); setMessage(""); }} /> : complete ? <a className="small-link" href={remoteLink ? "/login?next=%2Faccount" : flow === "link-email" ? "/groups/manage" : "/login"}>{remoteLink ? "Yeni hesap şifremle giriş yap" : "Devam et"}</a> : <form className="login-form onboarding-form" onSubmit={submit} aria-busy={busy}>
       {isRegistration && <><Field id="name" label="Ad soyad" autoComplete="name" required maxLength={80} /><Field id="username" label="Kullanıcı adı" autoComplete="username" autoCapitalize="none" pattern="[a-z0-9][a-z0-9._-]{2,39}" required minLength={3} maxLength={40} /></>}
       {(isRegistration || flow === "forgot-password" || flow === "link-email") && <Field id="email" label="E-posta" type="email" autoComplete="email" autoCapitalize="none" required maxLength={254} />}
       {hasPassword && <Field id="password" label={flow === "link-email" ? "Mevcut şifre" : "Yeni şifre"} type="password" autoComplete={flow === "link-email" ? "current-password" : "new-password"} required minLength={flow === "link-email" ? 1 : 12} maxLength={200} />}

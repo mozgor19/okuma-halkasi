@@ -29,7 +29,9 @@ export async function GET(request: Request, context: Context) {
         JOIN members m ON m.id = a.member_id LEFT JOIN account_profiles p ON p.member_id = a.member_id
         WHERE a.member_id = ?`).bind(account.memberId).first<{ username: string; name: string; email: string | null }>();
       if (!profile) throw new ReadingGroupError("UNAUTHORIZED", 401, "Oturum gerekli.");
-      return noStore(Response.json({ ...profile, verified: !!profile.email }));
+      const verificationPending = !profile.email && firebaseSelected(env)
+        ? await (await import("@/db/firebase-accounts")).firebaseVerificationPending(account.memberId) : false;
+      return noStore(Response.json({ ...profile, verified: !!profile.email, verificationPending }));
     }
     if (action === "invitations") return noStore(Response.json(await manageInvitations(request, "list")));
     throw new ReadingGroupError("NOT_FOUND", 404, "Sayfa bulunamadı.");

@@ -18,8 +18,9 @@ test("production signup stores no password, requires provider verification, and 
     const { user } = await f.register(), accounts = f.load("db/firebase-accounts");
     assert.equal(f.sql.prepare("SELECT count(*) AS n FROM member_accounts").get().n, 0);
     assert.equal(await accounts.authenticateFirebaseAccount("new.reader", newPassword), null);
-    assert.equal(f.messages.length, 1); assert.equal(f.messages[0].continueUrl, "https://birkoru.com/login");
+    assert.equal(f.messages.length, 1); assert.equal(f.messages[0].continueUrl, "https://birkoru.com/account");
     const result = await accounts.firebaseEmailAction({ mode: "verifyEmail", code: f.messages[0].code }); assert.equal(result.ok, true);
+    assert.equal(f.sql.prepare("SELECT email FROM account_profiles").get().email, user.email);
     const signed = await accounts.authenticateFirebaseAccount("new.reader", newPassword); assert.ok(signed); assert.equal(signed.firebase.uid, user.uid);
     const row = f.sql.prepare("SELECT * FROM member_accounts").get(); assert.equal(row.password_hash, "managed:firebase-v1"); assert.equal(row.password_iterations, 0); assert.equal(row.password_salt, "");
     assert.equal(f.sql.prepare("SELECT count(*) AS n FROM reading_group_memberships").get().n, 0);
@@ -60,10 +61,15 @@ test("legacy claim proves old password and verified new UID, retains IDs/roles/g
     await assert.rejects(firebase.linkFirebaseAccount(f.request, legacy.id, { ...body, password: "Wrong-Password-7284" }), (error) => error.code === "INVALID_PASSWORD");
     assert.equal(f.users.size, 0);
     await firebase.linkFirebaseAccount(f.request, legacy.id, body);
+    assert.equal(await firebase.firebaseVerificationPending(legacy.id), true);
+    assert.equal(await firebase.firebaseVerificationPending(999), false);
     assert.equal(f.sql.prepare("SELECT password_hash FROM member_accounts").get().password_hash, legacy.hash);
     assert.equal(await firebase.authenticateFirebaseAccount(legacy.username, newPassword), null);
     assert.ok(await accounts.authenticateAccount(legacy.username, oldPassword));
     await firebase.firebaseEmailAction({ mode: "verifyEmail", code: f.messages[0].code });
+    assert.equal(f.sql.prepare("SELECT email FROM account_profiles WHERE member_id=?").get(legacy.id).email, body.email);
+    assert.equal(await firebase.firebaseVerificationPending(legacy.id), false);
+    assert.equal(await accounts.sessionAccountIsCurrent(await auth.sessionIdentity(token)), false);
     const signed = await accounts.authenticateAccount(legacy.username, newPassword); assert.equal(signed.memberId, legacy.id); assert.equal(signed.sessionVersion, 2);
     assert.equal(await accounts.authenticateAccount(legacy.username, oldPassword), null);
     assert.equal(await accounts.sessionAccountIsCurrent(await auth.sessionIdentity(token)), false);
@@ -74,6 +80,93 @@ test("legacy claim proves old password and verified new UID, retains IDs/roles/g
     f.env.MEMBER_CREDENTIALS = JSON.stringify({ [legacy.username]: { memberId: legacy.id, password: oldPassword } });
     assert.equal(await accounts.authenticateAccount(legacy.username, oldPassword), null);
     assert.equal(await accounts.sessionAccountIsCurrent({ memberId: legacy.id, sessionVersion: 2 }), false);
+  } finally { f.close(); }
+});
+
+test("Firebase-hosted verification completes with the checkpointed new password on the existing account", async () => {
+  const f = firebaseAccountFixture();
+  try {
+    const legacy = f.legacy(), firebase = f.load("db/firebase-accounts");
+    const before = f.sql.prepare("SELECT * FROM reading_group_memberships").all();
+    await firebase.linkFirebaseAccount(f.request, legacy.id, { email: "claim@example.test", password: oldPassword, newPassword, acceptedPolicy: true });
+    // The default Firebase handler verifies remotely, without invoking Koru's action route.
+    f.users.get("claim@example.test").verified = true;
+    assert.equal(await firebase.firebaseVerificationPending(legacy.id), true);
+    assert.equal(f.sql.prepare("SELECT count(*) AS n FROM account_profiles").get().n, 0);
+    assert.equal(await firebase.authenticateFirebaseAccount(legacy.username, oldPassword), null);
+    const signed = await firebase.authenticateFirebaseAccount(legacy.username, newPassword);
+    assert.equal(signed.memberId, legacy.id);
+    assert.equal(await firebase.firebaseVerificationPending(legacy.id), false);
+    assert.equal(f.sql.prepare("SELECT email FROM account_profiles WHERE member_id=?").get(legacy.id).email, "claim@example.test");
+    assert.deepEqual(f.sql.prepare("SELECT * FROM reading_group_memberships").all(), before);
+    assert.equal(f.sql.prepare("SELECT count(*) AS n FROM members").get().n, 1);
+  } finally { f.close(); }
+});
+
+test("account and login endpoints expose pending completion, reject legacy fallback, and remove the reminder after verified sign-in", async () => {
+  const f = firebaseAccountFixture();
+  try {
+    Object.assign(f.env, { SUPPORT_EMAIL: "support@example.test", PRIVACY_POLICY_URL: "https://birkoru.com/privacy", TERMS_URL: "https://birkoru.com/terms",
+      TURNSTILE_SITE_KEY: "synthetic-site-key", TURNSTILE_SECRET_KEY: "synthetic-secret-key" });
+    const legacy = f.legacy(), firebase = f.load("db/firebase-accounts"), auth = f.load("lib/auth");
+    const token = await auth.createSessionToken(legacy.id, 1);
+    const status = () => f.load("app/api/onboarding/[action]/route").GET(new Request("https://birkoru.com/api/onboarding/account", {
+      headers: { Cookie: "okuma_session=" + token } }), { params: Promise.resolve({ action: "account" }) });
+    const login = (password, completeVerification = true) => f.load("app/api/auth/login/route").POST(new Request("https://birkoru.com/api/auth/login", {
+      method: "POST", headers: { Origin: "https://birkoru.com", "Content-Type": "application/json" },
+      body: JSON.stringify({ username: legacy.username, password, completeVerification }) }));
+    await firebase.linkFirebaseAccount(f.request, legacy.id, { email: "claim@example.test", password: oldPassword, newPassword, acceptedPolicy: true });
+    const pending = await status(); assert.equal(pending.status, 200);
+    assert.equal((await pending.json()).verificationPending, true);
+    assert.equal((await login(newPassword)).status, 401);
+    assert.equal((await login(oldPassword)).status, 401);
+    assert.equal((await login(oldPassword, false)).status, 200);
+    f.users.get("claim@example.test").verified = true;
+    assert.equal((await login(oldPassword)).status, 401);
+    const completed = await login(newPassword);
+    assert.equal(completed.status, 200);
+    const handle = completed.cookies.get("okuma_session").value;
+    assert.match(handle, /^fb2\./);
+    const response = await f.load("app/api/onboarding/[action]/route").GET(new Request("https://birkoru.com/api/onboarding/account", {
+      headers: { Cookie: "okuma_session=" + handle } }), { params: Promise.resolve({ action: "account" }) });
+    assert.equal(response.status, 200);
+    const profile = await response.json();
+    assert.equal(profile.verified, true); assert.equal(profile.verificationPending, false);
+    assert.equal(profile.email, "claim@example.test");
+    assert.equal((await status()).status, 401);
+  } finally { f.close(); }
+});
+
+test("pending verification is account/version/expiry scoped and never exposes or accepts a different provider UID", async () => {
+  for (const state of ["unverified", "stale", "expired", "foreign-uid", "erasure"]) {
+    const f = firebaseAccountFixture();
+    try {
+      const legacy = f.legacy(), firebase = f.load("db/firebase-accounts");
+      await firebase.linkFirebaseAccount(f.request, legacy.id, { email: "claim@example.test", password: oldPassword, newPassword, acceptedPolicy: true });
+      if (state === "stale") f.sql.exec("UPDATE member_accounts SET session_version=session_version+1");
+      if (state === "expired") f.sql.exec("UPDATE firebase_registrations SET expires_at=1");
+      if (state === "foreign-uid") f.users.get("claim@example.test").uid = "uncheckpointed-provider-uid";
+      if (state === "erasure") f.sql.prepare("INSERT INTO account_erasure_jobs(request_id,account_member_id,plan_json,plan_digest,created_at,updated_at) VALUES('synthetic-erasure',1,'{}',?,1,1)").run("a".repeat(64));
+      assert.equal(await firebase.firebaseVerificationPending(legacy.id), ["unverified", "foreign-uid"].includes(state));
+      if (state !== "unverified") f.users.get("claim@example.test").verified = true;
+      assert.equal(await firebase.authenticateFirebaseAccount(legacy.username, newPassword), null);
+      assert.equal(f.sql.prepare("SELECT count(*) AS n FROM account_profiles").get().n, 0);
+      assert.equal(f.sql.prepare("SELECT password_hash FROM member_accounts").get().password_hash, legacy.hash);
+    } finally { f.close(); }
+  }
+});
+
+test("a valid verification code for an uncheckpointed UID cannot claim an existing account by email", async () => {
+  const f = firebaseAccountFixture();
+  try {
+    const legacy = f.legacy(), firebase = f.load("db/firebase-accounts");
+    await firebase.linkFirebaseAccount(f.request, legacy.id, { email: "claim@example.test", password: oldPassword, newPassword, acceptedPolicy: true });
+    f.users.get("claim@example.test").uid = "uncheckpointed-provider-uid";
+    const result = await firebase.firebaseEmailAction({ mode: "verifyEmail", code: f.messages[0].code });
+    assert.match(result.message, /Hesap eşleştirmesini tamamlamak/);
+    assert.equal(f.sql.prepare("SELECT count(*) AS n FROM account_profiles").get().n, 0);
+    assert.equal(f.sql.prepare("SELECT count(*) AS n FROM firebase_links").get().n, 0);
+    assert.equal(f.sql.prepare("SELECT password_hash FROM member_accounts").get().password_hash, legacy.hash);
   } finally { f.close(); }
 });
 

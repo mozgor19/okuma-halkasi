@@ -31,10 +31,20 @@ async function pendingFor(username: string) {
   return (await database()).prepare(`SELECT id,firebase_uid AS uid,email,claim_member_id AS claimMemberId,claim_version AS claimVersion,expires_at AS expires
     FROM firebase_registrations WHERE username=? AND project_id=? AND consumed_at IS NULL`).bind(username, requireFirebase().projectId).first<Pending>();
 }
+export async function firebaseVerificationPending(memberId: number) {
+  const db = await database();
+  if (await accountErasureBlocked(memberId)) return false;
+  const pending = await db.prepare(`SELECT 1 FROM firebase_registrations r JOIN member_accounts a ON a.member_id=r.claim_member_id
+    WHERE r.claim_member_id=? AND r.project_id=? AND r.claim_version=a.session_version AND r.firebase_uid IS NOT NULL
+    AND r.consumed_at IS NULL AND r.expires_at>? AND a.password_hash NOT LIKE 'managed:%'
+    AND NOT EXISTS(SELECT 1 FROM account_profiles p WHERE p.member_id=a.member_id)`)
+    .bind(memberId, requireFirebase().projectId, Date.now()).first();
+  return !!pending;
+}
 async function sendAction(email: string, purpose: "verify" | "reset", idToken?: string) {
   requireTestEmail(email);
   await remoteFirebase().api("sendOobCode", { requestType: purpose === "verify" ? "VERIFY_EMAIL" : "PASSWORD_RESET",
-    ...(purpose === "verify" ? { idToken } : { email }), continueUrl: requireFirebase().applicationOrigin + "/login", canHandleCodeInApp: false });
+    ...(purpose === "verify" ? { idToken } : { email }), continueUrl: requireFirebase().applicationOrigin + (purpose === "verify" ? "/account" : "/login"), canHandleCodeInApp: false });
 }
 
 async function provision(uid: string, email: string) {
@@ -208,8 +218,12 @@ export async function firebaseEmailAction(body: Record<string, unknown>) {
   try {
     if (body.mode === "verifyEmail") {
       const result = await remoteFirebase().api("update", { oobCode: code });
-      if (typeof result.localId !== "string" || !normalizeEmail(result.email)) throw invalid();
-      return { ok: true, message: "E-posta adresin doğrulandı. Kullanıcı adın ve şifrenle giriş yap." };
+      const email = normalizeEmail(result.email);
+      if (typeof result.localId !== "string" || !result.localId || !email) throw invalid();
+      // Only the provider's consumed code and our checkpointed UID may finalize a claim.
+      const account = await provision(result.localId, email);
+      if (!account || account.email !== email) return { ok: true, message: "E-posta adresin doğrulandı. Hesap eşleştirmesini tamamlamak için kullanıcı adın ve yeni hesap şifrenle giriş yap. Tamamlanmazsa Hesabım bölümünden yeniden doğrulama iste." };
+      return { ok: true, message: "E-posta adresin ve Koru hesabın doğrulandı. Kullanıcı adın ve doğrulama sırasında belirlediğin hesap şifrenle yeniden giriş yap." };
     }
     const issue = typeof body.password === "string" ? passwordValidationIssue(body.password, "") : "Geçerli bir şifre gir.";
     if (issue) throw new ReadingGroupError("INVALID_PASSWORD", 400, issue);

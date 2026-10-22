@@ -7,6 +7,71 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
+EMAIL PUBLICATION REQUEST (October22, in progress): Mustafa explicitly asked
+to publish the previously reviewed email-verification fix and reported testing
+it. This is NEW scoped publication authority for that fix only, not D1 cleanup,
+schema/provider/template changes or a general waiver. Preserve all THREE live
+D1 bindings including the occupied production-group-1, shared readers, Secrets
+and mail OFF. No SQL writes/migrations are part of rollout. Require clean,
+coauthor-free pushed work-branch source, fresh audit, core/auth checks, targeted
+compiled Chromium/WebKit, current production identity, fresh three-DB encrypted
+backups/disk decrypt/offline restore/exact preservation before opening.
+Operator's report is not proof of every manual category; remaining full/manual
+criteria stay pending, not marked passed. The local fix below is not live until
+a new completed outcome is recorded. Main and native remain untouched.
+
+READ-ONLY D1 AUDIT (October22,23:04-23:06TRT): Mustafa requested inventory and
+approval BEFORE any cleanup.8 remote D1s confirmed:3 bound to okuma-halkasi,
+5 to koru-staging; public-info has none, Pages list empty. IMPORTANT:
+koru-production-group-1 is NOT empty: canonical registry routes an existing
+group there, with member/account-link/ownership rows. NEVER delete it merely
+because books/meetings are empty. Production-group-2 has no group reference,
+ownership or domain content except factory setting, but remains bound and
+required by current deployment/backup policies: candidate ONLY after separately
+approved coordinated source/binding/rollback changes, fresh backup and recheck.
+All five staging DBs have registered roles; both staging-create DBs are now
+allocated, one holds book/roadmap data. No orphan restore/test DB found.
+New live groups already use canonical shared storage, not new D1 allocation;
+staging still uses the older dedicated model. See docs/DATABASE_INVENTORY.md.
+Only GET metadata and fixed SELECT catalog/aggregates ran: zero SQL writes,
+DDL/migrations, deletes, exports, deployments, binding/Secret/paid changes.
+No personal rows/mail or credentials were collected. Earlier local email
+changes remain undeployed; audit grants NO cleanup/deployment authority.
+
+LOCAL EMAIL FOLLOW-UP (October22, NOT deployed): a reported verified legacy
+email still showed unverified because the hosted Firebase handler updates the
+provider only; Koru provision() previously ran only on a new-password login.
+The custom /auth/email action now also finalizes the exact checkpointed UID
+and email; old-version/expired/foreign-UID/erasure claims remain blocked.
+Hosted-handler returns now target /account. Its account-scoped pending flag
+shows a new-password completion form, including after reload, instead of sending
+the user back to groups before linking. The same rate-limited login endpoint
+has an opt-in completeVerification=true path requiring verified Firebase proof,
+NEVER legacy-password fallback. It issues the existing HttpOnly fb2 session;
+canonical status then removes the reminder. No email-only merge, UID change,
+new schema, credential persistence in browser, palette or other workflow change.
+Long completion commands wrap only inside their new scoped form.
+Synthetic account/endpoint and workerd tests cover preservation and revocation;
+targeted browser checks use mocked provider responses, NOT real-user acceptance.
+Passed:16 account/endpoint tests, Firebase protocol tests,5 workerd scenarios,
+types, targeted lint and production build. New standalone
+scripts/test-email-verification.mjs passed6 checks in BOTH Chromium/WebKit,
+with four-scheme light/dark320/1440 screenshots. Earlier failed test-setup and
+new-button overflow reports remain; only the new form's command wrapping was
+changed. Evidence: outputs/release-tests/mobile-stable-20261022-a/email-verification-{chromium,webkit}/.
+Full suite/manual/live-user acceptance were NOT performed or waived.
+Live remains370c0d0/3de95dfd below; no deployment/production SQL/real mail or
+Firebase panel change was made in this task. The user's already-verified hosted
+flow can complete on CURRENT live by logging in with their existing username
+and the NEW account password chosen during linking, not the old saved password.
+
+Firebase mail %APP_NAME% uses Project Settings > General > Public settings >
+Public-facing name, not sender name/reply-to, internal Project name or web-app
+nickname. It must be Koru; project ID koru-951bf MUST remain unchanged.
+That provider setting was not changed or remotely verified here. See the new
+operator instructions in FIREBASE_PRODUCTION.md; do not bypass template-edit
+restrictions, enable another sign-in provider or upgrade billing to fix a name.
+
 LATEST LIVE FOLLOW-UP (October22,21:32TRT): application source
 370c0d034c56efbf531cfdf2aaf9575de7a70e53 is live at https://birkoru.com,
 Worker3de95dfd-8c5e-46da-963a-efadab32fc38 at100%; maintenance OFF.

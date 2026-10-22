@@ -20,6 +20,7 @@ const { outputFiles } = await build({
         const { action, args = [] } = await request.json();
         const allowed = { register: () => accounts.registerFirebaseAccount(request, args[0]),
           login: () => accounts.authenticateFirebaseAccount(...args),
+          emailAction: () => accounts.firebaseEmailAction(...args),
           session: () => accounts.createFirebaseSession(...args),
           identity: () => accounts.firebaseSessionIdentity(...args),
           change: () => accounts.changeFirebasePassword(...args),
@@ -106,6 +107,10 @@ async function fixture({ shared = false } = {}) {
       if (operation === "lookup") return Response.json({ users: user ? [{ localId: user.uid, email: user.email, emailVerified: user.verified,
         disabled: user.disabled, validSince: String(user.validSince) }] : [] });
       if (operation === "sendOobCode") { messages.push(body.requestType); return Response.json({ email: user?.email }); }
+      if (operation === "update" && body.oobCode === "synthetic-worker-verification-code") {
+        const value = [...users.values()][0]; value.verified = true;
+        return Response.json({ localId: value.uid, email: value.email });
+      }
       if (operation === "update" && body.password && user) {
         user.password = body.password; user.validSince = ++clock;
         return Response.json(await tokens(user));
@@ -135,7 +140,10 @@ test("production Firebase accounts execute with actual workerd D1, RS256/JWKS an
     assert.equal(f.users.size, 1, JSON.stringify({ visited: f.visited, pending: (await f.db.prepare("SELECT count(*) AS n FROM firebase_registrations").first()).n }));
     assert.deepEqual(f.messages, ["VERIFY_EMAIL"]);
     assert.equal((await f.call("login", "worker.reader", password)).body, null);
-    const user = f.users.get("worker@example.test"); user.verified = true;
+    const user = f.users.get("worker@example.test");
+    const verified = await f.call("emailAction", { mode: "verifyEmail", code: "synthetic-worker-verification-code" });
+    assert.equal(verified.status, 200); assert.equal(verified.body.ok, true);
+    assert.equal((await f.db.prepare("SELECT email FROM account_profiles").first()).email, user.email);
     const signed = (await f.call("login", "worker.reader", password)).body; assert.ok(signed?.memberId);
     const handle = (await f.call("session", signed.memberId, signed.sessionVersion, signed.firebase)).body;
     assert.match(handle, /^fb2\.[a-f0-9]{64}$/);
