@@ -1714,6 +1714,8 @@ html[data-scheme="notebook"] .invitation-records>.invitation-list li:first-child
 .local-face-tools .onboarding-consent{margin-block:20px;font-size:14px}
 .local-face-actions{display:flex;flex-wrap:wrap;gap:12px;margin-block:20px}
 .local-face-actions button{white-space:normal;min-height:44px;height:auto}
+.local-face-tools button{border:1px solid var(--control-border);background:var(--control-bg);color:var(--control-text)}
+.local-face-tools button:hover{background:var(--control-bg-active)}
 .local-face-tools [role="alert"]{color:var(--color-danger)}
 .local-face-tools .face-reference-row{min-width:0}
 .local-face-tools .face-reference-person{min-width:0;overflow-wrap:anywhere}

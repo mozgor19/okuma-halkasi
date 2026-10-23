@@ -123,6 +123,13 @@ try {
     await page.evaluate(({ scheme, dark }) => { document.documentElement.dataset.scheme = scheme; document.documentElement.classList.toggle("dark", dark); }, { scheme, dark });
     await page.evaluate(() => document.fonts.ready);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    const contrasts = await panel.locator("button").evaluateAll(buttons => buttons.filter(button => !button.disabled).map(button => {
+      const rgb = value => value.match(/[\d.]+/g).slice(0, 3).map(Number).map(value => { const channel = value / 255; return channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4; });
+      const luminance = value => { const c = rgb(value); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+      const style = getComputedStyle(button), a = luminance(style.color), b = luminance(style.backgroundColor);
+      return { label: button.textContent, ratio: (Math.max(a, b) + .05) / (Math.min(a, b) + .05) };
+    }));
+    assert.ok(contrasts.length && contrasts.every(result => result.ratio >= 4.5), JSON.stringify({ scheme, dark, contrasts }));
     await page.screenshot({ path: `${output}/${width}-${scheme}-${dark ? "dark" : "light"}.png`, animations: "disabled", fullPage: true });
   }
   assert.deepEqual(errors, []);
