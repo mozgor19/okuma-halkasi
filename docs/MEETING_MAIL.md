@@ -1,5 +1,11 @@
 # Koru Buluşma E-postaları
 
+Son durum23 Ekim11:56TRT: kaynak95a6be4 ile tercih düğmesinin hızlı tepki,
+hata geri alma ve grup değişimi izolasyonu canlıda. Gönderim hâlâ OFF;
+MEETING_MAIL_FROM ve MEETING_MAIL_API_KEY henüz yok. Hesap sahibinin aşağıdaki
+Resend/domain adımları olmadan gönderim açılmaz. Gerçek test veya toplu posta
+gönderilmedi; Firebase doğrulama/şifre postaları aynen korundu.
+
 21 Ekim 2026. Kod ve gerekli0016/0017 şemaları artık birkoru.com üzerinde
 yayında (kaynak77a69c5). Canlı gönderici henüz kurulmadı; gönderim açık değildir:
 `MEETING_MAIL_ENABLED=false`. Tercih kaydedilebilir ama şu anda buluşma değişikliği

@@ -4,11 +4,33 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
-## Yeni Hazırlık: Yerel Yüz ve Posta Tercihi
+## Güncel Yayın: Yerel Yüz ve Posta Tercihi
+
+23 Ekim11:56TRT: kaynak `95a6be4`, Worker
+`9b8b42e6-9d26-4230-8c66-2a9db662aaff` %100; birkoru.com açık, bakım kapalı.
+Yeni koşullu dar kapsamlı talep tüketildi. Coauthorsuz temiz/push edilmiş kaynak,
+306 birim/91 backend/tip/lint/build, güncel audit ve Chromium4/WebKit4 yerel yüz/
+kasa/ağ/posta kontrolleri geçti. Dört görünüm/açık-koyu/mobil-masaüstü düğme
+karşıtlığı ve mevcut üretim10 kontrol/32 mobil form geçti. Üç taze şifreli yedek,
+diskten çözme/offline restore/birebir veri kontrolü geçti; SQL/migration/DB
+silme veya taşıma YOK. Üç bağlantı, ortak okuyucular, Secret'lar, diğer Worker'lar,
+Firebase ve main korundu. Canlı9 anonim HTTPS/politika/tam JS-CSS-Worker dosya
+kimliği kontrolü geçti. İlk özel sağlık betiği regex hatası ayrı korunup yalnız
+betik düzeltilerek tüm kontroller tamamlandı; uygulama yeniden değiştirilmedi.
+
+Yüz aracı yalnız tarayıcıda, izinli ve yönetici incelemesine bağlı öneri üretir;
+sunucuya yüz referansı/analiz fotoğrafı/vektör/puan göndermez. Galeri normal
+yüklemesi ayrı kalır. Buluşma postası OFF; From/Secret eksik, sahip kurulumu
+gerekiyor. Hiç gerçek hesap/posta/yüz testi veya toplu gönderim yapılmadı.
+Tam paket/13 manuel, gerçek yüz doğruluk ölçümü ve fiziksel telefon kabulü
+bekliyor; bunlar geçmiş sayılmaz. Sonraki belge commit'i yeni uygulama yayını
+değildir. Kanıt: `outputs/web-acceptance/95a6be4/`, SESSION_MEMORY.md.
+
+## Yerel Yüz Talebi: Tarihsel Hazırlık
 
 22-23 Ekim: Mustafa yalnız bu değişiklikler için, soru sorulmadan kritik
-kontrollerden sonra koşullu yayın onayı verdi. Henüz bu bölüm yayın sonucu
-değildir; mevcut canlı sürüm aşağıdadır. Ücretli servis, gerçek toplu posta,
+kontrollerden sonra koşullu yayın onayı verdi. Bu bölüm tarihsel hazırlıktır;
+tamamlanan kaynak ve sonuç yukarıdadır. Ücretli servis, gerçek toplu posta,
 DB silme/taşıma veya migration kapsam dışıdır. Üç üretim DB'si ve diğer beş
 staging DB'si korunur. Standart tam/manuel kapı geçmiş sayılmaz; yeni kaynağa
 özel temiz/push edilmiş coauthorsuz dal, güncel audit, tip/birim/backend/build,

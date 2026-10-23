@@ -49,4 +49,16 @@ Sentetik browser kontrolleri gerçek yüz doğruluğu veya hukuki kabul değildi
 
 Kaynak: [Human embedding](https://github.com/vladmandic/human/wiki/Embedding),
 [Worker desteği](https://github.com/vladmandic/human/wiki).
-Bu belge yayın/gerçek veri testi sonucu değildir; sonuçlar ayrıca kaydedilir.
+## Yayın Sonucu
+
+23 Ekim11:56TRT: kaynak95a6be4, Worker9b8b42e6-9d26-4230-8c66-2a9db662aaff
+üzerinde bu araç yayında.306 birim/91 backend ve derlenmiş Chromium/WebKit
+kontrolleri geçti: gerçek sıfır tensörle yalnız embedding grafı çalıştı; boş
+fotoğraf reddi, tekrar analiz, ana iş parçacığı tepkisi, yalnız yerel model GET,
+gerçek IndexedDB/AES-GCM izolasyon/TTL/değişiklik reddi/silme ve dört görünümde
+karşıtlık doğrulandı. Üç referans varyasyonu/tensor temizliği mocked-face birim
+testinde de sınandı; bunlar gerçek kişi doğruluğu veya cihaz kabulü değildir.
+Gerçek izinli pozitif/negatif örnek ölçümü ve fiziksel telefon kabulü bekliyor.
+Canlıda hiçbir gerçek yüz/test hesabı/posta kullanılmadı. Sunucu biyometri
+flag'i kapalıdır, Koru'nun yerel aracı bu flag'den bağımsızdır. Ayrıntılı yayın
+ve veri koruma kanıtı: SESSION_MEMORY.md ve outputs/web-acceptance/95a6be4/.

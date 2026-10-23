@@ -1,6 +1,21 @@
 # Koru Üretim Firebase Hazırlığı
 
-## Son Yayın: E-posta Doğrulama
+## Son Yayın: Yerel Yüz ve Posta Tercihi
+
+23 Ekim11:56TRT: uygulama kaynağı `95a6be4`, Worker
+`9b8b42e6-9d26-4230-8c66-2a9db662aaff` %100, bakım kapalı. Yeni dar kapsamlı
+onayla yerel yüz aracı ve posta tercihi tepkisi yayımlandı; Firebase projesi,
+hesaplar, doğrulama/sıfırlama göndericisi ve şablonları DEĞİŞMEDİ. Buluşma
+postası ayrı Resend kurulumu olmadığından OFF; From/API Secret eksik.
+Üç şifreli yedek/offline restore/birebir eski veri kontrolü,306 birim/91 backend,
+tip/lint/build/audit, derlenmiş Chromium4/WebKit4, üretim10+32 form ve canlı9
+anonim HTTPS/tam dosya kimliği kontrolü geçti. SQL/migration/DB temizliği yok;
+tüm8 DB, bağlantılar/Secret'lar, ortak okuyucular ve diğer Worker'lar korundu.
+13 manuel/tam paket, gerçek yüz doğruluk ölçümü ve fiziksel telefon kabulü
+bekliyor. Kaynağa özel yetki tüketildi; sonraki belge commit'i dağıtım değildir.
+Kanıt: `outputs/web-acceptance/95a6be4/`, SESSION_MEMORY.md.0015/16/17/18'i tekrarlama.
+
+## Önceki Yayın: E-posta Doğrulama
 
 22 Ekim23:17TRT: kaynak `7f796da`, Worker
 `725de55c-4ed4-4a46-ac7a-1e7ccd7d9fba` %100; birkoru.com açık, bakım kapalı.

@@ -1,20 +1,57 @@
 # Koru Project Session Memory
 
-Last decision update: 2026-10-22. Read this at the start of future sessions.
+Last decision update: 2026-10-23. Read this at the start of future sessions.
 This is durable repository memory, not a claim that account-wide AI memory
 or every external assistant has been updated. AGENTS.md enforces the read order.
 Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
-NEW LOCAL-FACE / MAIL REQUEST (October22-23, in preparation, NOT yet deployed):
+LATEST LOCAL-FACE / MAIL RELEASE (October23,11:56TRT): application source
+95a6be4c30a855e3fb5828b3511ccf344f854adf is live at https://birkoru.com,
+Worker9b8b42e6-9d26-4230-8c66-2a9db662aaff at100%; maintenance OFF.
+Mustafa's NEW conditional scoped authority below is now consumed. Source was
+clean, coauthor-free and pushed to the existing work branch BEFORE deployment;
+main unchanged.306 units/91 backend/types/targeted lint/build and current audit
+(no high/critical WEB findings) passed. Compiled Chromium4/WebKit4 checks cover
+real descriptor-only zero-tensor warmup, blank/consent rejection, repeat use,
+UI responsiveness, same-origin GET-only model traffic, actual browser encrypted
+vault roundtrip/nonextractable keys/group-account isolation/tamper/TTL/deletion,
+optimistic mail save/rollback and all four light/dark mobile/desktop layouts with
+button contrast. Mocked-face worker tests separately cover three fresh descriptors,
+embedding-only execution/tensor cleanup and conservative rejection; they are NOT
+real-person accuracy evidence. Existing production10 checks/32 forms also passed.
+
+All THREE fresh encrypted backups/disk decrypt/OFFLINE restores and exact old
+schema/typed rows/media/sequences passed. ZERO SQL writes/migrations/DB cleanup;
+keep all8 D1s, shared readers, both dedicated bindings, Secrets and other Workers.
+MEETING_MAIL_ENABLED=false; no From/sending Secret, so NO meeting mail sent.
+Firebase authentication/mail settings and ordinary gallery upload unchanged.
+Old server face feature remains OFF; only the new Koru browser tool is available.
+Privacy/terms describe consent, device-local scope,30-day validity, no sync,
+manual local deletion after logout and same-origin/XSS/device limitations.
+13 manual/full-suite categories, real consented positive/negative face accuracy
+and physical phone acceptance remain pending, not passed or generally waived.
+
+Live9 anonymous HTTPS/security/canonical redirects/public policy and exact
+JS/CSS/Worker-byte checks passed11:57TRT; no real accounts/faces/email/API mutation.
+An initial private health-helper filename regexp failure is retained separately;
+only that helper was corrected, not application source/artifacts/runtime.
+Evidence: outputs/web-acceptance/95a6be4/{production-outcome,production-health}.json;
+outputs/release-tests/mobile-stable-20261022-a/{local-face-mail-chromium,local-face-mail-webkit,web-production}/;
+private local-face-mail-core.json. Rollout80a82dfc-6856-4607-82f8-fb7fb2f6ab00,
+deployment60997ec8-4a99-4069-a14e-ce2fc7faaf79. Never rerun this consumed rollout
+or0015/16/17/18. Owned5335 preview stopped. Later documentation commits are NOT
+new application deployments. Sender owner steps: docs/MEETING_MAIL.md.
+
+LOCAL-FACE / MAIL REQUEST (Historical preparation, completed above):
 Mustafa requested a responsive meeting-mail preference and stronger single-reference
 face matching with ALL biometric processing kept in the browser, then explicitly
 authorized scoped publication if no issues remain, without asking him questions.
 This is NEW conditional authority for these changes only, not paid providers,
 bulk mail, database cleanup/migrations, native work or standing release approval.
 User subsequently confirmed that the orderly eight-DB inventory should be kept;
-do not delete any DB. Current live baseline remains7f796da/Worker725de55c below.
+do not delete any DB. Previous live baseline was7f796da/Worker725de55c below.
 
 Read-only production settings confirm MEETING_MAIL_ENABLED=false, no
 MEETING_MAIL_FROM and no MEETING_MAIL_API_KEY Secret. Firebase account mail is
@@ -41,10 +78,10 @@ are explained in UI/privacy/terms and docs/LOCAL_FACE_PROCESSING.md. No absolute
 security/legal compliance/face accuracy guarantee. Real consented face benchmark
 and physical-device acceptance remain pending. No biometric production test data.
 Preparation checks found and fixed a Vite file-origin Worker URL issue before
-publication. Final clean-source evidence and actual outcome must be recorded
-separately; passing preparation is not a deployed or fully accepted release.
+publication. Actual clean-source evidence and outcome are recorded above;
+passing preparation alone was not a deployed or fully accepted release.
 
-LATEST EMAIL FOLLOW-UP (October22,23:17TRT): application source
+PREVIOUS EMAIL FOLLOW-UP (October22,23:17TRT): application source
 7f796dab6c840eca2051bcd5e2ce0556c4d7bde1 is live at https://birkoru.com,
 Worker725de55c-4ed4-4a46-ac7a-1e7ccd7d9fba at100%; maintenance OFF.
 Mustafa's NEW explicit request published ONLY the reviewed email-verification
