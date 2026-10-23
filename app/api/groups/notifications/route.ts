@@ -1,4 +1,4 @@
-import { getAuthenticatedMember } from "@/db/store";
+import { getAuthenticatedMember, getMember } from "@/db/store";
 import { meetingMailPreference, saveMeetingMailPreference, deferMeetingChanges, meetingMailQueue } from "@/db/meeting-mail";
 import { readingGroupContext } from "@/db/database";
 import { noStore, withReadingGroup, ReadingGroupError, readingGroupErrorResponse } from "@/lib/groups";
@@ -6,15 +6,20 @@ import { jsonBody, sameOrigin, rateLimit } from "@/lib/onboarding-security";
 import { isAdminRole } from "@/lib/types";
 
 export const runtime = "edge";
+async function scopedActor(request: Request) {
+  // withReadingGroup already validated the live session and group membership.
+  const context = readingGroupContext();
+  return context ? getMember(context.memberId) : getAuthenticatedMember(request);
+}
 export const GET = withReadingGroup(async (request: Request) => {
-  const actor = await getAuthenticatedMember(request);
+  const actor = await scopedActor(request);
   if (!actor) return noStore(Response.json({ error: "Oturum gerekli." }, { status: 401 }));
   return noStore(Response.json({ ...await meetingMailPreference(), ...(isAdminRole(actor.role) ? { queue: await meetingMailQueue() } : {}) }));
 });
 export const POST = withReadingGroup(async (request: Request) => {
   try {
     sameOrigin(request);
-    const actor = await getAuthenticatedMember(request);
+    const actor = await scopedActor(request);
     if (!actor) throw new ReadingGroupError("AUTH_REQUIRED", 401, "Oturum gerekli.");
     await rateLimit(request, "meeting-mail-preference", 30, 900, String(readingGroupContext()!.accountMemberId));
     const body = await jsonBody(request);

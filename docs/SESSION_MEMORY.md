@@ -7,6 +7,40 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
+NEW LOCAL-FACE / MAIL REQUEST (October22-23, in preparation, NOT yet deployed):
+Mustafa requested a responsive meeting-mail preference and stronger single-reference
+face matching with ALL biometric processing kept in the browser, then explicitly
+authorized scoped publication if no issues remain, without asking him questions.
+This is NEW conditional authority for these changes only, not paid providers,
+bulk mail, database cleanup/migrations, native work or standing release approval.
+User subsequently confirmed that the orderly eight-DB inventory should be kept;
+do not delete any DB. Current live baseline remains7f796da/Worker725de55c below.
+
+Read-only production settings confirm MEETING_MAIL_ENABLED=false, no
+MEETING_MAIL_FROM and no MEETING_MAIL_API_KEY Secret. Firebase account mail is
+separate; never pretend this sends meeting mail. Free domain-verified Resend
+owner setup remains external. The preference now responds optimistically,
+prevents concurrent saves, rolls back errors and avoids redundant session/profile
+reads while retaining group membership, verification and rate-limit checks.
+
+New Koru-only face tool: Human3.3.6 in a dedicated module Worker, mesh/rotation,
+three lighting descriptors from one reference and conservative ambiguity rejection.
+No retraining or measured accuracy gain is claimed. References are encrypted
+AES-GCM IndexedDB records, device/account/group/model scoped,30-day validity;
+raw reference/analysis images, descriptors and scores never go to APIs. A worker
+fetch allowlist permits only six fixed same-origin model GETs. Separate analysis
+picker NEVER uploads to gallery; only reviewed ordinary attendance IDs use the
+existing API. Explicit ordinary gallery upload still stores photos server-side.
+Old server face upload/read/match remains permanently disabled for Koru even if
+an old runtime flag is true. Existing legacy app behavior is preserved.
+Consent, local deletion, no sync/logout auto-clear and same-origin/XSS limitations
+are explained in UI/privacy/terms and docs/LOCAL_FACE_PROCESSING.md. No absolute
+security/legal compliance/face accuracy guarantee. Real consented face benchmark
+and physical-device acceptance remain pending. No biometric production test data.
+Preparation checks found and fixed a Vite file-origin Worker URL issue before
+publication. Final clean-source evidence and actual outcome must be recorded
+separately; passing preparation is not a deployed or fully accepted release.
+
 LATEST EMAIL FOLLOW-UP (October22,23:17TRT): application source
 7f796dab6c840eca2051bcd5e2ce0556c4d7bde1 is live at https://birkoru.com,
 Worker725de55c-4ed4-4a46-ac7a-1e7ccd7d9fba at100%; maintenance OFF.

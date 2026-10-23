@@ -12,14 +12,14 @@ new Function("require", "module", "exports", code)((name) => {
   assert.equal(name, "cloudflare:workers"); return { env };
 }, compiledModule, compiledModule.exports);
 
-test("Koru biometric processing is off by default and invalid flags cannot enable it", () => {
+test("Koru server biometric storage remains off even when an old flag is enabled", () => {
   env.APPLICATION_BRAND = "Koru";
   for (const flag of [undefined, "false", "TRUE", "1", "invalid"]) {
     env.FACE_RECOGNITION_ENABLED = flag;
     assert.equal(compiledModule.exports.faceRecognitionEnabled(), false);
   }
   env.FACE_RECOGNITION_ENABLED = "true";
-  assert.equal(compiledModule.exports.faceRecognitionEnabled(), true);
+  assert.equal(compiledModule.exports.faceRecognitionEnabled(), false);
 });
 test("the historical web retains its behavior and can also disable biometric processing", () => {
   delete env.APPLICATION_BRAND; delete env.FACE_RECOGNITION_ENABLED;

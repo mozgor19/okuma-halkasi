@@ -7,6 +7,15 @@ postası gönderilmez; arayüz de bunu açıklar. Firebase hesap postaları değ
 
 ## Hazır Olan Akış
 
+22 Ekim takip düzeltmesi: tercih düğmesi ağ yanıtını beklemeden görünür durumunu
+değiştirir; kayıt sürerken tekrar tıklama engellenir, hata olursa önceki değere
+döner. Aynı istekte yinelenen Firebase oturum kontrolü ve tercih/profil okumaları
+kaldırıldı; grup yetkilendirmesi, doğrulanmış adres ve hız sınırı korunur.
+Gönderim kapalıyken sıfır kuyruk sayaçları gizlenir. Bu arayüz düzeltmesi
+gönderici kurulumu yerine geçmez ve gerçek posta gönderimini etkinleştirmez.
+22-23 Ekim salt okunur canlı kontrolde From ve ayrı gönderim Secret'ının da
+bulunmadığı doğrulandı. Bu eksik ayarlar Firebase hesabı postalarına ait değildir.
+
 - Profilde her hesap/grup için ayrı tercih; varsayılan kapalı. Doğrulanmış
   adres, aktif üyelik ve hesap silme/freeze durumu gönderimden önce denetlenir.
 - Tarih/saat, yer, harita bağlantısı veya çevrim içi/yüz yüze değişikliği tek

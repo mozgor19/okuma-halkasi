@@ -15,22 +15,24 @@ export async function meetingMailPreference() {
   if (!await meetingMailReady()) return { available: false, enabled: false, deliveryReady: false };
   const context = readingGroupContext();
   if (!context) return { available: false, enabled: false, deliveryReady: false };
-  const row = await identityDatabase().prepare("SELECT enabled FROM meeting_mail_preferences WHERE account_member_id=? AND group_id=?")
-    .bind(context.accountMemberId, context.group.id).first<{ enabled: number }>();
-  const profile = await identityDatabase().prepare("SELECT verified_at FROM account_profiles WHERE member_id=?").bind(context.accountMemberId).first<{ verified_at: number }>();
-  return { available: true, enabled: row?.enabled === 1, verified: !!profile?.verified_at, deliveryReady: local() || !!meetingMailConfiguration() };
+  const row = await identityDatabase().prepare(`SELECT n.enabled,p.verified_at FROM member_accounts a
+    LEFT JOIN account_profiles p ON p.member_id=a.member_id
+    LEFT JOIN meeting_mail_preferences n ON n.account_member_id=a.member_id AND n.group_id=? WHERE a.member_id=?`)
+    .bind(context.group.id, context.accountMemberId).first<{ enabled: number | null; verified_at: number | null }>();
+  return { available: true, enabled: row?.enabled === 1, verified: !!row?.verified_at, deliveryReady: local() || !!meetingMailConfiguration() };
 }
 export async function saveMeetingMailPreference(enabled: unknown) {
   const context = readingGroupContext();
-  if (!context || typeof enabled !== "boolean" || !await meetingMailReady()) throw new ReadingGroupError("MAIL_UNAVAILABLE", 503, "E-posta tercihleri henüz bu ortamda açılamıyor.");
+  if (!context || typeof enabled !== "boolean") throw new ReadingGroupError("MAIL_UNAVAILABLE", 503, "E-posta tercihleri henüz bu ortamda açılamıyor.");
   const current = await meetingMailPreference();
+  if (!current.available) throw new ReadingGroupError("MAIL_UNAVAILABLE", 503, "E-posta tercihleri henüz bu ortamda açılamıyor.");
   if (enabled && !current.verified) throw new ReadingGroupError("EMAIL_NOT_VERIFIED", 403, "Önce hesabının e-posta adresini doğrula.");
   await identityDatabase().prepare(`INSERT INTO meeting_mail_preferences(account_member_id,group_id,enabled,updated_at) VALUES(?,?,?,?)
     ON CONFLICT(account_member_id,group_id) DO UPDATE SET enabled=excluded.enabled,updated_at=excluded.updated_at`)
     .bind(context.accountMemberId, context.group.id, enabled ? 1 : 0, Date.now()).run();
   if (!enabled) await identityDatabase().prepare("UPDATE meeting_mail_deliveries SET status='skipped',updated_at=? WHERE account_member_id=? AND group_id=? AND status='pending'")
     .bind(Date.now(), context.accountMemberId, context.group.id).run();
-  return meetingMailPreference();
+  return { ...current, enabled };
 }
 
 export async function meetingMailQueue() {

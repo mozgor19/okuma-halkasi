@@ -4,7 +4,27 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
-## Güncel Yayın: E-posta Doğrulama
+## Yeni Hazırlık: Yerel Yüz ve Posta Tercihi
+
+22-23 Ekim: Mustafa yalnız bu değişiklikler için, soru sorulmadan kritik
+kontrollerden sonra koşullu yayın onayı verdi. Henüz bu bölüm yayın sonucu
+değildir; mevcut canlı sürüm aşağıdadır. Ücretli servis, gerçek toplu posta,
+DB silme/taşıma veya migration kapsam dışıdır. Üç üretim DB'si ve diğer beş
+staging DB'si korunur. Standart tam/manuel kapı geçmiş sayılmaz; yeni kaynağa
+özel temiz/push edilmiş coauthorsuz dal, güncel audit, tip/birim/backend/build,
+derlenmiş Chromium/WebKit yüz/ağ/kasa/posta ve üretim form kontrolleri, taze
+üç şifreli yedek/offline restore/birebir veri karşılaştırması gerekir.
+
+Canlı gönderici flag'i kapalı; From ve ayrı API Secret eksik. Bu sürüm ücretsiz
+Resend hesabı/domain kurulumu olmadan gönderimi açmayacak. Firebase postaları
+değişmez. Yerel yüz aracı sunucu biyometri flag'inden bağımsızdır; eski sunucu
+yolu Koru için kapalı kalır. Referans/analiz fotoğrafı, vektör ve puan dışarı
+gönderilmez. Galeri yüklemesi ayrı ve hâlâ sunucuya kaydeder. Mahremiyet/koşullar
+bu ayrımı açıklar. Gerçek izinli yüz doğruluk ölçümü ve fiziksel telefon kabulü
+bekler; güvenlik/doğruluk garantisi verilmez. Ayrıntı SESSION_MEMORY.md ve
+LOCAL_FACE_PROCESSING.md. Sonuç yayından sonra ayrıca kaydedilecek.
+
+## Önceki Yayın: E-posta Doğrulama
 
 22 Ekim23:17TRT: kaynak `7f796da`, Worker
 `725de55c-4ed4-4a46-ac7a-1e7ccd7d9fba` %100; bakım kapalı.

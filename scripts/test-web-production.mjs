@@ -128,12 +128,13 @@ try {
     await page.getByRole("heading", { name: "Kayıtlarda ara", exact: true }).waitFor();
     await page.keyboard.press("Escape");
     await page.getByRole("tab", { name: "Yüz verisi", exact: true }).click();
-    await page.getByRole("heading", { name: "Yüz eşleştirme kapalı", exact: true }).waitFor();
-    assert.equal(await page.locator('.face-reference-section input[type="file"]').count(), 0);
+    await page.getByRole("heading", { name: "Bu cihazdaki yüz referansları", exact: true }).waitFor();
+    const localReferences = page.getByRole("region", { name: "Yerel yüz referansları", exact: true });
+    assert.ok(await localReferences.locator('input[type="file"]').first().isDisabled());
   }
   const restore = await context.request.patch(origin + "/api/groups/appearance", { headers: { Origin: origin, "X-Reading-Group": "default" }, data: { scheme: state.readingGroup.scheme, mode: state.readingGroup.mode } });
   assert.equal(restore.status(), 200);
-  checks.push("Lazy profile, search, keyboard search and disabled biometric panel work under CSP: 4 schemes x 2 modes x 390/1440px");
+  checks.push("Lazy profile, search, keyboard search and consent-gated local reference panel work under CSP: 4 schemes x 2 modes x 390/1440px; server biometric APIs remain disabled");
   assert.deepEqual(errors, []);
   checks.push("No unhandled browser exceptions in the production bundle");
   await context.close();

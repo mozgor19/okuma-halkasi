@@ -19,6 +19,7 @@ import { PhotoLightbox } from "@/components/photo-lightbox";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { ReadingGroupSwitcher } from "@/components/reading-group-switcher";
 import { AccountDataRequests } from "@/components/account-experience";
+import { LocalFaceReferences } from "@/components/local-face-tools";
 import { useKoruBrand } from "@/components/group-branding";
 import { useOnboardingConfig } from "@/components/onboarding";
 import { groupFetch, groupUrl } from "@/lib/group-client";
@@ -286,10 +287,12 @@ function FaceReferencePanel({
   onNotice: (message: string) => void;
 }) {
   const [workingId, setWorkingId] = useState<number | null>(null);
+  const koru = useKoruBrand();
   const visibleMembers = member.role === "super_admin"
     ? data.members.filter((person) => !person.isGuest)
     : data.members.filter((person) => person.id === member.id);
 
+  if (koru) return <LocalFaceReferences data={data} member={member} onNotice={onNotice} onClearLegacy={() => onClear(member.id)} />;
   if (data.faceRecognitionEnabled === false) return <section className="profile-section face-reference-section">
     <div className="profile-section-heading"><span className="eyebrow">YÜZ VERİSİ</span><h2>Yüz eşleştirme kapalı</h2><p>Bu ortamda yüz referansı yüklenmez veya işlenmez. Buluşma fotoğrafları ve elle katılımcı ekleme kullanılabilir.</p></div>
     <div className="face-reference-grid"><Button type="button" variant="outline" disabled={busy || workingId !== null} onClick={async () => {
