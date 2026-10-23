@@ -7,7 +7,32 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
-LOCAL POLICY COPY FOLLOW-UP (October23, not deployed): Mustafa reported the
+LATEST POLICY NOTICE RELEASE (October23,15:53TRT): application source
+f45b5c3fe7179e6908564055ff580971b2f87bb0 is live at https://birkoru.com,
+Worker38d43805-fef5-49dc-8870-45588722a6bf at100%; maintenance OFF. ONLY the
+shared PolicyDocument trial notice visibility changed; production SSR/pending/
+hydrated config has no notice, restricted staging still has it. Substantive legal
+copy, styles and all application flows/settings unchanged. This is not legal
+acceptance. Mustafa's NEW explicit "canlıya al" request is now consumed.
+Clean coauthor-free source was pushed to the work branch before deployment;
+main untouched.309 units/91 backend/types/targeted lint/build/current audit
+(no high/critical WEB findings) and compiled Chromium4/WebKit4 notice/links/body/
+mobile-desktop light/dark checks passed. No new full web-production/form suite
+or13 manual/physical acceptance claimed; those remain pending.
+
+All THREE fresh encrypted backups/disk decrypt/OFFLINE restores and exact old
+schema/typed rows/media/sequences passed; ZERO SQL writes/migrations/DB cleanup.
+All8 D1s,3 production bindings, shared readers, Secrets, other Workers, Firebase,
+face flags and meeting mail OFF preserved. Live11 anonymous HTTPS/security/
+canonical redirect/exact JS-CSS-Worker-byte checks passed15:54TRT, including actual
+production privacy/terms SSR and hydrated DOM without the trial banner. No test
+accounts/mail/API mutation. Evidence: outputs/web-acceptance/f45b5c3/;
+outputs/release-tests/mobile-stable-20261022-a/{policy-document-chromium,policy-document-webkit}/;
+private policy-notice-core.json. Rollout30f2b8f4-d156-4947-9308-3c200879a40d,
+deploymentd47f9f24-69d7-4df5-a9be-7c912d2d9386. Never rerun consumed rollout or
+0015/16/17/18. Owned5335 preview stopped. Later docs-only commits are NOT deploys.
+
+LOCAL POLICY COPY FOLLOW-UP (Historical preparation; completed above): Mustafa reported the
 obsolete "Bu metin sınırlı deneme sürümü içindir" banner on public privacy/terms.
 Root cause was an unconditional shared PolicyDocument aside, not the production
 privacy text. It now follows the same restrictedTest config as onboarding;
@@ -27,7 +52,7 @@ targeted lint, TypeScript and production build passed. No remote publication
 or physical acceptance was performed during preparation; current browser evidence
 and actual publication outcome must be recorded separately.
 
-LATEST LOCAL-FACE / MAIL RELEASE (October23,11:56TRT): application source
+PREVIOUS LOCAL-FACE / MAIL RELEASE (October23,11:56TRT): application source
 95a6be4c30a855e3fb5828b3511ccf344f854adf is live at https://birkoru.com,
 Worker9b8b42e6-9d26-4230-8c66-2a9db662aaff at100%; maintenance OFF.
 Mustafa's NEW conditional scoped authority below is now consumed. Source was

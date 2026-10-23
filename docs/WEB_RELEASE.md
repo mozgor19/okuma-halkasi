@@ -4,7 +4,24 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
-## Yeni Talep: Deneme Uyarısı
+## Güncel Yayın: Deneme Uyarısı
+
+23 Ekim15:53TRT: kaynak `f45b5c3`, Worker
+`38d43805-fef5-49dc-8870-45588722a6bf` %100, bakım kapalı. Yalnız ortak sayfa
+bileşeninin deneme uyarısı `restrictedTest` koşuluna bağlandı. Canlı gizlilik ve
+koşulların SSR/bekleyen/hydrate hâllerinde görünmüyor; staging uyarısı korunuyor.
+Asıl hukuki metinler ve diğer işlevler değişmedi; hukuki kabul tamamlandı denmez.
+Yeni açık yayın talebi tüketildi. Coauthorsuz temiz/push edilmiş çalışma dalı,
+309 birim/91 backend/tip/lint/build/güncel audit ve Chromium4/WebKit4 geçti.
+Üç şifreli yedek/diskten çözme/offline restore/birebir eski veri kontrolü geçti.
+SQL/migration/DB temizliği yok; tüm bağlantılar/Secret'lar, diğer Worker'lar,
+Firebase, yüz flag'leri ve buluşma mail OFF korundu. Canlı11 anonim HTTPS/tam
+dosya kimliği ve gerçek üretim privacy/terms DOM kontrolü15:54TRT geçti.
+Tam paket/13 manuel/fiziksel kabul bekliyor; bu kopya düzeltmesi için32 form
+paketi yeniden çalıştırılmış sayılmaz. Kanıt: `outputs/web-acceptance/f45b5c3/`.
+Sonraki belge commit'i yeni uygulama yayını değildir; SESSION_MEMORY.md günceldir.
+
+## Deneme Uyarısı: Tarihsel Talep
 
 23 Ekim: Mustafa, ortak gizlilik/koşullar bileşenindeki koşulsuz deneme uyarısı
 düzeltmesini açıkça canlıya istedi. Yeni yetki yalnız bu görünürlük düzeltmesi,

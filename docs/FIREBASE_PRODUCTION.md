@@ -1,6 +1,18 @@
 # Koru Üretim Firebase Hazırlığı
 
-## Son Yayın: Yerel Yüz ve Posta Tercihi
+## Son Yayın: Deneme Uyarısı
+
+23 Ekim15:53TRT: kaynak `f45b5c3`, Worker
+`38d43805-fef5-49dc-8870-45588722a6bf` %100, bakım kapalı. Yalnız ortak
+gizlilik/koşullar deneme uyarısı görünürlüğü düzeltildi; Firebase, hesaplar,
+gönderici, Secret'lar, şemalar ve mevcut veriler DEĞİŞMEDİ. Üç taze şifreli yedek/
+offline restore/birebir veri kontrolü geçti; SQL/migration/DB temizliği yok.
+309 birim/91 backend/tip/lint/build/audit, Chromium4/WebKit4 ve canlı11 anonim
+HTTPS/tam dosya/üretim policy DOM kontrolü geçti. Tam/13 manuel kabul bekliyor;
+bu kaynağa özel yetki tüketildi. Kanıt: `outputs/web-acceptance/f45b5c3/`.
+Sonraki belge commit'i uygulama dağıtımı değildir;0015/16/17/18'i tekrarlama.
+
+## Önceki Yayın: Yerel Yüz ve Posta Tercihi
 
 23 Ekim11:56TRT: uygulama kaynağı `95a6be4`, Worker
 `9b8b42e6-9d26-4230-8c66-2a9db662aaff` %100, bakım kapalı. Yeni dar kapsamlı
