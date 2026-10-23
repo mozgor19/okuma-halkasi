@@ -7,6 +7,26 @@ Never store credentials, private email links, tokens or real user records here.
 
 ## Current Priority
 
+LOCAL POLICY COPY FOLLOW-UP (October23, not deployed): Mustafa reported the
+obsolete "Bu metin sınırlı deneme sürümü içindir" banner on public privacy/terms.
+Root cause was an unconditional shared PolicyDocument aside, not the production
+privacy text. It now follows the same restrictedTest config as onboarding;
+public/initial rendering has no trial banner, restricted staging retains it.
+Substantive provider, retention/deletion, cross-border and local-face limitations
+are unchanged; this is not proof that pending legal/manual acceptance is complete.
+Mustafa subsequently explicitly requested "canlıya al": NEW scoped publication
+authority ONLY for this notice correction and its tests/docs, not old consumed
+rollouts or general release acceptance. Until actual outcome is recorded, live
+source remains95a6be4 below. No SQL/settings/user-data changes are authorized.
+Require clean coauthor-free pushed work-branch source, fresh critical checks/audit,
+compiled Chromium/WebKit public/pending/staging notice proof, exact production
+identity and three fresh encrypted backups/offline restores/exact preservation.
+Keep manual/full-suite categories pending and all settings/bindings unchanged.
+Three focused render tests (public, restricted staging, initial/missing config),
+targeted lint, TypeScript and production build passed. No remote publication
+or physical acceptance was performed during preparation; current browser evidence
+and actual publication outcome must be recorded separately.
+
 LATEST LOCAL-FACE / MAIL RELEASE (October23,11:56TRT): application source
 95a6be4c30a855e3fb5828b3511ccf344f854adf is live at https://birkoru.com,
 Worker9b8b42e6-9d26-4230-8c66-2a9db662aaff at100%; maintenance OFF.

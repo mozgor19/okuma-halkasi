@@ -12,7 +12,7 @@ export function PolicyDocument({ title, children }: { title: string; children: R
     <header><div className="login-brand"><BrandMark /><strong className="koru-wordmark">{config?.brand || "Koru"}</strong></div>
       <h1 id="policy-title">{title}</h1><p className="policy-meta">Sürüm: {POLICY_VERSION} · Hizmeti sunan: Mustafa Özgör</p>
     </header>
-    <aside className="onboarding-test-notice">Bu metin sınırlı deneme sürümü içindir. Genel kullanıma açılmadan önce hukuki değerlendirme, saklama ve silme süreçleri ile yurt dışına veri aktarımı koşulları tamamlanmalıdır.</aside>
+    {config?.restrictedTest && <aside className="onboarding-test-notice">Bu metin sınırlı deneme sürümü içindir. Genel kullanıma açılmadan önce hukuki değerlendirme, saklama ve silme süreçleri ile yurt dışına veri aktarımı koşulları tamamlanmalıdır.</aside>}
     {children}
     <footer><p>İletişim: <a href="mailto:koru.destek@gmail.com">koru.destek@gmail.com</a></p>
       <nav className="onboarding-links" aria-label="Hukuki bağlantılar"><a href="/register"><ArrowLeft size={16} /> Hesap oluştur</a><a href="/privacy">Gizlilik</a><a href="/terms">Kullanım koşulları</a><a href="/support">Destek</a></nav>

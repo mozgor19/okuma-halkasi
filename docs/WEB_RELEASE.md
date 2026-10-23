@@ -4,7 +4,18 @@
 Native uygulama ve Google Play yayını sonraki aşamadır. Bu belge bir yayın
 onayı veya hatasızlık/güvenlik garantisi değildir. Canlıya otomatik çıkılmaz.
 
-## Güncel Yayın: Yerel Yüz ve Posta Tercihi
+## Yeni Talep: Deneme Uyarısı
+
+23 Ekim: Mustafa, ortak gizlilik/koşullar bileşenindeki koşulsuz deneme uyarısı
+düzeltmesini açıkça canlıya istedi. Yeni yetki yalnız bu görünürlük düzeltmesi,
+testleri ve belgeleri içindir; gerçek veri işleme/saklama/silme/aktarım açıklamaları
+değişmez, hukuki/manuel kabul tamamlandı anlamına gelmez. Şema/veri/DB temizliği,
+Secret/sağlayıcı/native değişikliği yoktur. Temiz coauthorsuz/push edilmiş çalışma
+dalı, güncel kritik test/audit/derlenmiş Chromium-WebKit, doğru üretim kimliği,
+üç taze şifreli yedek/offline restore ve birebir veri koruma zorunludur. Kalan
+tam/manuel kabul bekler; bu bölüm henüz yeni dağıtım sonucu değildir.
+
+## Önceki Yayın: Yerel Yüz ve Posta Tercihi
 
 23 Ekim11:56TRT: kaynak `95a6be4`, Worker
 `9b8b42e6-9d26-4230-8c66-2a9db662aaff` %100; birkoru.com açık, bakım kapalı.
