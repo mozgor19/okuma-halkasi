@@ -7,27 +7,26 @@ import { RotateCcw } from "@/components/icons";
 type Preference = { available: boolean; enabled: boolean; verified?: boolean; deliveryReady: boolean; queue?: Record<string, number> | null };
 export function MeetingMailPreference() {
   const group = useReadingGroup();
+  return group ? <ScopedMeetingMailPreference key={group.id} groupId={group.id} /> : null;
+}
+function ScopedMeetingMailPreference({ groupId }: { groupId: string }) {
   const [data, setData] = useState<Preference | null>(null);
-  const [dataGroup, setDataGroup] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const saving = useRef(false);
-  const groupId = group?.id;
   useEffect(() => {
-    if (!groupId) return;
     const controller = new AbortController();
-    setData(null); setDataGroup(undefined); setError(""); setNotice("");
     void groupFetch("/api/groups/notifications", { cache: "no-store", signal: controller.signal }).then(async (response) => {
       if (!response.ok) throw Error();
       const result = await response.json() as Preference;
-      if (!controller.signal.aborted) { setData(result); setDataGroup(groupId); }
+      if (!controller.signal.aborted) setData(result);
     }).catch(() => { if (!controller.signal.aborted) setError("E-posta tercihlerin yüklenemedi."); });
     return () => controller.abort();
   }, [groupId]);
   if (!data?.available && !error) return null;
   async function toggle(enabled: boolean) {
-    if (saving.current || !data || dataGroup !== groupId) return;
+    if (saving.current || !data) return;
     saving.current = true;
     const previous = data, selectedGroup = groupId;
     setBusy(true); setError(""); setNotice(""); setData({ ...data, enabled });
