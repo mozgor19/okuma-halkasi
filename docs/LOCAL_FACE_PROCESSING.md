@@ -36,6 +36,13 @@ yeniden eğitilmez. Tek referansın sınırlamaları, yanlış eşleşme ve eşl
 olasılığı vardır. Aydınlatma varyasyonları doğruluk artışının ölçülmüş kanıtı
 değildir. Gerçek izinli örneklerde ayrı pozitif/negatif değerlendirme gerekir.
 
+Human'ın birleşik description/yaş/cinsiyet yolu KAPALIDIR. Hizalanmış yüz
+tensöründen yalnız mevcut grafın `global_pooling/Mean` embedding çıktısı
+çalıştırılır; yaş/cinsiyet başlıkları yürütülmez. Emotion, gear/race, liveness,
+body, hand ve object modülleri de kapalıdır. Tensorlar her analizde temizlenir;
+model ağırlıkları hız için işçide kalabilir, sayfa kapanınca işçi sonlandırılır.
+Üç aydınlatma varyasyonunda eski descriptor önbelleği kullanılmaz.
+
 Yerel politika, kasa izolasyonu/şifreleme/silme/TTL, ağ sınırı, gerçek model
 yükleme, boş görsel reddi, UI duyarlılığı ve tüm görünüm modları kontrol edilir.
 Sentetik browser kontrolleri gerçek yüz doğruluğu veya hukuki kabul değildir.

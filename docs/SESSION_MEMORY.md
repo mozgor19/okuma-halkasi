@@ -25,6 +25,9 @@ reads while retaining group membership, verification and rate-limit checks.
 
 New Koru-only face tool: Human3.3.6 in a dedicated module Worker, mesh/rotation,
 three lighting descriptors from one reference and conservative ambiguity rejection.
+The combined Human description path is disabled: only the existing graph's
+global_pooling/Mean embedding output executes; no age/gender heads. A zero-tensor
+warmup validates that graph, and descriptors are recomputed for lighting variants.
 No retraining or measured accuracy gain is claimed. References are encrypted
 AES-GCM IndexedDB records, device/account/group/model scoped,30-day validity;
 raw reference/analysis images, descriptors and scores never go to APIs. A worker

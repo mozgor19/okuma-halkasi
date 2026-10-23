@@ -1,4 +1,4 @@
-import { Human, type FaceResult } from "@vladmandic/human";
+import { Human, type FaceResult, type GraphModel } from "@vladmandic/human";
 import { LOCAL_FACE_CONSENT, localModelRequest, selectLocalMatches, validLocalEmbedding, type LocalFaceScope } from "@/lib/local-face-policy";
 import { clearLocalReferences, readLocalReferences, saveLocalReference } from "@/lib/local-face-vault";
 
@@ -12,19 +12,51 @@ worker.fetch = async (input, init) => {
   return nativeFetch(url.href, { method: "GET", credentials: "omit", redirect: "error", referrerPolicy: "no-referrer", cache: "force-cache" });
 };
 let human: Human | undefined;
+let descriptor: GraphModel | undefined;
 async function engine() {
   if (!human) {
-    const config = { backend: "webgl", async: true, warmup: "none", debug: false, cacheSensitivity: 0, modelBasePath: new URL("/face-models/", worker.location.origin).href,
+    const config = { backend: "webgl", async: true, warmup: "none", debug: false, skipAllowed: false, cacheSensitivity: 0, modelBasePath: new URL("/face-models/", worker.location.origin).href,
       filter: { enabled: true, equalization: true },
-      face: { enabled: true, detector: { enabled: true, rotation: true, return: false, maxDetected: 30, minConfidence: .6, minSize: 40 },
-        mesh: { enabled: true }, attention: { enabled: false }, iris: { enabled: false }, description: { enabled: true, minConfidence: .6 },
+      face: { enabled: true, detector: { enabled: true, rotation: true, return: true, maxDetected: 30, minConfidence: .6, minSize: 40 },
+        mesh: { enabled: true }, attention: { enabled: false }, iris: { enabled: false }, description: { enabled: false },
         emotion: { enabled: false }, antispoof: { enabled: false }, liveness: { enabled: false }, gear: { enabled: false } },
       body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }, segmentation: { enabled: false }, gesture: { enabled: false } } as const;
     human = new Human(config);
     try { await human.load(); await human.init(); }
     catch { human = new Human({ ...config, backend: "cpu" }); await human.load(); await human.init(); }
   }
+  if (!descriptor) {
+    const loaded = await human.tf.loadGraphModel(new URL("/face-models/faceres.json", worker.location.origin).href) as GraphModel;
+    const input = human.tf.zeros([1, 224, 224, 3]);
+    let output;
+    try {
+      // Validate/warm only the descriptor graph with a synthetic zero tensor, never a person's image.
+      output = loaded.execute(input, "global_pooling/Mean") as { data: () => Promise<Float32Array>; dispose: () => void };
+      if (!validLocalEmbedding(Array.from(await output.data()))) throw Error("Yerel yüz modeli doğrulanamadı.");
+      descriptor = loaded;
+    } catch { loaded.dispose(); throw Error("Yerel yüz modeli bu cihazda çalıştırılamadı. Elle katılımcı ekleyebilirsin."); }
+    finally { input.dispose(); output?.dispose(); }
+  }
   return human;
+}
+async function detect(model: Human, canvas: OffscreenCanvas) {
+  const result = await model.detect(canvas);
+  try {
+    for (const face of result.face) {
+      if (!face.tensor) continue;
+      // Execute only the embedding head. Human's description path also infers age/gender.
+      const input = model.tf.tidy(() => model.tf.image.resizeBilinear(face.tensor, [224, 224], false).expandDims(0).mul(255));
+      let output;
+      try {
+        output = descriptor!.execute(input, "global_pooling/Mean") as { data: () => Promise<Float32Array>; dispose: () => void };
+        face.embedding = Array.from(await output.data());
+      } finally { input.dispose(); output?.dispose(); }
+    }
+    return { face: result.face.slice() };
+  } finally {
+    for (const face of result.face) { face.tensor?.dispose(); delete face.tensor; }
+    model.result.face = [];
+  }
 }
 const usable = (face: FaceResult, reference = false) => validLocalEmbedding(face.embedding) && face.boxScore >= (reference ? .75 : .6)
   && Math.min(face.box[2], face.box[3]) >= (reference ? 80 : 40);
@@ -46,9 +78,10 @@ async function handle(command: Command) {
   if (action === "list") return { members: (await readLocalReferences(scope)).map(ref => ref.memberId) };
   if (action === "enroll" && (command.consent !== LOCAL_FACE_CONSENT || !Number.isSafeInteger(command.memberId) || command.memberId! < 1)) throw Error("Kişinin açık izni olmadan referans eklenemez.");
   if (action !== "enroll" && (action !== "match" || command.consent !== LOCAL_FACE_CONSENT || !Array.isArray(command.memberIds) || command.memberIds.length > 500)) throw Error("Yerel eşleştirme isteği geçersiz.");
-  const canvas = await canvasFor(command.file!), model = await engine();
+  const canvas = await canvasFor(command.file!);
   try {
-    const result = await model.detect(canvas);
+    const model = await engine();
+    const result = await detect(model, canvas);
     if (action === "enroll") {
       if (result.face.length !== 1 || !usable(result.face[0], true)) throw Error("Tek, net ve yeterince büyük bir yüz içeren önden çekilmiş referans seç.");
       const embeddings = [result.face[0].embedding!];
@@ -58,7 +91,7 @@ async function handle(command: Command) {
         const varied = new ImageData(new Uint8ClampedArray(original.data), original.width, original.height);
         for (let i = 0; i < varied.data.length; i++) if (i % 4 !== 3) varied.data[i] = Math.round(255 * Math.pow(varied.data[i] / 255, gamma));
         context.putImageData(varied, 0, 0);
-        const alternate = await model.detect(canvas);
+        const alternate = await detect(model, canvas);
         if (alternate.face.length === 1 && usable(alternate.face[0], true)) embeddings.push(alternate.face[0].embedding!);
       }
       await saveLocalReference(scope, { memberId: command.memberId!, embeddings, createdAt: Date.now(), consent: LOCAL_FACE_CONSENT });
@@ -68,7 +101,7 @@ async function handle(command: Command) {
     const references = (await readLocalReferences(scope)).filter(ref => command.memberIds!.includes(ref.memberId));
     return { candidates: selectLocalMatches(result.face.filter(face => usable(face)).map(face => face.embedding!), references, (a, b) => model.match.similarity(a, b)),
       faceCount: result.face.length, usableReferenceCount: references.length };
-  } finally { canvas.width = canvas.height = 1; model.models.reset(); human = undefined; }
+  } finally { canvas.width = canvas.height = 1; }
 }
 let queue = Promise.resolve();
 worker.onmessage = event => {
